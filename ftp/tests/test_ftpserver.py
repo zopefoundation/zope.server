@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: test_ftpserver.py,v 1.2 2002/12/25 14:15:24 jim Exp $
+$Id: test_ftpserver.py,v 1.3 2003/01/30 16:01:11 jim Exp $
 """
 
 import asyncore
@@ -204,6 +204,26 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             self.assertRaises(ftplib.Error, retrlines, conn, 'LIST /foo')
             listing = retrlines(conn, 'LIST')
             self.assert_(len(listing) > 0)
+            listing = retrlines(conn, 'LIST -la')
+            self.assert_(len(listing) > 0)
+        finally:
+            conn.close()
+        # Make sure no garbage was left behind.
+        self.testNOOP()
+
+    def testMKDLIST(self):
+        self.execute(['MKD f1', 'MKD f2'], 1)
+        conn = ftplib.FTP()
+        try:
+            conn.connect(LOCALHOST, self.port)
+            conn.login('foo', 'bar')
+            listing = []
+            conn.retrlines('LIST', listing.append)
+            self.assert_(len(listing) > 2)
+            listing = []
+            conn.retrlines('LIST -lad f1', listing.append)
+            self.assertEqual(len(listing), 1)
+            self.assertEqual(listing[0][0], 'd')
         finally:
             conn.close()
         # Make sure no garbage was left behind.

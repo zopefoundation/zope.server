@@ -16,7 +16,7 @@
 Simulates OS-level directory listing output for *nix and MS-DOS (including
 Windows NT).
 
-$Id: osemulators.py,v 1.2 2002/12/25 14:15:23 jim Exp $
+$Id: osemulators.py,v 1.3 2003/01/30 16:01:09 jim Exp $
 """
 
 import stat
@@ -70,9 +70,10 @@ def ls_date(now, t):
          Oct 19  1995
        otherwise, it looks like this:
          Oct 19 17:33
+
     """
-    if abs((now - t).days) > 180:
-        return t.strftime('%b %d, %Y')
+    if now.date() - t.date() > datetime.timedelta(days=180):
+        return t.strftime('%b %d %Y')
     else:
         return t.strftime('%b %d %H:%M')
 

@@ -13,13 +13,14 @@
 ##############################################################################
 """
 
-$Id: ftpserverchannel.py,v 1.3 2003/01/09 10:27:53 anthony Exp $
+$Id: ftpserverchannel.py,v 1.4 2003/01/30 16:01:09 jim Exp $
 """
 
 import posixpath
 import stat
 import socket
 import time
+from getopt import getopt, GetoptError
 
 from zope.server.linereceiver.lineserverchannel import LineServerChannel
 from zope.server.ftp.ftpstatusmessages import status_msgs
@@ -152,6 +153,21 @@ class FTPServerChannel(LineServerChannel):
 
     def cmd_list(self, args, long=1):
         'See IFTPCommandHandler'
+        opts = ()
+        if args.strip().startswith('-'):
+            try:
+                opts, args = getopt(args.split(), 'lad')
+            except GetoptError:
+                self.reply('ERR_ARGS')
+                return
+                
+            if len(args) > 1:
+                self.reply('ERR_ARGS')
+                return
+
+            args = args and args[0] or ''
+                
+            
         fs = self._getFilesystem()
         path = self._generatePath(args)
         if not fs.exists(path):
@@ -159,7 +175,10 @@ class FTPServerChannel(LineServerChannel):
             return
         args = args.split()
         try:
-            s = self.getList(args, long)
+            s = self.getList(
+                args, long,
+                directory=bool([opt for opt in opts if opt[0]=='-d'])
+                )
         except OSError, err:
             self.reply('ERR_NO_LIST', str(err))
             return
@@ -472,7 +491,7 @@ class FTPServerChannel(LineServerChannel):
         return self.passive_acceptor
 
 
-    def getList(self, args, long=0):
+    def getList(self, args, long=0, directory=0):
         # we need to scan the command line for arguments to '/bin/ls'...
         fs = self._getFilesystem()
         path_args = []
@@ -488,7 +507,7 @@ class FTPServerChannel(LineServerChannel):
             path = path_args[0]
 
         path = self._generatePath(path)
-        if fs.isdir(path):
+        if fs.isdir(path) and not directory:
             file_list = fs.listdir(path, long)
         else:
             file_list = [ (posixpath.split(path)[1], fs.stat(path)) ]
