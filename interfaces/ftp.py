@@ -200,7 +200,6 @@ class IFileSystemAccess(Interface):
         call to open().  Rather, open() should do its own verification.
 
         Credentials are passed as (username, password) tuples.
-
         """
 
     def open(credentials):
@@ -210,7 +209,6 @@ class IFileSystemAccess(Interface):
         can not be authenticated.
 
         Credentials are passed as (username, password) tuples.
-
         """
 
 
@@ -224,8 +222,11 @@ class IFileSystem(Interface):
        which mainly means that FS implementations always expect forward
        slashes, and filenames are case-sensitive.
 
-       Note that a file system should not store any state.
-       (XXX: Please explain why not.)
+       `IFileSystem`, in generel, could be created many times per
+       request. Thus it is not advisable to store state in them. However, if
+       you have a special kind of `IFileSystemAccess` object that somhow
+       manages an `IFileSystem` for each set of credentials, then it would be
+       possible to store some state on this obejct. 
     """
 
     def type(path):
@@ -335,33 +336,40 @@ class IFileSystem(Interface):
     def mtime(path):
         """Return the modification time for the file at `path`.
 
-        Return None if it is unknown.
+        This method returns the modification time. It is assumed that the path
+        exists. You can use the `type(path)` method to determine whether
+        `path` points to a valid file.
 
-        XXX: what about if there is no file at `path`?
+        If the modification time is unknown, then return `None`.
         """
 
     def size(path):
         """Return the size of the file at path.
 
-        XXX: what about if there is no file at `path`?
+        This method returns the modification time. It is assumed that the path
+        exists. You can use the `type(path)` method to determine whether
+        `path` points to a valid file.
         """
 
     def mkdir(path):
         """Create a directory.
 
-        XXX: what to do if it is not possible, or not allowed?
+        If it is not possible or allowed to create the directory, an `OSError`
+        should be raised describing the reason of failure. 
         """
 
     def remove(path):
         """Remove a file.  Same as unlink.
 
-        XXX: What to do if removal is not possible, or not allowed?
+        If it is not possible or allowed to remove the file, an `OSError`
+        should be raised describing the reason of failure. 
         """
 
     def rmdir(path):
         """Remove a directory.
 
-        XXX: What to do if removal is not possible, or not allowed?
+        If it is not possible or allowed to remove the directory, an `OSError`
+        should be raised describing the reason of failure. 
         """
 
     def rename(old, new):
@@ -382,21 +390,20 @@ class IFileSystem(Interface):
         written.  If `end` is not None, any parts of the file after
         `end` are left unchanged.
 
-        Note that if `end` is not None, and there is not enough data
-        in `instream` in fill the file up to `end`, then the missing
+        Note that if `end` is not `None`, and there is not enough data
+        in the `instream` it will fill the file up to `end`, then the missing
         data are undefined.
 
-        If both `start` is None and `end` is None, then the file contents
+        If both `start` is `None` and `end` is `None`, then the file contents
         are overwritten.
 
         If `start` is specified and the file doesn't exist or is shorter
         than `start`, the data in the file before `start` file will be
         undefined.
 
-        XXX: What about raising an exception if you try to write a new file
-             starting not at 0, or try to write a file starting after its
-             end point?
-
+        If you do not want to handle incorrect starting and ending indices,
+        you can also raise an `IOError`, which will be properly handled by the
+        server.
         """
 
     def writable(path):

@@ -278,10 +278,11 @@ class FTPServerChannel(LineServerChannel):
             self.reply('ERR_ARGS')
             return
         path = self._generatePath(args)
-        if not fs.type(path) == 'f':
+        
+        if fs.type(path) != 'f':
             self.reply('ERR_IS_NOT_FILE', path)
         else:
-            mtime = self._getFileSystem().mtime(path)
+            mtime = fs.mtime(path)
             if mtime is not None:
                 mtime = (mtime.year, mtime.month, mtime.day,
                          mtime.hour, mtime. minute, mtime.second)
@@ -462,7 +463,7 @@ class FTPServerChannel(LineServerChannel):
         'See IFTPCommandHandler'
         path = self._generatePath(args)
         fs = self._getFileSystem()
-        if not (fs.type(path) == 'f'):
+        if fs.type(path) != 'f':
             self.reply('ERR_NO_FILE', path)
         else:
             self.reply('FILE_SIZE', fs.size(path))
