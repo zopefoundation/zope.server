@@ -359,7 +359,7 @@ class FTPServerChannel(LineServerChannel):
         port = int(info[4])*256 + int(info[5])
         # how many data connections at a time?
         # I'm assuming one for now...
-        # XXX: we should (optionally) verify that the
+        # TODO: we should (optionally) verify that the
         # ip number belongs to the client.  [wu-ftpd does this?]
         self.client_addr = (ip, port)
         self.reply('SUCCESS_200', 'PORT')

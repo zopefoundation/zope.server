@@ -34,10 +34,10 @@ class TestCommonAccessLogger(unittest.TestCase):
         self.assert_(logger.output.logger.name, 'accesslog')
         self.assert_(logger.output.logger.level, logging.INFO)
 
-    # XXX please add unit tests for other methods as well:
-    #     compute_timezone_for_log
-    #     log_date_string
-    #     log
+    # TODO: please add unit tests for other methods as well:
+    #       compute_timezone_for_log
+    #       log_date_string
+    #       log
 
 
 def test_suite():
