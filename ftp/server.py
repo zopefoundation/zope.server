@@ -11,25 +11,25 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""FTP Server
 
 $Id$
 """
-
+import asyncore
 import posixpath
 import socket
 from datetime import date, timedelta
 from getopt import getopt, GetoptError
-import asyncore
+
 from zope.exceptions import Unauthorized
-from zope.server.serverbase import ServerBase
-from zope.server.interfaces.ftp import IFileSystemAccess
-from zope.server.linereceiver.lineserverchannel import LineServerChannel
-from zope.server.interfaces.ftp import IFTPCommandHandler
-from zope.server.serverchannelbase import ChannelBaseClass
+from zope.interface import implements
 from zope.server.buffers import OverflowableBuffer
 from zope.server.interfaces import ITask
-from zope.interface import implements
+from zope.server.interfaces.ftp import IFileSystemAccess
+from zope.server.interfaces.ftp import IFTPCommandHandler
+from zope.server.linereceiver.lineserverchannel import LineServerChannel
+from zope.server.serverbase import ServerBase
+from zope.server.serverchannelbase import ChannelBaseClass
 
 status_messages = {
     'OPEN_DATA_CONN'   : '150 Opening %s mode data connection for file list',

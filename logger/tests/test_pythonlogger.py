@@ -11,11 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Python Logger tests
 
 $Id$
 """
-
 import unittest
 import logging
 from zope.interface.verify import verifyObject

@@ -11,11 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Test HTTP date converters
 
 $Id$
 """
-
 import unittest
 from zope.server.http.http_date import build_http_date, parse_http_date
 

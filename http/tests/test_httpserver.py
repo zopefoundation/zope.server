@@ -11,11 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Test HTTP Server
 
 $Id$
 """
-
 import unittest
 from asyncore import socket_map, poll
 import socket

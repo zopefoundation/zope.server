@@ -11,11 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""HTTP Request Parser tests
 
 $Id$
 """
-
 import unittest
 from zope.server.http.httprequestparser import HTTPRequestParser
 from zope.server.adjustments import Adjustments

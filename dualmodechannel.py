@@ -11,11 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Dual-mode channel
 
 $Id$
 """
-
 import asyncore
 import socket
 from time import time

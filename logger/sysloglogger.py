@@ -11,7 +11,9 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Syslog Logger
+
+Writes log messages to syslog.
 
 $Id$
 """

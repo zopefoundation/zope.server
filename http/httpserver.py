@@ -11,7 +11,8 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""HTTP Server
+
 This server uses asyncore to accept connections and do initial
 processing but threads to do work.
 

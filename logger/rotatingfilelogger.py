@@ -11,11 +11,12 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Rotating File Logger
+
+Rotates a log file in time intervals.
 
 $Id$
 """
-
 import time
 import os
 import stat

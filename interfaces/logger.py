@@ -11,11 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Logger interfaces
 
 $Id$
 """
-
 from zope.interface import Interface
 
 

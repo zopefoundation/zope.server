@@ -11,11 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""HTTP Server Channel
 
 $Id$
 """
-
 from zope.server.serverchannelbase import ServerChannelBase
 from zope.server.http.httptask import HTTPTask
 from zope.server.http.httprequestparser import HTTPRequestParser
