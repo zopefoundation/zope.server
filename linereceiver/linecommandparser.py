@@ -13,16 +13,17 @@
 ##############################################################################
 """
 
-$Id: linecommandparser.py,v 1.2 2002/12/25 14:15:26 jim Exp $
+$Id: linecommandparser.py,v 1.3 2003/06/04 08:40:33 stevea Exp $
 """
 
 from zope.server.interfaces import IStreamConsumer
+from zope.interface import implements
 
 
 class LineCommandParser:
     """Line Command parser. Arguments are left alone for now."""
 
-    __implements__ = IStreamConsumer
+    implements(IStreamConsumer)
 
     # See IStreamConsumer
     completed = 0

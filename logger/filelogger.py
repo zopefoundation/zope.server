@@ -13,17 +13,18 @@
 ##############################################################################
 """
 
-$Id: filelogger.py,v 1.2 2002/12/25 14:15:27 jim Exp $
+$Id: filelogger.py,v 1.3 2003/06/04 08:40:33 stevea Exp $
 """
 from types import StringType
 
 from zope.server.interfaces.logger import IMessageLogger
+from zope.interface import implements
 
 class FileLogger:
     """Simple File Logger
     """
 
-    __implements__ = IMessageLogger
+    implements(IMessageLogger)
 
     def __init__(self, file, flush=1, mode='a'):
         """pass this either a path or a file object."""
@@ -37,25 +38,20 @@ class FileLogger:
             self.file = file
         self.do_flush = flush
 
-
     def __repr__(self):
         return '<file logger: %s>' % self.file
-
 
     def write(self, data):
         self.file.write(data)
         self.maybe_flush()
 
-
     def writeline(self, line):
         self.file.writeline(line)
         self.maybe_flush()
 
-
     def writelines(self, lines):
         self.file.writelines(lines)
         self.maybe_flush()
-
 
     def maybe_flush(self):
         if self.do_flush:
@@ -66,7 +62,6 @@ class FileLogger:
 
     def softspace(self, *args):
         pass
-
 
     def logMessage(self, message):
         'See IMessageLogger'

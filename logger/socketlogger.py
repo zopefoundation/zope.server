@@ -13,18 +13,19 @@
 ##############################################################################
 """
 
-$Id: socketlogger.py,v 1.2 2002/12/25 14:15:27 jim Exp $
+$Id: socketlogger.py,v 1.3 2003/06/04 08:40:33 stevea Exp $
 """
 
 import asynchat
 import socket
 
 from zope.server.interfaces.logger import IMessageLogger
+from zope.interface import implements
 
 class SocketLogger(asynchat.async_chat):
     """Log to a stream socket, asynchronously."""
 
-    __implements__ = IMessageLogger
+    implements(IMessageLogger)
 
     def __init__(self, address):
         if type(address) == type(''):

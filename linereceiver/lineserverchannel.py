@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: lineserverchannel.py,v 1.3 2003/03/13 18:49:18 alga Exp $
+$Id: lineserverchannel.py,v 1.4 2003/06/04 08:40:33 stevea Exp $
 """
 
 import os
@@ -23,15 +23,11 @@ from zope.server.serverchannelbase import ServerChannelBase
 from zope.server.linereceiver.linecommandparser import LineCommandParser
 from zope.server.linereceiver.linetask import LineTask
 
-
 DEBUG = os.environ.get('ZOPE_SERVER_DEBUG')
-
 
 class LineServerChannel(ServerChannelBase):
     """The Line Server Channel represents a connection to a particular
        client. We can therefore store information here."""
-
-    __implements__ = ServerChannelBase.__implements__
 
     # Wrapper class that is used to execute a command in a different thread
     task_class = LineTask

@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: rotatingfilelogger.py,v 1.2 2002/12/25 14:15:27 jim Exp $
+$Id: rotatingfilelogger.py,v 1.3 2003/06/04 08:40:33 stevea Exp $
 """
 
 import time
@@ -33,8 +33,6 @@ class RotatingFileLogger(FileLogger):
         the log is done via 'mv' because anything else (cp, gzip)
         would take time, during which medusa would do nothing else.
     """
-
-    __implements__ = FileLogger.__implements__
 
     def __init__(self, file, freq=None, maxsize=None, flush=1, mode='a'):
         self.filename = file

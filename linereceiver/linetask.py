@@ -13,21 +13,20 @@
 ##############################################################################
 """
 
-$Id: linetask.py,v 1.2 2002/12/25 14:15:26 jim Exp $
+$Id: linetask.py,v 1.3 2003/06/04 08:40:33 stevea Exp $
 """
 
 import socket
 import time
 from zope.server.interfaces import ITask
+from zope.interface import implements
 
 
 class LineTask:
     """This is a generic task that can be used with command line
        protocols to handle commands in a separate thread.
     """
-
-    __implements__ = ITask
-
+    implements(ITask)
 
     def __init__(self, channel, command, m_name):
         self.channel = channel
@@ -53,11 +52,9 @@ class LineTask:
         finally:
             self.channel.end_task(self.close_on_finish)
 
-
     def cancel(self):
         'See ITask'
         self.channel.close_when_done()
-
 
     def defer(self):
         'See ITask'
@@ -66,7 +63,6 @@ class LineTask:
     def start(self):
         now = time.time()
         self.start_time = now
-
 
     def finish(self):
         hit_log = self.channel.server.hit_log

@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: dualmodechannel.py,v 1.3 2003/04/09 09:49:35 ryzaja Exp $
+$Id: dualmodechannel.py,v 1.4 2003/06/04 08:40:32 stevea Exp $
 """
 
 import asyncore
@@ -30,7 +30,6 @@ if selecttrigger.the_trigger is None:
     selecttrigger.the_trigger = selecttrigger.Trigger()
 
 
-
 class DualModeChannel(asyncore.dispatcher):
     """Channel that switches between asynchronous and synchronous mode.
 
@@ -40,8 +39,6 @@ class DualModeChannel(asyncore.dispatcher):
     Call set_async() to give the channel back to the thread handling
     the main loop.
     """
-
-    __implements__ = asyncore.dispatcher.__implements__
 
     # will_close is set to 1 to close the socket.
     will_close = 0
@@ -208,7 +205,7 @@ class DualModeChannel(asyncore.dispatcher):
 allocate_lock = None
 
 
-class SimultaneousModeChannel (DualModeChannel):
+class SimultaneousModeChannel(DualModeChannel):
     """Layer on top of DualModeChannel that allows communication in
     both the main thread and other threads at the same time.
 
@@ -216,9 +213,6 @@ class SimultaneousModeChannel (DualModeChannel):
     helper.  The asynchronous callbacks empty the output buffer
     and fill the input buffer.
     """
-
-    __implements__ = asyncore.dispatcher.__implements__
-
 
     def __init__(self, conn, addr, adj=None):
         global allocate_lock

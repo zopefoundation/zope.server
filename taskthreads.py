@@ -14,11 +14,12 @@ from time import time, sleep
 import logging
 
 from zope.server.interfaces import ITaskDispatcher
+from zope.interface import implements
 
 
 class ThreadedTaskDispatcher:
 
-    __implements__ = ITaskDispatcher
+    implements(ITaskDispatcher)
 
     stop_count = 0  # Number of threads that will stop soon.
 

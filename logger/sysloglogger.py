@@ -13,13 +13,14 @@
 ##############################################################################
 """
 
-$Id: sysloglogger.py,v 1.3 2003/05/01 19:35:48 faassen Exp $
+$Id: sysloglogger.py,v 1.4 2003/06/04 08:40:33 stevea Exp $
 """
 
 import os
 from zope.server.logger import m_syslog
 
 from zope.server.interfaces.logger import IMessageLogger
+from zope.interface import implements
 
 
 class SyslogLogger(m_syslog.syslog_client):
@@ -34,7 +35,7 @@ class SyslogLogger(m_syslog.syslog_client):
        blocking send()
     """
 
-    __implements__ = IMessageLogger
+    implements(IMessageLogger)
 
     svc_name = 'zope'
     pid_str  = str(os.getpid())
@@ -44,10 +45,8 @@ class SyslogLogger(m_syslog.syslog_client):
         self.facility = m_syslog.facility_names[facility]
         self.address=address
 
-
     def __repr__ (self):
         return '<syslog logger address=%s>' % (repr(self.address))
-
 
     def logMessage(self, message):
         'See IMessageLogger'

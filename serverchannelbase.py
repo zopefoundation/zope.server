@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: serverchannelbase.py,v 1.2 2002/12/25 14:15:23 jim Exp $
+$Id: serverchannelbase.py,v 1.3 2003/06/04 08:40:32 stevea Exp $
 """
 
 import os
@@ -21,6 +21,7 @@ import time
 import sys
 import asyncore
 from thread import allocate_lock
+from zope.interface import implements
 
 # Enable ZOPE_SERVER_SIMULT_MODE to enable experimental
 # simultaneous channel mode, which may improve or degrade
@@ -41,8 +42,7 @@ class ServerChannelBase(ChannelBaseClass, object):
     """Base class for a high-performance, mixed-mode server-side channel.
     """
 
-    __implements__ = ChannelBaseClass.__implements__, IServerChannel
-
+    implements(IServerChannel)
 
     parser_class = None       # Subclasses must provide a parser class
     task_class = None         # ... and a task class.
@@ -66,13 +66,11 @@ class ServerChannelBase(ChannelBaseClass, object):
         self.last_activity = t = self.creation_time
         self.check_maintenance(t)
 
-
     def add_channel(self, map=None):
         """This hook keeps track of opened HTTP channels.
         """
         ChannelBaseClass.add_channel(self, map)
         self.__class__.active_channels[self._fileno] = self
-
 
     def del_channel(self, map=None):
         """This hook keeps track of closed HTTP channels.
@@ -83,7 +81,6 @@ class ServerChannelBase(ChannelBaseClass, object):
         if fd in ac:
             del ac[fd]
 
-
     def check_maintenance(self, now):
         """Performs maintenance if necessary.
         """
@@ -93,12 +90,10 @@ class ServerChannelBase(ChannelBaseClass, object):
         ncc[0] = now + self.adj.cleanup_interval
         self.maintenance()
 
-
     def maintenance(self):
         """Kills off dead connections.
         """
         self.kill_zombies()
-
 
     def kill_zombies(self):
         """Closes connections that have not had any activity in a while.
@@ -111,7 +106,6 @@ class ServerChannelBase(ChannelBaseClass, object):
             if (channel is not self and not channel.running_tasks and
                 channel.last_activity < cutoff):
                 channel.close()
-
 
     def received(self, data):
         """Receive input asynchronously and send requests to
@@ -133,7 +127,6 @@ class ServerChannelBase(ChannelBaseClass, object):
             if n >= len(data):
                 break
             data = data[n:]
-
 
     def receivedCompleteRequest(self, req):
         """If there are tasks running or requests on hold, queue
@@ -160,7 +153,6 @@ class ServerChannelBase(ChannelBaseClass, object):
             if task is not None:
                 self.start_task(task)
 
-
     def start_task(self, task):
         """Starts the given task.
 
@@ -174,7 +166,6 @@ class ServerChannelBase(ChannelBaseClass, object):
         self.set_sync()
         self.server.addTask(task)
 
-
     def handle_error(self):
         """Handles program errors (not communication errors)
         """
@@ -182,7 +173,6 @@ class ServerChannelBase(ChannelBaseClass, object):
         if t is SystemExit or t is KeyboardInterrupt:
             raise t, v
         asyncore.dispatcher.handle_error(self)
-
 
     def handle_comm_error(self):
         """Handles communication errors (not program errors)
@@ -192,7 +182,6 @@ class ServerChannelBase(ChannelBaseClass, object):
         else:
             # Ignore socket errors.
             self.close()
-
 
     #
     # SYNCHRONOUS METHODS
@@ -232,7 +221,6 @@ class ServerChannelBase(ChannelBaseClass, object):
                 # Idle -- Wait for another request on this connection.
                 self.set_async()
                 break
-
 
     #
     # BOTH MODES

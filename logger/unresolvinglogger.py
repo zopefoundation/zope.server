@@ -13,14 +13,15 @@
 ##############################################################################
 """
 
-$Id: unresolvinglogger.py,v 1.2 2002/12/25 14:15:27 jim Exp $
+$Id: unresolvinglogger.py,v 1.3 2003/06/04 08:40:33 stevea Exp $
 """
 from zope.server.interfaces.logger import IRequestLogger
+from zope.interface import implements
 
 class UnresolvingLogger:
     """Just in case you don't want to resolve"""
 
-    __implements__ = IRequestLogger
+    implements(IRequestLogger)
 
     def __init__(self, logger):
         self.logger = logger

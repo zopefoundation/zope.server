@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: serverbase.py,v 1.2 2002/12/25 14:15:23 jim Exp $
+$Id: serverbase.py,v 1.3 2003/06/04 08:40:32 stevea Exp $
 """
 
 import asyncore
@@ -21,15 +21,15 @@ import logging
 import socket
 
 from zope.server.adjustments import default_adj
-
 from zope.server.interfaces import IServer
+from zope.interface import implements
 
 
 class ServerBase(asyncore.dispatcher, object):
     """Async. server base for launching derivatives of ServerChannelBase.
     """
 
-    __implements__ = asyncore.dispatcher.__implements__, IServer
+    implements(IServer)
 
     channel_class = None    # Override with a channel class.
     SERVER_IDENT = 'zope.server.serverbase'  # Override.

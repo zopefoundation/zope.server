@@ -13,15 +13,16 @@
 ##############################################################################
 """
 
-$Id: taillogger.py,v 1.2 2002/12/25 14:15:27 jim Exp $
+$Id: taillogger.py,v 1.3 2003/06/04 08:40:33 stevea Exp $
 """
 
 from zope.server.interfaces.logger import IMessageLogger
+from zope.interface import implements
 
 class TailLogger:
     """Keep track of the last <size> log messages"""
 
-    __implements__ = IMessageLogger
+    implements(IMessageLogger)
 
     def __init__(self, logger, size=500):
         self.size = size

@@ -13,15 +13,16 @@
 ##############################################################################
 """
 
-$Id: fixedstreamreceiver.py,v 1.2 2002/12/25 14:15:23 jim Exp $
+$Id: fixedstreamreceiver.py,v 1.3 2003/06/04 08:40:32 stevea Exp $
 """
 
 from zope.server.interfaces import IStreamConsumer
+from zope.interface import implements
 
 
 class FixedStreamReceiver:
 
-    __implements__ = IStreamConsumer
+    implements(IStreamConsumer)
 
     # See IStreamConsumer
     completed = 0
