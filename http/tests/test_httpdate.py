@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: test_httpdate.py,v 1.2 2003/03/13 18:49:18 alga Exp $
+$Id: test_httpdate.py,v 1.3 2003/03/24 14:58:32 stevea Exp $
 """
 
 import unittest
@@ -23,9 +23,9 @@ class Tests(unittest.TestCase):
 
     # test roundtrip conversion.
     def testDateRoundTrip(self):
-	from time import time
-	t = int(time())
-	self.assertEquals(t, parse_http_date(build_http_date(t)))
+    from time import time
+    t = int(time())
+    self.assertEquals(t, parse_http_date(build_http_date(t)))
 
 
 def test_suite():
