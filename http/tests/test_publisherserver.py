@@ -92,7 +92,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
     def setUp(self):
         super(Tests, self).setUp()
-        as = zope.component.getService(None, 'Adapters')
+        as = zope.component.getService('Adapters')
         as.register([IHTTPRequest], IUserPreferredCharsets, '', HTTPCharsets)
         obj = tested_object()
         obj.folder = tested_object()
