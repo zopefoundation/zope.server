@@ -13,21 +13,20 @@
 ##############################################################################
 """
 
-$Id: dualmodechannel.py,v 1.4 2003/06/04 08:40:32 stevea Exp $
+$Id: dualmodechannel.py,v 1.5 2003/11/04 03:33:43 jeremy Exp $
 """
 
 import asyncore
 import socket
 from time import time
 
-import selecttrigger
+from zope.server import trigger
 from zope.server.adjustments import default_adj
 from zope.server.buffers import OverflowableBuffer
 
 
 # Create the main trigger if it doesn't exist yet.
-if selecttrigger.the_trigger is None:
-    selecttrigger.the_trigger = selecttrigger.Trigger()
+the_trigger = trigger.trigger()
 
 
 class DualModeChannel(asyncore.dispatcher):
@@ -172,7 +171,7 @@ class DualModeChannel(asyncore.dispatcher):
     def pull_trigger(self):
         """Wakes up the main loop.
         """
-        selecttrigger.the_trigger.pull_trigger()
+        the_trigger.pull_trigger()
 
     def _flush_some(self):
         """Flushes data.

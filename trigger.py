@@ -8,25 +8,18 @@
 # THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
 # WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
-# FOR A PARTICULAR PURPOSE.
+# FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
-# -*- Mode: Python; tab-width: 4 -*-
-
-VERSION_STRING = "$Id: selecttrigger.py,v 1.2 2002/12/25 14:15:23 jim Exp $"
 
 import asyncore
-import asynchat
-
 import os
 import socket
-import string
 import thread
-import traceback
 
 if os.name == 'posix':
 
-    class Trigger(asyncore.file_dispatcher):
+    class trigger(asyncore.file_dispatcher):
 
         "Wake up a call to select() running in the main thread"
 
@@ -92,6 +85,9 @@ if os.name == 'posix':
         def handle_connect(self):
             pass
 
+        def handle_close(self):
+            self.close()
+
         def pull_trigger(self, thunk=None):
             if thunk:
                 self.lock.acquire()
@@ -112,13 +108,15 @@ if os.name == 'posix':
                     try:
                         thunk()
                     except:
-                        L = traceback.format_exception(*sys.exc_info())
-                        print 'exception in trigger thunk:\n%s' % "".join(L)
+                        nil, t, v, tbinfo = asyncore.compact_traceback()
+                        print ('exception in trigger thunk:'
+                               ' (%s:%s %s)' % (t, v, tbinfo))
                 self.thunks = []
             finally:
                 self.lock.release()
 
 else:
+
     # XXX Should define a base class that has the common methods and
     # then put the platform-specific in a subclass named trigger.
 
@@ -128,7 +126,7 @@ else:
     MINPORT = 19950
     NPORTS = 50
 
-    class Trigger(asyncore.dispatcher):
+    class trigger(asyncore.dispatcher):
 
         portoffset = 0
 
@@ -141,8 +139,8 @@ else:
 
             # tricky: get a pair of connected sockets
             for i in range(NPORTS):
-                Trigger.portoffset = (Trigger.portoffset + 1) % NPORTS
-                port = MINPORT + Trigger.portoffset
+                trigger.portoffset = (trigger.portoffset + 1) % NPORTS
+                port = MINPORT + trigger.portoffset
                 address = (HOST, port)
                 try:
                     a.bind(address)
@@ -168,6 +166,15 @@ else:
             self.lock = thread.allocate_lock()
             self.thunks = []
             self._trigger_connected = 0
+            self._closed = 0
+
+        def close(self):
+            if not self._closed:
+                self._closed = 1
+                self.del_channel()
+                # self.socket is a, self.trigger is w from __init__
+                self.socket.close()
+                self.trigger.close()
 
         def __repr__(self):
             return '<select-trigger (loopback) at %x>' % id(self)
@@ -201,110 +208,9 @@ else:
                     try:
                         thunk()
                     except:
-                        L = traceback.format_exception(*sys.exc_info())
-                        print 'exception in trigger thunk:\n%s' % "".join(L)
+                        nil, t, v, tbinfo = asyncore.compact_traceback()
+                        print ('exception in trigger thunk:'
+                               ' (%s:%s %s)' % (t, v, tbinfo))
                 self.thunks = []
             finally:
                 self.lock.release()
-
-
-the_trigger = None
-
-class TriggerFile:
-    "A 'triggered' file object"
-
-    buffer_size = 4096
-
-    def __init__ (self, parent):
-        global the_trigger
-        if the_trigger is None:
-            the_trigger = trigger()
-        self.parent = parent
-        self.buffer = ''
-
-    def write (self, data):
-        self.buffer = self.buffer + data
-        if len(self.buffer) > self.buffer_size:
-            d, self.buffer = self.buffer, ''
-            the_trigger.pull_trigger(lambda: self.parent.push(d))
-
-    def writeline (self, line):
-        self.write(line + '\r\n')
-
-    def writelines (self, lines):
-        self.write("\r\n".join(lines) + "\r\n")
-
-    def flush (self):
-        if self.buffer:
-            d, self.buffer = self.buffer, ''
-            the_trigger.pull_trigger(lambda: self.parent.push(d))
-
-    def softspace (self, *args):
-        pass
-
-    def close (self):
-        # in a derived class, you may want to call trigger_close() instead.
-        self.flush()
-        self.parent = None
-
-    def trigger_close (self):
-        d, self.buffer = self.buffer, ''
-        p, self.parent = self.parent, None
-        the_trigger.pull_trigger(lambda: (p.push(d), p.close_when_done()))
-
-if __name__ == '__main__':
-
-    import time
-
-    def thread_function (output_file, i, n):
-        print 'entering thread_function'
-        while n:
-            time.sleep (5)
-            output_file.write ('%2d.%2d %s\r\n' % (i, n, output_file))
-            output_file.flush()
-            n = n - 1
-        output_file.close()
-        print 'exiting thread_function'
-
-    class thread_parent (asynchat.async_chat):
-
-        def __init__ (self, conn, addr):
-            self.addr = addr
-            asynchat.async_chat.__init__ (self, conn)
-            self.set_terminator ('\r\n')
-            self.buffer = ''
-            self.count = 0
-
-        def collect_incoming_data (self, data):
-            self.buffer = self.buffer + data
-
-        def found_terminator (self):
-            data, self.buffer = self.buffer, ''
-            if not data:
-                asyncore.close_all()
-                print "done"
-                return
-            n = string.atoi (string.split (data)[0])
-            tf = TriggerFile (self)
-            self.count = self.count + 1
-            thread.start_new_thread (thread_function, (tf, self.count, n))
-
-    class ThreadServer(asyncore.dispatcher):
-
-        def __init__ (self, family=socket.AF_INET, address=('', 9003)):
-            asyncore.dispatcher.__init__ (self)
-            self.create_socket (family, socket.SOCK_STREAM)
-            self.set_reuse_addr()
-            self.bind (address)
-            self.listen (5)
-
-        def handle_accept (self):
-            conn, addr = self.accept()
-            tp = thread_parent (conn, addr)
-
-    ThreadServer()
-    #asyncore.loop(1.0, use_poll=1)
-    try:
-        asyncore.loop ()
-    except:
-        asyncore.close_all()
