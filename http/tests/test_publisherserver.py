@@ -20,8 +20,8 @@ from threading import Thread
 from zope.server.taskthreads import ThreadedTaskDispatcher
 from zope.server.http.publisherhttpserver import PublisherHTTPServer
 
-from zope.component.tests.placelesssetup import PlacelessSetup
-import zope.component
+from zope.component.testing import PlacelessSetup
+import zope.component as capi
 
 from zope.i18n.interfaces import IUserPreferredCharsets
 
@@ -90,8 +90,8 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
     def setUp(self):
         super(Tests, self).setUp()
-        as = zope.component.getService('Adapters')
-        as.register([IHTTPRequest], IUserPreferredCharsets, '', HTTPCharsets)
+        capi.provideAdapter(HTTPCharsets,
+                            [IHTTPRequest], IUserPreferredCharsets, '')
         obj = tested_object()
         obj.folder = tested_object()
         obj.folder.item = tested_object()
