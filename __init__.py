@@ -13,12 +13,12 @@
 ##############################################################################
 """
 
-$Id: __init__.py,v 1.2 2002/12/25 14:15:23 jim Exp $
+$Id: __init__.py,v 1.3 2003/06/07 06:54:25 stevea Exp $
 """
 
 import asyncore
 
 from zope.server.interfaces import IDispatcher
-from zope.interface.implements import implements
+from zope.interface import classImplements
 
-implements(asyncore.dispatcher, IDispatcher, 0)
+classImplements(asyncore.dispatcher, IDispatcher)
