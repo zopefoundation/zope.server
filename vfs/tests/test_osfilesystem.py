@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: test_osfilesystem.py,v 1.2 2002/12/25 14:15:28 jim Exp $
+$Id: test_osfilesystem.py,v 1.3 2003/01/30 15:52:57 jim Exp $
 """
 import unittest
 import os
@@ -96,7 +96,7 @@ class OSFileSystemTests(unittest.TestCase, WriteFilesystemTests):
 
     def testStat(self):
         stat = os.stat(joinToRoot(self.root, self.file_name))
-        stat = stat[0:6], fromts(stat[7]), fromts(stat[8]), fromts(stat[9])
+        stat = stat[0:7] + (fromts(stat[7]), fromts(stat[8]), fromts(stat[9]))
         self.assertEqual(self.filesystem.stat(self.file_name), stat)
 
 

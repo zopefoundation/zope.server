@@ -13,7 +13,7 @@
 ##############################################################################
 """Filesystem implementation for a real (unix-like) OS filesystem.
 
-$Id: osfilesystem.py,v 1.2 2002/12/25 14:15:28 jim Exp $
+$Id: osfilesystem.py,v 1.3 2003/01/30 15:52:56 jim Exp $
 """
 import os
 import re
@@ -131,7 +131,7 @@ class OSFileSystem(object):
         'See IReadFileSystem'
         p = self.translate(path)
         stat = os.stat(p)
-        return stat[0:6], fromts(stat[7]), fromts(stat[8]), fromts(stat[9])
+        return stat[0:7] + (fromts(stat[7]), fromts(stat[8]), fromts(stat[9]))
 
     def mkdir(self, path, mode=6*2**6):
         'See IWriteFileSystem'
