@@ -765,7 +765,7 @@ class FTPDataChannel(DualModeChannel):
         #if bind_local_minus_one:
         #    self.bind(('', self.control_channel.server.port - 1))
         try:
-            self.sock.connect(self.client_addr)
+            self.connect(client_addr)
         except socket.error:
             self.report('NO_DATA_CONN')
 
@@ -875,7 +875,10 @@ class FinishSTORTask(object):
 
 
 class RETRChannel(FTPDataChannel):
-    """Channel for downloading one file from server to client"""
+    """Channel for downloading one file from server to client
+
+    Also used for directory listings.
+    """
 
     opened = 0
     _fileno = None  # provide a default for asyncore.dispatcher._fileno
@@ -901,10 +904,10 @@ class RETRChannel(FTPDataChannel):
         return not self.connected
 
     def handle_read(self):
-        # This is only called when making the connection.
+        # This may be called upon making the connection.
         try:
             self.recv(1)
-        except:
+        except socket.error:
             # The connection failed.
             self.report('NO_DATA_CONN')
             self.close()
