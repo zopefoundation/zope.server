@@ -265,7 +265,7 @@ class IFileSystem(Interface):
     def lsinfo(path):
         """Return information for a unix-style ls listing for `path`.
 
-        Data are returned as a dictionary containing the following keys:
+        Information is returned as a dictionary containing the following keys:
 
         type
 
@@ -365,8 +365,7 @@ class IFileSystem(Interface):
         """
 
     def rename(old, new):
-        """Rename a file or directory.
-        """
+        """Rename a file or directory."""
 
     def writefile(path, instream, start=None, end=None, append=False):
         """Write data to a file.
