@@ -100,7 +100,7 @@ class LineServerChannel(ServerChannelBase):
         if flush:
             self.flush(0)
 
-        # XXX: Some logging should go on here.
+        # TODO: Some logging should go on here.
 
 
     def exception(self):

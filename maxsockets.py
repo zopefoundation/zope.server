@@ -10,7 +10,7 @@ import select
 # 4) max we can connect
 
 def max_server_sockets():
-    # XXX This should be a configuration value as it takes a long time to
+    # TODO: This should be a configuration value as it takes a long time to
     # compute on Mac OSX
     return 100
     sl = []
@@ -29,7 +29,7 @@ def max_server_sockets():
     return num
 
 def max_client_sockets():
-    # XXX This should be a configuration value as it takes a long time to
+    # TODO: This should be a configuration value as it takes a long time to
     # compute on Mac OSX
     return 100
     # make a server socket
@@ -53,7 +53,7 @@ def max_client_sockets():
     return num
 
 def max_select_sockets():
-    # XXX This should be a configuration value as it takes a long time to
+    # TODO: This should be a configuration value as it takes a long time to
     # compute on Mac OSX
     return 100
     sl = []

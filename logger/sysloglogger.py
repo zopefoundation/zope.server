@@ -28,10 +28,10 @@ class SyslogLogger(m_syslog.syslog_client):
        appropriate for FTP or HTTP logs, but not for dumping stderr
        to.
 
-       XXX: a simple safety wrapper that will ensure that the line
+       TODO: a simple safety wrapper that will ensure that the line
        sent to syslog is reasonable.
 
-       XXX: async version of syslog_client: now, log entries use
+       TODO: async version of syslog_client: now, log entries use
        blocking send()
     """
 
