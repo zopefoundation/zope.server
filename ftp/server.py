@@ -751,7 +751,7 @@ class RecvChannel(DualModeChannel):
         task = FinishedRecvTask(c, self.inbuf, self.finish_args)
         self.complete_transfer = 1
         self.close()
-        c.start_task(task)
+        c.queue_task(task)
 
     def close(self, *reply_args):
         try:
@@ -791,13 +791,12 @@ class FinishedRecvTask(object):
                 if c.adj.log_socket_errors:
                     raise
         finally:
-            c.end_task(close_on_finish)
-
+            if close_on_finish:
+                c.close_when_done()
 
     def cancel(self):
         'See ITask'
         self.control_channel.close_when_done()
-
 
     def defer(self):
         'See ITask'

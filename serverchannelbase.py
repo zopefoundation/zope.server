@@ -26,16 +26,16 @@ from thread import allocate_lock
 from zope.interface import implements
 
 from zope.server.dualmodechannel import DualModeChannel
-from zope.server.interfaces import IServerChannel
+from zope.server.interfaces import IServerChannel, ITask
 
-# Synchronize access to the "running_tasks" attributes.
-running_lock = allocate_lock()
+# task_lock is useful for synchronizing access to task-related attributes.
+task_lock = allocate_lock()
 
 
 class ServerChannelBase(DualModeChannel, object):
     """Base class for a high-performance, mixed-mode server-side channel."""
 
-    implements(IServerChannel)
+    implements(IServerChannel, ITask)
 
     # See zope.server.interfaces.IServerChannel
     parser_class = None       # Subclasses must provide a parser class
@@ -43,12 +43,10 @@ class ServerChannelBase(DualModeChannel, object):
 
     active_channels = {}        # Class-specific channel tracker
     next_channel_cleanup = [0]  # Class-specific cleanup time
-
     proto_request = None      # A request parser instance
-    ready_requests = None     # A list
-    # ready_requests must always be empty when not running tasks.
     last_activity = 0         # Time of last activity
-    running_tasks = 0         # boolean: true when any task is being executed
+    tasks = None  # List of channel-related tasks to execute
+    running_tasks = False  # True when another thread is running tasks
 
     #
     # ASYNCHRONOUS METHODS (including __init__)
@@ -115,8 +113,8 @@ class ServerChannelBase(DualModeChannel, object):
     def received(self, data):
         """See async.dispatcher
 
-        Receive input asynchronously and send requests to
-        receivedCompleteRequest().
+        Receives input asynchronously and send requests to
+        handle_request().
         """
         preq = self.proto_request
         while data:
@@ -125,57 +123,24 @@ class ServerChannelBase(DualModeChannel, object):
             n = preq.received(data)
             if preq.completed:
                 # The request is ready to use.
-                if not preq.empty:
-                    self.receivedCompleteRequest(preq)
-                preq = None
                 self.proto_request = None
+                if not preq.empty:
+                    self.handle_request(preq)
+                preq = None
             else:
                 self.proto_request = preq
             if n >= len(data):
                 break
             data = data[n:]
 
-    def receivedCompleteRequest(self, req):
-        """See async.dispatcher
+    def handle_request(self, req):
+        """Creates and queues a task for processing a request.
 
-        If there are tasks running or requests on hold, queue
-        the request, otherwise execute it.
+        Subclasses may override this method to handle some requests
+        immediately in the main async thread.
         """
-        do_now = 0
-        running_lock.acquire()
-        try:
-            if self.running_tasks:
-                # A task thread is working.  It will read from the queue
-                # when it is finished.
-                rr = self.ready_requests
-                if rr is None:
-                    rr = []
-                    self.ready_requests = rr
-                rr.append(req)
-            else:
-                # Do it now.
-                do_now = 1
-        finally:
-            running_lock.release()
-        if do_now:
-            task = self.process_request(req)
-            if task is not None:
-                self.start_task(task)
-
-    def start_task(self, task):
-        """See async.dispatcher
-
-        Starts the given task.
-
-        *** For thread safety, this should only be called from the main
-        (async) thread. ***"""
-        if self.running_tasks:
-            # Can't start while another task is running!
-            # Otherwise two threads would work on the queue at the same time.
-            raise RuntimeError, 'Already executing tasks'
-        self.running_tasks = 1
-        self.set_sync()
-        self.server.addTask(task)
+        task = self.task_class(self, req)
+        self.queue_task(task)
 
     def handle_error(self):
         """See async.dispatcher
@@ -199,52 +164,69 @@ class ServerChannelBase(DualModeChannel, object):
             self.close()
 
     #
-    # SYNCHRONOUS METHODS
-    #
-
-    def end_task(self, close):
-        """Called at the end of a task and may launch another task.
-        """
-        if close:
-            # Note that self.running_tasks is left on, which has the
-            # side effect of preventing further requests from being
-            # serviced even if more appear.  A good thing.
-            self.close_when_done()
-            return
-        # Process requests held in the queue, if any.
-        while 1:
-            req = None
-            running_lock.acquire()
-            try:
-                rr = self.ready_requests
-                if rr:
-                    req = rr.pop(0)
-                else:
-                    # No requests to process.
-                    self.running_tasks = 0
-            finally:
-                running_lock.release()
-
-            if req is not None:
-                task = self.process_request(req)
-                if task is not None:
-                    # Add the new task.  It will service the queue.
-                    self.server.addTask(task)
-                    break
-                # else check the queue again.
-            else:
-                # Idle -- Wait for another request on this connection.
-                self.set_async()
-                break
-
-    #
     # BOTH MODES
     #
 
-    def process_request(self, req):
-        """Returns a task to execute or None if the request is quick and
-        can be processed in the main thread.
+    def queue_task(self, task):
+        """Queue a channel-related task to be executed in another thread."""
+        start = False
+        task_lock.acquire()
+        try:
+            if self.tasks is None:
+                self.tasks = []
+            self.tasks.append(task)
+            if not self.running_tasks:
+                self.running_tasks = True
+                start = True
+        finally:
+            task_lock.release()
+        if start:
+            self.set_sync()
+            self.server.addTask(self)
 
-        Override to handle some requests in the main thread.
-        """
-        return self.task_class(self, req)
+    #
+    # ITask implementation.  Delegates to the queued tasks.
+    #
+
+    def service(self):
+        """Execute all pending tasks"""
+        while True:
+            task = None
+            task_lock.acquire()
+            try:
+                if self.tasks:
+                    task = self.tasks.pop(0)
+                else:
+                    # No more tasks
+                    self.running_tasks = False
+                    self.set_async()
+                    break
+            finally:
+                task_lock.release()
+            try:
+                task.service()
+            except:
+                # propagate the exception, but keep executing tasks
+                self.server.addTask(self)
+                raise
+
+    def cancel(self):
+        task_lock.acquire()
+        try:
+            if self.tasks:
+                old = self.tasks[:]
+            else:
+                old = []
+            self.tasks = []
+            self.running_tasks = False
+        finally:
+            task_lock.release()
+        try:
+            for task in old:
+                task.cancel()
+        finally:
+            self.set_async()
+
+    def defer(self):
+        pass
+

@@ -105,6 +105,7 @@ class ThreadedTaskDispatcher(object):
         while threads:
             if time() >= expiration:
                 logging.error("%d thread(s) still running" % len(threads))
+                break
             sleep(0.1)
         if cancel_pending:
             # Cancel remaining tasks.
