@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: test_ftpserver.py,v 1.3 2003/01/30 16:01:11 jim Exp $
+$Id: test_ftpserver.py,v 1.4 2003/02/03 15:09:01 jim Exp $
 """
 
 import asyncore
@@ -29,15 +29,14 @@ from StringIO import StringIO
 
 from threading import Thread, Event
 from zope.server.taskthreads import ThreadedTaskDispatcher
-from zope.server.ftp.ftpserver import FTPServer
-from zope.server.ftp.ftpstatusmessages import status_msgs
+from zope.server.ftp.server import FTPServer, status_messages
 from zope.server.adjustments import Adjustments
 from zope.server.interfaces import ITask
 
-from zope.server.vfs.osfilesystem import OSFileSystem
-from zope.server.ftp.testfilesystemaccess import TestFilesystemAccess
+from zope.server.ftp.tests import demofs
 
 from zope.server.tests.asyncerror import AsyncoreErrorHook
+
 
 import ftplib
 
@@ -66,13 +65,22 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.orig_map_size = len(asyncore.socket_map)
         self.hook_asyncore_error()
 
-        self.root_dir = tempfile.mktemp()
-        os.mkdir(self.root_dir)
-        os.mkdir(os.path.join(self.root_dir, 'test'))
+        root_dir = demofs.Directory()
+        root_dir['test'] = demofs.Directory()
+        root_dir['test'].access['foo'] = 7
+        root_dir['private'] = demofs.Directory()
+        root_dir['private'].access['foo'] = 7
+        root_dir['private'].access['anonymous'] = 0
 
-        fs = OSFileSystem(self.root_dir)
-        fs_access = TestFilesystemAccess(fs)
+        fs = demofs.DemoFileSystem(root_dir, 'foo')
+        fs.writefile('/test/existing', StringIO('test initial data'))
+        fs.writefile('/private/existing', StringIO('private initial data'))
+        
+        self.__fs = fs = demofs.DemoFileSystem(root_dir, 'root')
+        fs.writefile('/existing', StringIO('root initial data'))
 
+        fs_access = demofs.DemoFileSystemAccess(root_dir, {'foo': 'bar'})
+        
         self.server = FTPServer(LOCALHOST, SERVER_PORT, fs_access,
                                 task_dispatcher=td, adj=my_adj)
         if CONNECT_TO_PORT == 0:
@@ -105,9 +113,6 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
         self.unhook_asyncore_error()
 
-        if os.path.exists(self.root_dir):
-            shutil.rmtree(self.root_dir)
-
     def loop(self):
         self.thread_started.set()
         import select
@@ -131,10 +136,10 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         if login:
             ftp.send('USER foo\r\n')
             self.assertEqual(ftp.recv(1024),
-                             status_msgs['PASS_REQUIRED'] +'\r\n')
+                             status_messages['PASS_REQUIRED'] +'\r\n')
             ftp.send('PASS bar\r\n')
             self.assertEqual(ftp.recv(1024),
-                             status_msgs['LOGIN_SUCCESS'] +'\r\n')
+                             status_messages['LOGIN_SUCCESS'] +'\r\n')
 
         return ftp
 
@@ -158,40 +163,83 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
     def testABOR(self):
         self.assertEqual(self.execute('ABOR', 1),
-                         status_msgs['TRANSFER_ABORTED'])
+                         status_messages['TRANSFER_ABORTED'])
 
+
+    def testAPPE(self):
+        conn = ftplib.FTP()
+        try:
+            conn.connect(LOCALHOST, self.port)
+            conn.login('foo', 'bar')
+            fp = StringIO('Charity never faileth')
+            # Successful write
+            conn.storbinary('APPE /test/existing', fp)
+            self.assertEqual(self.__fs.files['test']['existing'].data,
+                             'test initial dataCharity never faileth')
+        finally:
+            conn.close()
+        # Make sure no garbage was left behind.
+        self.testNOOP()
+
+    def testAPPE_errors(self):
+        conn = ftplib.FTP()
+        try:
+            conn.connect(LOCALHOST, self.port)
+            conn.login('foo', 'bar')
+
+            fp = StringIO('Speak softly')
+
+            # Can't overwrite directory
+            self.assertRaises(
+                ftplib.error_perm, conn.storbinary, 'APPE /test', fp)
+
+            # No such file
+            self.assertRaises(
+                ftplib.error_perm, conn.storbinary, 'APPE /nosush', fp)
+
+            # No such dir
+            self.assertRaises(
+                ftplib.error_perm, conn.storbinary, 'APPE /nosush/f', fp)
+
+            # Not allowed
+            self.assertRaises(
+                ftplib.error_perm, conn.storbinary, 'APPE /existing', fp)
+
+        finally:
+            conn.close()
+        # Make sure no garbage was left behind.
+        self.testNOOP()
 
     def testCDUP(self):
         self.assertEqual(self.execute(('CWD test', 'CDUP'), 1),
-                         status_msgs['SUCCESS_250'] %'CDUP')
+                         status_messages['SUCCESS_250'] %'CDUP')
         self.assertEqual(self.execute('CDUP', 1),
-                         status_msgs['SUCCESS_250'] %'CDUP')
+                         status_messages['SUCCESS_250'] %'CDUP')
 
 
     def testCWD(self):
         self.assertEqual(self.execute('CWD test', 1),
-                         status_msgs['SUCCESS_250'] %'CWD')
+                         status_messages['SUCCESS_250'] %'CWD')
         self.assertEqual(self.execute('CWD foo', 1),
-                         status_msgs['ERR_NO_DIR'] %'/foo')
+                         status_messages['ERR_NO_DIR'] %'/foo')
 
 
     def testDELE(self):
-        open(os.path.join(self.root_dir, 'foo'), 'w').write('blah')
-        self.assertEqual(self.execute('DELE foo', 1),
-                         status_msgs['SUCCESS_250'] %'DELE')
+        self.assertEqual(self.execute('DELE test/existing', 1),
+                         status_messages['SUCCESS_250'] %'DELE')
         res = self.execute('DELE bar', 1).split()[0]
         self.assertEqual(res, '550')
         self.assertEqual(self.execute('DELE', 1),
-                         status_msgs['ERR_ARGS'])
+                         status_messages['ERR_ARGS'])
 
 
     def XXXtestHELP(self):
         # XXX This test doesn't work.  I think it is because execute()
         #     doesn't read the whole reply.  The execeute() helper
         #     function should be fixed, but that's for another day.
-        result = status_msgs['HELP_START'] + '\r\n'
+        result = status_messages['HELP_START'] + '\r\n'
         result += 'Help goes here somewhen.\r\n'
-        result += status_msgs['HELP_END']
+        result += status_messages['HELP_END']
 
         self.assertEqual(self.execute('HELP', 1), result)
 
@@ -200,7 +248,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         conn = ftplib.FTP()
         try:
             conn.connect(LOCALHOST, self.port)
-            conn.login('foo', 'bar')
+            conn.login('anonymous', 'bar')
             self.assertRaises(ftplib.Error, retrlines, conn, 'LIST /foo')
             listing = retrlines(conn, 'LIST')
             self.assert_(len(listing) > 0)
@@ -212,16 +260,16 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.testNOOP()
 
     def testMKDLIST(self):
-        self.execute(['MKD f1', 'MKD f2'], 1)
+        self.execute(['MKD test/f1', 'MKD test/f2'], 1)
         conn = ftplib.FTP()
         try:
             conn.connect(LOCALHOST, self.port)
             conn.login('foo', 'bar')
             listing = []
-            conn.retrlines('LIST', listing.append)
+            conn.retrlines('LIST /test', listing.append)
             self.assert_(len(listing) > 2)
             listing = []
-            conn.retrlines('LIST -lad f1', listing.append)
+            conn.retrlines('LIST -lad test/f1', listing.append)
             self.assertEqual(len(listing), 1)
             self.assertEqual(listing[0][0], 'd')
         finally:
@@ -232,23 +280,23 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
     def testNOOP(self):
         self.assertEqual(self.execute('NOOP', 0),
-                         status_msgs['SUCCESS_200'] %'NOOP')
+                         status_messages['SUCCESS_200'] %'NOOP')
         self.assertEqual(self.execute('NOOP', 1),
-                         status_msgs['SUCCESS_200'] %'NOOP')
+                         status_messages['SUCCESS_200'] %'NOOP')
 
 
     def testPASS(self):
         self.assertEqual(self.execute('PASS', 0),
-                         status_msgs['LOGIN_MISMATCH'])
+                         status_messages['LOGIN_MISMATCH'])
         self.assertEqual(self.execute(('USER blah', 'PASS bar'), 0),
-                         status_msgs['LOGIN_MISMATCH'])
+                         status_messages['LOGIN_MISMATCH'])
 
 
     def testQUIT(self):
         self.assertEqual(self.execute('QUIT', 0),
-                         status_msgs['GOODBYE'])
+                         status_messages['GOODBYE'])
         self.assertEqual(self.execute('QUIT', 1),
-                         status_msgs['GOODBYE'])
+                         status_messages['GOODBYE'])
 
 
     def testSTOR(self):
@@ -262,7 +310,24 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 ftplib.error_perm, conn.storbinary, 'STOR /test', fp)
             fp = StringIO('Charity never faileth')
             # Successful write
-            conn.storbinary('STOR /stuff', fp)
+            conn.storbinary('STOR /test/stuff', fp)
+            self.assertEqual(self.__fs.files['test']['stuff'].data,
+                             'Charity never faileth')
+        finally:
+            conn.close()
+        # Make sure no garbage was left behind.
+        self.testNOOP()
+
+
+    def testSTOR_over(self):
+        conn = ftplib.FTP()
+        try:
+            conn.connect(LOCALHOST, self.port)
+            conn.login('foo', 'bar')
+            fp = StringIO('Charity never faileth')
+            conn.storbinary('STOR /test/existing', fp)
+            self.assertEqual(self.__fs.files['test']['existing'].data,
+                             'Charity never faileth')
         finally:
             conn.close()
         # Make sure no garbage was left behind.
@@ -271,9 +336,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
     def testUSER(self):
         self.assertEqual(self.execute('USER foo', 0),
-                         status_msgs['PASS_REQUIRED'])
+                         status_messages['PASS_REQUIRED'])
         self.assertEqual(self.execute('USER', 0),
-                         status_msgs['ERR_ARGS'])
+                         status_messages['ERR_ARGS'])
 
 
 
