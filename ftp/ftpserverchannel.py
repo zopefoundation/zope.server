@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: ftpserverchannel.py,v 1.2 2002/12/25 14:15:23 jim Exp $
+$Id: ftpserverchannel.py,v 1.3 2003/01/09 10:27:53 anthony Exp $
 """
 
 import posixpath
@@ -495,7 +495,9 @@ class FTPServerChannel(LineServerChannel):
         # Make a pretty unix-like FTP output
         if long:
             file_list = map(ls_longify, file_list)
-        return ''.join(map(lambda line: line + '\r\n', file_list))
+        else:
+            file_list = [ x[0] for x in file_list ]
+        return '\r\n'.join(file_list) + '\r\n'
 
 
 
