@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: publisherhttpserver.py,v 1.3 2003/06/06 19:29:12 stevea Exp $
+$Id: publisherhttpserver.py,v 1.4 2003/07/03 19:37:39 jim Exp $
 """
 
 from zope.server.http.httpserver import HTTPServer
@@ -45,3 +45,24 @@ class PublisherHTTPServer(HTTPServer):
         response = request.response
         response.setHeaderOutput(task)
         publish(request)
+
+class PMDBHTTPServer(PublisherHTTPServer):
+    """Enter the post-mortem debugger when there's an error
+
+    """
+
+    def executeRequest(self, task):
+        """Overrides HTTPServer.executeRequest()."""
+        env = task.getCGIEnvironment()
+        instream = task.request_data.getBodyStream()
+
+        request = self.request_factory(instream, task, env)
+        response = request.response
+        response.setHeaderOutput(task)
+        try:
+            publish(request, handle_errors=False)
+        except:
+            import sys, pdb
+            pdb.post_mortem(sys.exc_info()[2])
+            raise
+        
