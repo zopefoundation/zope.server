@@ -370,24 +370,33 @@ class IFileSystem(Interface):
     def writefile(path, instream, start=None, end=None, append=False):
         """Write data to a file.
 
-        If `start` or `end` is not None, then only part of the file is
-        written. The remainder of the file is unchanged.
+        Both `start` and `end` must be either None or a non-negative
+        integer.
 
-        If `start` or `end` are specified, they must not be negative.
+        If `append` is true, `start` and `end` are ignored.
 
-        If `end` is None, then the file is truncated after the data are
-        written.  If `end` is not None, parts of the file after `end`, if
-        any, are unchanged.  If `end` is not None and there is not enough
-        data in `instream` to fill out the file, then the missing data
-        are undefined.
+        If `start` or `end` is not None, they specify the part of the
+        file that is to be written.
 
-        If neither `start` nor `end` are specified, then the file contents
+        If `end` is None, the file is truncated after the data are
+        written.  If `end` is not None, any parts of the file after
+        `end` are left unchanged.
+
+        Note that if `end` is not None, and there is not enough data
+        in `instream` in fill the file up to `end`, then the missing
+        data are undefined.
+
+        If both `start` is None and `end` is None, then the file contents
         are overwritten.
 
         If `start` is specified and the file doesn't exist or is shorter
-        than `start`, the file will contain undefined data before `start`.
+        than `start`, the data in the file before `start` file will be
+        undefined.
 
-        If `append` is true, `start` and `end` are ignored.
+        XXX: What about raising an exception if you try to write a new file
+             starting not at 0, or try to write a file starting after its
+             end point?
+
         """
 
     def writable(path):
