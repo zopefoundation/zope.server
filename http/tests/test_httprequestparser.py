@@ -63,7 +63,7 @@ Hello.
 
     def testComplexGET(self):
         data = """\
-GET /foo/a+%2B%2F%3D%26a%3Aint?d=b+%2B%2F%3D%26b%3Aint&c+%2B%2F%3D%26c%3Aint=6 HTTP/8.4
+GET /foo/a+%2B%2F%C3%A4%3D%26a%3Aint?d=b+%2B%2F%3D%26b%3Aint&c+%2B%2F%3D%26c%3Aint=6 HTTP/8.4
 FirstName: mickey
 lastname: Mouse
 content-length: 10
@@ -80,8 +80,10 @@ Hello mickey.
                           'LASTNAME': 'Mouse',
                           'CONTENT_LENGTH': '10',
                           })
-        self.assertEqual(parser.path, '/foo/a++/=&a:int')
-        self.assertEqual(parser.query, 'd=b+%2B%2F%3D%26b%3Aint&c+%2B%2F%3D%26c%3Aint=6')
+        # path should be utf-8 encoded
+        self.assertEqual(parser.path, '/foo/a++/\xc3\xa4=&a:int')
+        self.assertEqual(parser.query,
+                         'd=b+%2B%2F%3D%26b%3Aint&c+%2B%2F%3D%26c%3Aint=6')
         self.assertEqual(parser.getBodyStream().getvalue(), 'Hello mick')
 
 
