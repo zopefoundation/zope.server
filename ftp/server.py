@@ -21,7 +21,7 @@ import socket
 from datetime import date, timedelta
 from getopt import getopt, GetoptError
 
-from zope.exceptions import Unauthorized
+from zope.security.interfaces import Unauthorized
 from zope.interface import implements
 from zope.server.buffers import OverflowableBuffer
 from zope.server.interfaces import ITask
