@@ -278,7 +278,10 @@ class DemoFileSystem(object):
     def writable(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
         path, name = posixpath.split(path)
-        d = self.getdir(path)
+        try:
+            d = self.getdir(path)
+        except OSError:
+            return False
         if name not in d:
             return d.accessable(self.user, write)
         f = d[name]

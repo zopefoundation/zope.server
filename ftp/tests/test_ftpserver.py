@@ -84,6 +84,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.counter = 0
         self.thread_started = Event()
         self.thread = Thread(target=self.loop)
+        self.thread.setDaemon(True)
         self.thread.start()
         self.thread_started.wait(10.0)
         self.assert_(self.thread_started.isSet())
