@@ -13,11 +13,11 @@
 ##############################################################################
 """
 
-$Id: sysloglogger.py,v 1.2 2002/12/25 14:15:27 jim Exp $
+$Id: sysloglogger.py,v 1.3 2003/05/01 19:35:48 faassen Exp $
 """
 
 import os
-import zope.server.logger.m_syslog
+from zope.server.logger import m_syslog
 
 from zope.server.interfaces.logger import IMessageLogger
 
