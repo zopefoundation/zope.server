@@ -54,6 +54,9 @@ class Publication:
     def afterCall(self, request, ob):
         pass
 
+    def endRequest(self, request, ob):
+        pass
+
     def handleException(self, object, request, info, retry_allowed=True):
         request.response._exc = info[:2]
         
