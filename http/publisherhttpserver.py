@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: publisherhttpserver.py,v 1.6 2003/09/21 17:34:27 jim Exp $
+$Id: publisherhttpserver.py,v 1.7 2004/02/03 21:53:32 sidnei Exp $
 """
 
 from zope.server.http.httpserver import HTTPServer
@@ -68,4 +68,4 @@ class PMDBHTTPServer(PublisherHTTPServer):
             print sys.exc_info()[1]
             pdb.post_mortem(sys.exc_info()[2])
             raise
-        
+
