@@ -49,8 +49,8 @@ class ServerBase(asyncore.dispatcher, object):
         self.bind((ip, port))
         self.verbose = verbose
         self.hit_log = hit_log
-        self.server_name = self.computeServerName(ip)
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.server_name = self.computeServerName(ip)
 
         if start:
             self.accept_connections()
