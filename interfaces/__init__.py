@@ -134,18 +134,6 @@ class ITask(Interface):
         a different thread.
         """
 
-
-class IRequestFactory:
-
-    def __call__(input_stream, output_steam, environment):
-        """Create a request object *with* a publication
-
-        Factories that support multiple request/response/publication
-        types may look at the environment (headers) or the stream to
-        determine which request/response/publication to create.
-        """
-
-
 class IHeaderOutput(Interface):
     """Interface for setting HTTP response headers.
 
