@@ -11,15 +11,14 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Tail Logger
 
 $Id$
 """
-
 from zope.server.interfaces.logger import IMessageLogger
 from zope.interface import implements
 
-class TailLogger:
+class TailLogger(object):
     """Keep track of the last <size> log messages"""
 
     implements(IMessageLogger)

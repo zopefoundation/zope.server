@@ -34,7 +34,7 @@ rename_headers = {
     'CONNECTION'     : 'CONNECTION_TYPE',
     }
 
-class HTTPTask:
+class HTTPTask(object):
     """An HTTP task accepts a request and writes to a channel.
 
        Subclass this and override the execute() method.

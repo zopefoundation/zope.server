@@ -136,7 +136,7 @@ facility_names = {
 
 import socket
 
-class syslog_client:
+class syslog_client(object):
 
     def __init__(self, address='/dev/log'):
         self.address = address

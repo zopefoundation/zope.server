@@ -11,13 +11,13 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""HTTP Request Parser
+
 This server uses asyncore to accept connections and do initial
 processing but threads to do work.
 
 $Id$
 """
-
 import re
 from urllib import unquote
 
@@ -33,7 +33,7 @@ except ImportError:
     from StringIO import StringIO
 
 
-class HTTPRequestParser:
+class HTTPRequestParser(object):
     """A structure that collects the HTTP request.
 
     Once the stream is completed, the instance is passed to

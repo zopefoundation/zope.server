@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Data Chunk Receiver
 
 $Id$
 """
@@ -21,7 +21,7 @@ from zope.server.interfaces import IStreamConsumer
 from zope.interface import implements
 
 
-class ChunkedReceiver:
+class ChunkedReceiver(object):
 
     implements(IStreamConsumer)
 

@@ -11,18 +11,17 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Line Task
 
 $Id$
 """
-
 import socket
 import time
 from zope.server.interfaces import ITask
 from zope.interface import implements
 
 
-class LineTask:
+class LineTask(object):
     """This is a generic task that can be used with command line
        protocols to handle commands in a separate thread.
     """

@@ -15,11 +15,10 @@
 
 $Id$
 """
-
 from zope.server import maxsockets
 
 
-class Adjustments:
+class Adjustments(object):
     """This class contains tunable communication parameters.
 
     You can either change default_adj to adjust parameters for

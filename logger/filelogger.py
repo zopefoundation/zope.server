@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""File Logger
 
 $Id$
 """
@@ -20,7 +20,7 @@ from types import StringType
 from zope.server.interfaces.logger import IMessageLogger
 from zope.interface import implements
 
-class FileLogger:
+class FileLogger(object):
     """Simple File Logger
     """
 

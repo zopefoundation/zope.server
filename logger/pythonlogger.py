@@ -20,7 +20,7 @@ import logging
 from zope.server.interfaces.logger import IMessageLogger
 from zope.interface import implements
 
-class PythonLogger:
+class PythonLogger(object):
     """Proxy for Python's logging module"""
 
     implements(IMessageLogger)

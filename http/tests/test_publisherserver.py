@@ -9,11 +9,10 @@
 # WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
 # FOR A PARTICULAR PURPOSE.
 ##############################################################################
-"""
+"""Test Puvlisher-based HTTP Server
 
 $Id$
 """
-
 import unittest
 from asyncore import socket_map, poll
 from threading import Thread
@@ -44,7 +43,7 @@ LOCALHOST = '127.0.0.1'
 HTTPRequest.STAGGER_RETRIES = 0  # Don't pause.
 
 
-class Conflict (Exception):
+class Conflict(Exception):
     """
     Pseudo ZODB conflict error.
     """
@@ -61,8 +60,8 @@ class PublicationWithConflict(DefaultPublication):
                                                retry_allowed)
 
 
-class tested_object:
-    " "
+class tested_object(object):
+    """Docstring required by publisher."""
     tries = 0
 
     def __call__(self, REQUEST):
@@ -85,7 +84,6 @@ class tested_object:
         else:
             self.tries += 1
             raise Conflict
-
 
 
 class Tests(PlacelessSetup, unittest.TestCase):

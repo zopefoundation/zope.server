@@ -24,7 +24,7 @@ from zope.server.interfaces import ITaskDispatcher
 from zope.interface import implements
 
 
-class ThreadedTaskDispatcher:
+class ThreadedTaskDispatcher(object):
     """A Task Dispatcher that creates a thread for each task."""
 
     implements(ITaskDispatcher)

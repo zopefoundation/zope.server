@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Fixed Stream Receiver
 
 $Id$
 """
@@ -20,7 +20,7 @@ from zope.server.interfaces import IStreamConsumer
 from zope.interface import implements
 
 
-class FixedStreamReceiver:
+class FixedStreamReceiver(object):
 
     implements(IStreamConsumer)
 

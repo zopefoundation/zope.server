@@ -11,16 +11,15 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Line Command Parser
 
 $Id$
 """
-
 from zope.server.interfaces import IStreamConsumer
 from zope.interface import implements
 
 
-class LineCommandParser:
+class LineCommandParser(object):
     """Line Command parser. Arguments are left alone for now."""
 
     implements(IStreamConsumer)

@@ -61,7 +61,7 @@ class EchoHTTPServer(HTTPServer):
             task.write(data)
 
 
-class SleepingTask:
+class SleepingTask(object):
 
     implements(ITask)
 

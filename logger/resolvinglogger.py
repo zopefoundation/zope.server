@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Resolving Logger
 
 $Id$
 """
@@ -19,7 +19,7 @@ from zope.server.interfaces.logger import IRequestLogger
 from zope.interface import implements
 
 
-class ResolvingLogger:
+class ResolvingLogger(object):
     """Feed (ip, message) combinations into this logger to get a
     resolved hostname in front of the message.  The message will not
     be logged until the PTR request finishes (or fails)."""
@@ -31,7 +31,7 @@ class ResolvingLogger:
         # logger is an IMessageLogger
         self.logger = logger
 
-    class logger_thunk:
+    class logger_thunk(object):
         def __init__(self, message, logger):
             self.message = message
             self.logger = logger

@@ -11,11 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Common FTP Activity Logger
 
 $Id$
 """
-
 import time
 import sys
 
@@ -23,7 +22,7 @@ from zope.server.logger.filelogger import FileLogger
 from zope.server.logger.resolvinglogger import ResolvingLogger
 from zope.server.logger.unresolvinglogger import UnresolvingLogger
 
-class CommonFTPActivityLogger:
+class CommonFTPActivityLogger(object):
     """Outputs hits in common HTTP log format.
     """
 

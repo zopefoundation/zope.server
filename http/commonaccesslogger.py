@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Common Access Logger
 
 $Id$
 """
@@ -24,7 +24,7 @@ from zope.server.logger.pythonlogger import PythonLogger
 from zope.server.logger.resolvinglogger import ResolvingLogger
 from zope.server.logger.unresolvinglogger import UnresolvingLogger
 
-class CommonAccessLogger:
+class CommonAccessLogger(object):
     """Outputs accesses in common HTTP log format.
     """
 

@@ -29,7 +29,7 @@ from zope.publisher.publish import publish
 
 from zope.interface import implements
 
-class PublisherFileSystem:
+class PublisherFileSystem(object):
     """Generic Publisher FileSystem implementation."""
 
     implements(IFileSystem)
@@ -123,7 +123,7 @@ class PublisherFileSystem:
         return path
 
 
-class NoOutput:
+class NoOutput(object):
     """An output stream lookalike that warns you if you try to
     dump anything into it."""
 
@@ -144,7 +144,7 @@ class PublisherFTPServer(FTPServer):
         super(PublisherFTPServer, self).__init__(ip, port, fs_access,
                                                  *args, **kw)
 
-class PublisherFileSystemAccess:
+class PublisherFileSystemAccess(object):
 
     implements(IFileSystemAccess)
 

@@ -1,4 +1,7 @@
-# Copyright 2001-2002 Zope Corporation and Contributors.  All Rights Reserved.
+##############################################################################
+#
+# Copyright (c) 2001-2004 Zope Corporation and Contributors.
+# All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
 # Version 2.1 (ZPL).  A copy of the ZPL should accompany this distribution.
@@ -6,8 +9,12 @@
 # WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
 # FOR A PARTICULAR PURPOSE.
+#
+##############################################################################
+"""Buffers
 
-
+$Id$
+"""
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -21,7 +28,7 @@ COPY_BYTES = 1 << 18  # 256K
 STRBUF_LIMIT = 8192
 
 
-class FileBasedBuffer:
+class FileBasedBuffer(object):
 
     remain = 0
 
@@ -125,7 +132,7 @@ class StringIOBasedBuffer(FileBasedBuffer):
 
 
 
-class OverflowableBuffer:
+class OverflowableBuffer(object):
     """
     This buffer implementation has four stages:
     - No data

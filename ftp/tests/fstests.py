@@ -15,12 +15,11 @@
 
 $Id$
 """
-
 from StringIO import StringIO
 from zope.interface.verify import verifyObject
 from zope.server.interfaces.ftp import IFileSystem
 
-class FileSystemTests:
+class FileSystemTests(object):
     """Tests of a readable filesystem
     """
 
