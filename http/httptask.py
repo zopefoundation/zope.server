@@ -22,8 +22,7 @@ import socket
 import time
 
 from zope.server.http.http_date import build_http_date
-
-from zope.server.interfaces import IHeaderOutput
+from zope.publisher.interfaces.http import IHeaderOutput
 from zope.server.interfaces import ITask
 
 from zope.interface import implements
@@ -88,27 +87,27 @@ class HTTPTask(object):
         pass
 
     def setResponseStatus(self, status, reason):
-        """See zope.server.interfaces.IHeaderOutput"""
+        """See zope.publisher.interfaces.http.IHeaderOutput"""
         self.status = status
         self.reason = reason
 
     def setResponseHeaders(self, mapping):
-        """See zope.server.interfaces.IHeaderOutput"""
+        """See zope.publisher.interfaces.http.IHeaderOutput"""
         self.response_headers.update(mapping)
 
     def appendResponseHeaders(self, lst):
-        """See zope.server.interfaces.IHeaderOutput"""
+        """See zope.publisher.interfaces.http.IHeaderOutput"""
         accum = self.accumulated_headers
         if accum is None:
             self.accumulated_headers = accum = []
         accum.extend(lst)
 
     def wroteResponseHeader(self):
-        """See zope.server.interfaces.IHeaderOutput"""
+        """See zope.publisher.interfaces.http.IHeaderOutput"""
         return self.wrote_header
 
     def setAuthUserName(self, name):
-        """See zope.server.interfaces.IHeaderOutput"""
+        """See zope.publisher.interfaces.http.IHeaderOutput"""
         self.auth_user_name = name
 
     def prepareResponseHeaders(self):
