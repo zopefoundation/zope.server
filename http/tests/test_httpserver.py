@@ -19,7 +19,7 @@ import unittest
 from asyncore import socket_map, poll
 import socket
 
-from threading import Thread
+from threading import Thread, Event
 from zope.server.taskthreads import ThreadedTaskDispatcher
 from zope.server.http.httpserver import HTTPServer
 from zope.server.adjustments import Adjustments
@@ -78,6 +78,10 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
     def setUp(self):
         td.setThreadCount(4)
+        if len(socket_map) != 1:
+            # Let sockets die off.
+            # XXX tests should be more careful to clear the socket map.
+            asyncore.poll(0.1)
         self.orig_map_size = len(socket_map)
         self.hook_asyncore_error()
         self.server = EchoHTTPServer(LOCALHOST, SERVER_PORT,
@@ -88,9 +92,11 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             self.port = CONNECT_TO_PORT
         self.run_loop = 1
         self.counter = 0
+        self.thread_started = Event()
         self.thread = Thread(target=self.loop)
         self.thread.start()
-        sleep(0.1)  # Give the thread some time to start.
+        self.thread_started.wait(10.0)
+        self.assert_(self.thread_started.isSet())
 
     def tearDown(self):
         self.run_loop = 0
@@ -109,6 +115,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.unhook_asyncore_error()
 
     def loop(self):
+        self.thread_started.set()
         while self.run_loop:
             self.counter = self.counter + 1
             #print 'loop', self.counter
