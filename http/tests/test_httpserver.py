@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: test_httpserver.py,v 1.5 2003/06/06 19:29:12 stevea Exp $
+$Id: test_httpserver.py,v 1.6 2004/04/26 15:28:20 tim_one Exp $
 """
 
 import unittest
@@ -205,8 +205,30 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                               body=(s * 100))  # 100 KB
 
     def testManyClients(self):
+        import sys
+
+        # Set the number of connections to make.  A previous comment said
+        # Linux kernel (2.4.8) doesn't like > 128.
+        # The test used to use 50.  Win98SE can't handle that many, dying
+        # with
+        #      File "C:\PYTHON23\Lib\httplib.py", line 548, in connect
+        #          raise socket.error, msg
+        #      error: (10055, 'No buffer space available')
+        nconn = 50
+        if sys.platform == 'win32':
+            platform = sys.getwindowsversion()[3]
+            if platform < 2:
+                # 0 is Win32s on Windows 3.1
+                # 1 is 95/98/ME
+                # 2 is NT/2000/XP
+
+                # Pre-NT.  20 should work.  The exact number you can get away
+                # with depends on what you're running at the same time (e.g.,
+                # browsers and AIM and email delivery consume sockets too).
+                nconn = 20
+
         conns = []
-        for n in range(50):  # Linux kernel (2.4.8) doesn't like > 128 ?
+        for n in range(nconn):
             #print 'open', n, clock()
             h = HTTPConnection(LOCALHOST, self.port)
             #h.debuglevel = 1
