@@ -24,14 +24,14 @@ from zope.server.logger.pythonlogger import PythonLogger
 from zope.server.logger.resolvinglogger import ResolvingLogger
 from zope.server.logger.unresolvinglogger import UnresolvingLogger
 
-class CommonHitLogger:
-    """Outputs hits in common HTTP log format.
+class CommonAccessLogger:
+    """Outputs accesses in common HTTP log format.
     """
 
     def __init__(self, logger_object=None, resolver=None):
         if logger_object is None:
             # logger_object is an IMessageLogger
-            logger_object = PythonLogger('hitlog')
+            logger_object = PythonLogger('accesslog')
 
         # self.output is an IRequestLogger
         if resolver is not None:

@@ -20,18 +20,18 @@ import unittest
 import logging
 
 
-class TestCommonHitLogger(unittest.TestCase):
+class TestCommonAccessLogger(unittest.TestCase):
 
     def test_default_constructor(self):
-        from zope.server.http.commonhitlogger import CommonHitLogger
+        from zope.server.http.commonaccesslogger import CommonAccessLogger
         from zope.server.logger.unresolvinglogger import UnresolvingLogger
         from zope.server.logger.pythonlogger import PythonLogger
-        logger = CommonHitLogger()
+        logger = CommonAccessLogger()
         # CommonHitLogger is registered as an argumentless factory via
         # ZCML, so the defaults should be sensible
         self.assert_(isinstance(logger.output, UnresolvingLogger))
         self.assert_(isinstance(logger.output.logger, PythonLogger))
-        self.assert_(logger.output.logger.name, 'hitlog')
+        self.assert_(logger.output.logger.name, 'accesslog')
         self.assert_(logger.output.logger.level, logging.INFO)
 
     # XXX please add unit tests for other methods as well:
@@ -42,9 +42,9 @@ class TestCommonHitLogger(unittest.TestCase):
 
 def test_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestCommonHitLogger))
+    suite.addTest(unittest.makeSuite(TestCommonAccessLogger))
     return suite
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(defaultTest="test_suite")
