@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: resolvinglogger.py,v 1.3 2003/06/04 08:40:33 stevea Exp $
+$Id: resolvinglogger.py,v 1.4 2003/07/06 10:26:14 andreasjung Exp $
 """
 from zope.server.interfaces.logger import IRequestLogger
 from zope.interface import implements
@@ -39,7 +39,7 @@ class ResolvingLogger:
         def __call__(self, host, ttl, answer):
             if not answer:
                 answer = host
-            self.logger.logMessage('%s: %s' % (answer, self.message))
+            self.logger.logMessage('%s%s' % (answer, self.message))
 
     def logRequest(self, ip, message):
         'See IRequestLogger'

@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: unresolvinglogger.py,v 1.3 2003/06/04 08:40:33 stevea Exp $
+$Id: unresolvinglogger.py,v 1.4 2003/07/06 10:26:14 andreasjung Exp $
 """
 from zope.server.interfaces.logger import IRequestLogger
 from zope.interface import implements
@@ -28,4 +28,4 @@ class UnresolvingLogger:
 
     def logRequest(self, ip, message):
         'See IRequestLogger'
-        self.logger.logMessage('%s: %s' % (ip, message))
+        self.logger.logMessage('%s%s' % (ip, message))
