@@ -11,13 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""XXX short summary goes here.
-
-XXX longer description goes here.
+"""Test the FTP publisher.
 
 $Id$
 """
-
 import demofs
 from unittest import TestCase, TestSuite, main, makeSuite
 from fstests import FileSystemTests
