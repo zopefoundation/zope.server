@@ -147,10 +147,11 @@ class FTPServerChannel(LineServerChannel):
 
     def cmd_abor(self, args):
         'See IFTPCommandHandler'
+        assert self.async_mode
+        self.reply('TRANSFER_ABORTED')
         if self.client_dc is not None:
-            self.client_dc.close('TRANSFER_ABORTED')
-        else:
-            self.reply('TRANSFER_ABORTED')
+            self.client_dc.reported = True
+            self.client_dc.close()
 
     def cmd_appe (self, args):
         'See IFTPCommandHandler'
@@ -208,13 +209,10 @@ class FTPServerChannel(LineServerChannel):
             except GetoptError:
                 self.reply('ERR_ARGS')
                 return
-
             if len(args) > 1:
                 self.reply('ERR_ARGS')
                 return
-
             args = args and args[0] or ''
-
 
         fs = self._getFileSystem()
         path = self._generatePath(args)
@@ -237,7 +235,9 @@ class FTPServerChannel(LineServerChannel):
             cdc.write(s)
             cdc.close_when_done()
         except OSError, err:
-            cdc.close('ERR_NO_LIST', str(err))
+            self.reply('ERR_NO_LIST', str(err))
+            cdc.reported = True
+            cdc.close_when_done()
 
     def getList(self, args, long=0, directory=0):
         # we need to scan the command line for arguments to '/bin/ls'...
@@ -269,7 +269,6 @@ class FTPServerChannel(LineServerChannel):
                 file_list = [posixpath.split(path)[1]]
 
         return '\r\n'.join(file_list) + '\r\n'
-
 
 
     def cmd_mdtm(self, args):
@@ -401,9 +400,13 @@ class FTPServerChannel(LineServerChannel):
             fs.readfile(path, outstream, start)
             cdc.close_when_done()
         except OSError, err:
-            cdc.close('ERR_OPEN_READ', str(err))
+            self.reply('ERR_OPEN_READ', str(err))
+            cdc.reported = True
+            cdc.close_when_done()
         except IOError, err:
-            cdc.close('ERR_IO', str(err))
+            self.reply('ERR_IO', str(err))
+            cdc.reported = True
+            cdc.close_when_done()
 
 
     def cmd_rest(self, args):
@@ -489,7 +492,7 @@ class FTPServerChannel(LineServerChannel):
 
     def finishedRecv(self, buffer, (path, mode, start)):
         """Called by RecvChannel when the transfer is finished."""
-        # Always called in a task.
+        assert not self.async_mode
         try:
             infile = buffer.getfile()
             infile.seek(0)
@@ -555,18 +558,17 @@ class FTPServerChannel(LineServerChannel):
         path = posixpath.join(self.cwd, args)
         return posixpath.normpath(path)
 
-
     def newPassiveAcceptor(self):
         # ensure that only one of these exists at a time.
+        assert self.async_mode
         if self.passive_acceptor is not None:
             self.passive_acceptor.close()
             self.passive_acceptor = None
         self.passive_acceptor = PassiveAcceptor(self)
         return self.passive_acceptor
 
-
-
     def connectDataChannel(self, cdc):
+        """Attempt to connect the data channel."""
         pa = self.passive_acceptor
         if pa:
             # PASV mode.
@@ -575,7 +577,6 @@ class FTPServerChannel(LineServerChannel):
                 conn, addr = pa.ready
                 cdc.set_socket (conn)
                 cdc.connected = 1
-                self.passive_acceptor.close()
                 self.passive_acceptor = None
             # else we're still waiting for a connect to the PASV port.
             # FTP Explorer is known to do this.
@@ -588,15 +589,12 @@ class FTPServerChannel(LineServerChannel):
             try:
                 cdc.connect((ip, port))
             except socket.error:
-                cdc.close('NO_DATA_CONN')
+                self.reply('NO_DATA_CONN')
+                cdc.reported = True
+                cdc.close_when_done()
 
-                
-    def notifyClientDCClosing(self, *reply_args):
-        if self.client_dc is not None:
-            self.client_dc = None
-            if reply_args:
-                self.reply(*reply_args)
-
+    def closedData(self):
+        self.client_dc = None
 
     def close(self):
         LineServerChannel.close(self)
@@ -703,10 +701,8 @@ class PassiveAcceptor(asyncore.dispatcher):
         self.addr = self.getsockname()
         self.listen(1)
 
-
     def log (self, *ignore):
         pass
-
 
     def handle_accept (self):
         conn, addr = self.accept()
@@ -722,18 +718,48 @@ class PassiveAcceptor(asyncore.dispatcher):
         self.close()
 
 
-class RecvChannel(DualModeChannel):
-    """ """
+class FTPDataChannel(DualModeChannel):
+    """Base class for FTP data connections"""
+    
+    def __init__ (self, control_channel):
+        self.control_channel = control_channel
+        self.reported = False
+        DualModeChannel.__init__(self, None, None, control_channel.adj)
+
+    def report(self, *reply_args):
+        """Reports the result of the data transfer."""
+        self.reported = True
+        if self.control_channel is not None:
+            self.control_channel.reply(*reply_args)
+
+    def reportDefault(self):
+        """Provide a default report on close."""
+        pass
+
+    def close(self):
+        """Notifies the control channel when the data connection closes."""
+        c = self.control_channel
+        try:
+            if c is not None and not self.reported:
+                self.reportDefault()
+        finally:
+            self.control_channel = None
+            DualModeChannel.close(self)
+            if c is not None:
+                c.closedData()
+    
+
+class RecvChannel(FTPDataChannel):
+    """FTP data receive channel"""
 
     complete_transfer = 0
     _fileno = None  # provide a default for asyncore.dispatcher._fileno
 
     def __init__ (self, control_channel, finish_args):
-        self.control_channel = control_channel
         self.finish_args = finish_args
         self.inbuf = OverflowableBuffer(control_channel.adj.inbuf_overflow)
-        DualModeChannel.__init__(self, None, None, control_channel.adj)
-        # Note that this channel starts out in async mode.
+        FTPDataChannel.__init__(self, control_channel)
+        # Note that this channel starts in async mode.
 
     def writable (self):
         return 0
@@ -753,20 +779,11 @@ class RecvChannel(DualModeChannel):
         self.close()
         c.queue_task(task)
 
-    def close(self, *reply_args):
-        try:
-            c = self.control_channel
-            if c is not None:
-                self.control_channel = None
-                if not self.complete_transfer and not reply_args:
-                    # Not all data transferred
-                    reply_args = ('TRANSFER_ABORTED',)
-                c.notifyClientDCClosing(*reply_args)
-        finally:
-            if self.socket is not None:
-                # XXX asyncore.dispatcher.close() doesn't like socket == None
-                DualModeChannel.close(self)
-
+    def reportDefault(self):
+        if not self.complete_transfer:
+            self.report('TRANSFER_ABORTED')
+        # else the transfer completed and FinishedRecvTask will
+        # provide a complete reply through finishedRecv().
 
 
 class FinishedRecvTask(object):
@@ -803,16 +820,16 @@ class FinishedRecvTask(object):
         pass
 
 
-class XmitChannel(DualModeChannel):
+class XmitChannel(FTPDataChannel):
+    """FTP data send channel"""
 
     opened = 0
     _fileno = None  # provide a default for asyncore.dispatcher._fileno
 
     def __init__ (self, control_channel, ok_reply_args):
-        self.control_channel = control_channel
         self.ok_reply_args = ok_reply_args
         self.set_sync()
-        DualModeChannel.__init__(self, None, None, control_channel.adj)
+        FTPDataChannel.__init__(self, control_channel)
 
     def _open(self):
         """Signal the client to open the connection."""
@@ -825,7 +842,7 @@ class XmitChannel(DualModeChannel):
             raise IOError, 'Client FTP connection closed'
         if not self.opened:
             self._open()
-        DualModeChannel.write(self, data)
+        FTPDataChannel.write(self, data)
 
     def readable(self):
         return not self.connected
@@ -836,34 +853,26 @@ class XmitChannel(DualModeChannel):
             self.recv(1)
         except:
             # The connection failed.
-            self.close('NO_DATA_CONN')
+            self.report('NO_DATA_CONN')
+            self.close()
 
     def handle_connect(self):
         pass
 
     def handle_comm_error(self):
-        self.close('TRANSFER_ABORTED')
+        self.report('TRANSFER_ABORTED')
+        self.close()
 
-    def close(self, *reply_args):
-        try:
-            c = self.control_channel
-            if c is not None:
-                self.control_channel = None
-                if not reply_args:
-                    if not len(self.outbuf):
-                        # All data transferred
-                        if not self.opened:
-                            # Zero-length file
-                            self._open()
-                        reply_args = ('TRANS_SUCCESS',)
-                    else:
-                        # Not all data transferred
-                        reply_args = ('TRANSFER_ABORTED',)
-                c.notifyClientDCClosing(*reply_args)
-        finally:
-            if self.socket is not None:
-                # XXX asyncore.dispatcher.close() doesn't like socket == None
-                DualModeChannel.close(self)
+    def reportDefault(self):
+        if not len(self.outbuf):
+            # All data transferred
+            if not self.opened:
+                # Zero-length file
+                self._open()
+            self.report('TRANS_SUCCESS')
+        else:
+            # Not all data transferred
+            self.report('TRANSFER_ABORTED')
 
 
 class ApplicationXmitStream(object):

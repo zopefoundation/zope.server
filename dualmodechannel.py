@@ -82,7 +82,7 @@ class DualModeChannel(asyncore.dispatcher):
         return not self.will_close
 
     def handle_read(self):
-        if not self.async_mode:
+        if not self.async_mode or self.will_close:
             return
         try:
             data = self.recv(self.adj.recv_bytes)
@@ -189,3 +189,10 @@ class DualModeChannel(asyncore.dispatcher):
             # main thread calls handle_write().
             self.async_mode = 1
             self.pull_trigger()
+
+    def close(self):
+        # Always close in asynchronous mode.  If the connection is
+        # closed in a thread, the main loop can end up with a bad file
+        # descriptor.
+        assert self.async_mode
+        asyncore.dispatcher.close(self)
