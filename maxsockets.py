@@ -51,7 +51,7 @@ def max_select_sockets():
     while 1:
         try:
             num = len(sl)
-            for i in range(1 + len(sl) * 0.05):
+            for i in range(1 + len(sl) // 20):
                 # Increase exponentially.
                 s = socket.socket (socket.AF_INET, socket.SOCK_STREAM)
                 s.bind (('',0))
