@@ -11,7 +11,7 @@
 ##############################################################################
 """Demo file-system implementation, for testing
 
-$Id: demofs.py,v 1.3 2003/06/04 11:13:49 stevea Exp $
+$Id$
 """
 __metaclass__ = type
 

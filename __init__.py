@@ -16,7 +16,7 @@
 This package contains generic base classes for channel-based servers, the
 servers themselves and helper objects, such as tasks and requests.
 
-$Id: __init__.py,v 1.4 2004/02/16 21:34:37 srichter Exp $
+$Id$
 """
 import asyncore
 

@@ -16,7 +16,7 @@
 This module provides a base implementation for a channel-based server. It can
 only be used as a mix-in to actual server implementations.
 
-$Id: serverbase.py,v 1.4 2004/02/16 21:34:37 srichter Exp $
+$Id$
 """
 import asyncore
 import logging

@@ -20,7 +20,7 @@ the exception.  This framework causes the unit test to fail.  If code
 being tested expects the errors to occur, it can add code to prevent
 the error from propagating all the way back to asyncore.
 
-$Id: asyncerror.py,v 1.2 2002/12/25 14:15:27 jim Exp $
+$Id$
 """
 
 __metaclass__ = type

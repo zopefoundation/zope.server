@@ -13,7 +13,7 @@
 ##############################################################################
 """Abstract file-system tests
 
-$Id: fstests.py,v 1.2 2003/04/09 09:49:35 ryzaja Exp $
+$Id$
 """
 
 from StringIO import StringIO

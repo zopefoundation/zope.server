@@ -16,7 +16,7 @@
 This module provides a base implementation for the server channel. It can only
 be used as a mix-in to actual server channel implementations.
 
-$Id: serverchannelbase.py,v 1.4 2004/02/16 21:34:37 srichter Exp $
+$Id$
 """
 import os
 import time

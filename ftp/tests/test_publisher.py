@@ -15,7 +15,7 @@
 
 XXX longer description goes here.
 
-$Id: test_publisher.py,v 1.2 2004/03/20 13:38:17 philikon Exp $
+$Id$
 """
 
 import demofs

@@ -13,7 +13,7 @@
 ##############################################################################
 """HTTP Server that uses the Zope Publisher for executing a task.
 
-$Id: publisherhttpserver.py,v 1.9 2004/02/16 21:34:38 srichter Exp $
+$Id$
 """
 from zope.server.http.httpserver import HTTPServer
 from zope.publisher.publish import publish

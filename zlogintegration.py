@@ -16,7 +16,7 @@
 As a side effect of importing this module, asyncore's logging will be
 redirected to the logging module.
 
-$Id: zlogintegration.py,v 1.2 2002/12/25 14:15:23 jim Exp $
+$Id$
 """
 
 import logging

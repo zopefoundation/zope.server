@@ -13,7 +13,7 @@
 ##############################################################################
 """Threaded Task Dispatcher
 
-$Id: taskthreads.py,v 1.6 2004/03/05 22:09:33 jim Exp $
+$Id$
 """
 from Queue import Queue, Empty
 from thread import allocate_lock, start_new_thread

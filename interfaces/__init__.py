@@ -13,7 +13,7 @@
 ##############################################################################
 """Server interfaces.
 
-$Id: __init__.py,v 1.3 2004/02/16 21:34:39 srichter Exp $
+$Id$
 """
 from zope.interface import Interface
 from zope.interface import Attribute

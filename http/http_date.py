@@ -13,7 +13,7 @@
 ##############################################################################
 """HTTP Server Date/Time utilities
 
-$Id: http_date.py,v 1.5 2004/03/20 00:01:07 srichter Exp $
+$Id$
 """
 import re
 import string

@@ -15,7 +15,7 @@
 This server uses asyncore to accept connections and do initial
 processing but threads to do work.
 
-$Id: httprequestparser.py,v 1.3 2003/06/06 19:29:12 stevea Exp $
+$Id$
 """
 
 import re

@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: chunking.py,v 1.3 2003/06/06 19:29:12 stevea Exp $
+$Id$
 """
 
 from zope.server.utilities import find_double_newline

@@ -13,7 +13,7 @@
 
 XXX longer description goes here.
 
-$Id: ftp.py,v 1.3 2003/02/03 15:09:04 jim Exp $
+$Id$
 """
 __metaclass__ = type
 

@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: linecommandparser.py,v 1.3 2003/06/04 08:40:33 stevea Exp $
+$Id$
 """
 
 from zope.server.interfaces import IStreamConsumer

@@ -16,7 +16,7 @@
 An HTTP task that can execute an HTTP request with the help of the channel and
 the server it belongs to.
 
-$Id: httptask.py,v 1.4 2004/02/16 21:34:38 srichter Exp $
+$Id$
 """
 import socket
 import time

@@ -15,7 +15,7 @@
 
 This FTP server uses the Zope 3 Publisher to execute commands.
 
-$Id: publisher.py,v 1.4 2004/02/16 21:34:38 srichter Exp $
+$Id$
 """
 import posixpath
 

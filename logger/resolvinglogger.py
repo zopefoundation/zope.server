@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: resolvinglogger.py,v 1.4 2003/07/06 10:26:14 andreasjung Exp $
+$Id$
 """
 from zope.server.interfaces.logger import IRequestLogger
 from zope.interface import implements

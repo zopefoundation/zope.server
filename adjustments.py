@@ -13,7 +13,7 @@
 ##############################################################################
 """Adjustments are tunable parameters.
 
-$Id: adjustments.py,v 1.2 2002/12/25 14:15:23 jim Exp $
+$Id$
 """
 
 from zope.server import maxsockets
