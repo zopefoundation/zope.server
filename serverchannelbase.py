@@ -211,6 +211,7 @@ class ServerChannelBase(DualModeChannel, object):
                 raise
 
     def cancel(self):
+        """Cancels all pending tasks"""
         task_lock.acquire()
         try:
             if self.tasks:
