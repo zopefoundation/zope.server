@@ -9,14 +9,10 @@
 # WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
 # FOR A PARTICULAR PURPOSE.
 ##############################################################################
-"""XXX short summary goes here.
-
-XXX longer description goes here.
+"""FTP server specific interfaces.
 
 $Id$
 """
-__metaclass__ = type
-
 from zope.interface import Interface
 
 class IFTPCommandHandler(Interface):
@@ -179,15 +175,15 @@ class IFTPCommandHandler(Interface):
 # '!' requires write access
 #
 not_implemented_commands = {
-        'acct':        'specify account (ignored)',
-        'allo':        'allocate storage (vacuously)',
-        'site':        'non-standard commands (see next section)',
-        'stou':        'store a file with a unique name',                            #!
-        'xcup':        'change to parent of current working directory (deprecated)',
-        'xcwd':        'change working directory (deprecated)',
-        'xmkd':        'make a directory (deprecated)',                            #!
-        'xpwd':        'print the current working directory (deprecated)',
-        'xrmd':        'remove a directory (deprecated)',                            #!
+    'acct': 'specify account (ignored)',
+    'allo': 'allocate storage (vacuously)',
+    'site': 'non-standard commands (see next section)',
+    'stou': 'store a file with a unique name',                            #!
+    'xcup': 'change to parent of current working directory (deprecated)',
+    'xcwd': 'change working directory (deprecated)',
+    'xmkd': 'make a directory (deprecated)',                              #!
+    'xpwd': 'print the current working directory (deprecated)',
+    'xrmd': 'remove a directory (deprecated)',                            #!
 }
 
 
