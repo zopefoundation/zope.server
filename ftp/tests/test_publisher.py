@@ -28,7 +28,7 @@ class DemoFileSystem(demofs.DemoFileSystem):
         return demofs.DemoFileSystem.rename(
             self, "%s/%s" % (path, old), "%s/%s" % (path, new)) 
 
-class Publication:
+class Publication(object):
 
     def __init__(self, root):
         self.root = root
@@ -58,7 +58,7 @@ class Publication:
         request.response._exc = info[:2]
         
 
-class Request:
+class Request(object):
 
     def __init__(self, input, output, env):
         self.env = env
@@ -76,7 +76,7 @@ class Request:
     def close(self):
         pass
 
-class Response:
+class Response(object):
 
     _exc = _body = None
 
@@ -91,7 +91,7 @@ class Response:
             raise self._exc[0], self._exc[1]
         return self._body
 
-class RequestFactory:
+class RequestFactory(object):
 
     def __init__(self, root):
         self.pub = Publication(root)

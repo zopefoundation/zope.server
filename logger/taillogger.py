@@ -11,30 +11,32 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Proxy between the server's and Python's logger interfaces.
+"""Tail Logger
 
 $Id$
 """
-import logging
-
 from zope.server.interfaces.logger import IMessageLogger
 from zope.interface import implements
 
-class PythonLogger(object):
-    """Proxy for Python's logging module"""
+class TailLogger(object):
+    """Keep track of the last <size> log messages"""
 
     implements(IMessageLogger)
 
-    def __init__(self, name=None, level=logging.INFO):
-        self.name = name
-        self.level = level
-        self.logger = logging.getLogger(name)
-
-    def __repr__(self):
-        return '<python logger: %s %s>' % (self.name,
-                    logging.getLevelName(self.level))
+    def __init__(self, logger, size=500):
+        self.size = size
+        self.logger = logger
+        self.messages = []
 
     def logMessage(self, message):
-        """See IMessageLogger"""
-        self.logger.log(self.level, message.rstrip())
+        'See IMessageLogger'
+        self.messages.append(strip_eol(message))
+        if len(self.messages) > self.size:
+            del self.messages[0]
+        self.logger.logMessage(message)
 
+
+def strip_eol(line):
+    while line and line[-1] in '\r\n':
+        line = line[:-1]
+    return line

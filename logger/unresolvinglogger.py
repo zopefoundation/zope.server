@@ -11,30 +11,21 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Proxy between the server's and Python's logger interfaces.
+"""Unresolving Logger
 
 $Id$
 """
-import logging
-
-from zope.server.interfaces.logger import IMessageLogger
+from zope.server.interfaces.logger import IRequestLogger
 from zope.interface import implements
 
-class PythonLogger(object):
-    """Proxy for Python's logging module"""
+class UnresolvingLogger(object):
+    """Just in case you don't want to resolve"""
 
-    implements(IMessageLogger)
+    implements(IRequestLogger)
 
-    def __init__(self, name=None, level=logging.INFO):
-        self.name = name
-        self.level = level
-        self.logger = logging.getLogger(name)
+    def __init__(self, logger):
+        self.logger = logger
 
-    def __repr__(self):
-        return '<python logger: %s %s>' % (self.name,
-                    logging.getLevelName(self.level))
-
-    def logMessage(self, message):
-        """See IMessageLogger"""
-        self.logger.log(self.level, message.rstrip())
-
+    def logRequest(self, ip, message):
+        'See IRequestLogger'
+        self.logger.logMessage('%s%s' % (ip, message))

@@ -769,7 +769,7 @@ class RecvChannel(ChannelBaseClass):
 
 
 
-class FinishedRecvTask:
+class FinishedRecvTask(object):
 
     implements(ITask)
 
@@ -867,7 +867,7 @@ class XmitChannel(ChannelBaseClass):
                 ChannelBaseClass.close(self)
 
 
-class ApplicationXmitStream:
+class ApplicationXmitStream(object):
     """Provide stream output, remapping close() to close_when_done().
     """
 

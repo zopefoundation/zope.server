@@ -11,11 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Common FTP Activity Logger
 
 $Id$
 """
-
 import time
 
 from zope.server.http.commonaccesslogger import CommonAccessLogger
