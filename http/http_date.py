@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: http_date.py,v 1.2 2002/12/25 14:15:24 jim Exp $
+$Id: http_date.py,v 1.3 2003/01/09 12:59:20 anthony Exp $
 """
 
 import re
@@ -145,8 +145,4 @@ def parse_http_date (d):
             retval = int (time.mktime (unpack_rfc822(m)) - tz)
         else:
             return 0
-            # Thanks to Craig Silverstein <csilvers@google.com> for pointing
-            # out the DST discrepancy
-    if time.daylight and time.localtime(retval)[-1] == 1: # DST correction
-        retval = retval + (tz - time.altzone)
     return retval
