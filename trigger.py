@@ -11,7 +11,10 @@
 # FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
+"""Trigger
 
+$Id$
+"""
 import asyncore
 import os
 import socket

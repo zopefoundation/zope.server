@@ -11,34 +11,25 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""FTP Server tests
 
 $Id$
 """
-
 import asyncore
-
-import unittest
+import ftplib
 import socket
+import unittest
+from time import time
 from types import StringType
 from StringIO import StringIO
-
 from threading import Thread, Event
-from zope.server.taskthreads import ThreadedTaskDispatcher
-from zope.server.ftp.server import FTPServer, status_messages
+
 from zope.server.adjustments import Adjustments
-
+from zope.server.ftp.server import FTPServer, status_messages
 from zope.server.ftp.tests import demofs
-
+from zope.server.taskthreads import ThreadedTaskDispatcher
 from zope.server.tests.asyncerror import AsyncoreErrorHook
-
 from zope.server.trigger import trigger
-
-
-import ftplib
-
-from time import time
-
 
 td = ThreadedTaskDispatcher()
 
