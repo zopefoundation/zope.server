@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: test_httpserver.py,v 1.3 2003/03/13 18:49:18 alga Exp $
+$Id: test_httpserver.py,v 1.4 2003/04/28 22:25:02 jeremy Exp $
 """
 
 import unittest
@@ -117,16 +117,13 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
     def testEchoResponse(self, h=None, add_headers=None, body=''):
         if h is None:
             h = HTTPConnection(LOCALHOST, self.port)
-        h.putrequest('GET', '/')
-        h.putheader('Accept', 'text/plain')
+        headers = {}
         if add_headers:
-            for k, v in add_headers.items():
-                h.putheader(k, v)
+            headers.update(add_headers)
+        headers["Accept"] = "text/plain"
         if body:
-            h.putheader('Content-Length', str(int(len(body))))
-        h.endheaders()
-        if body:
-            h.send(body)
+            headers["Content-Length"] = str(int(len(body)))
+        h.request("GET", "/", body, headers)
         response = h.getresponse()
         self.failUnlessEqual(int(response.status), 200)
         length = int(response.getheader('Content-Length', '0'))
@@ -212,9 +209,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             #print 'open', n, clock()
             h = HTTPConnection(LOCALHOST, self.port)
             #h.debuglevel = 1
-            h.putrequest('GET', '/')
-            h.putheader('Accept', 'text/plain')
-            h.endheaders()
+            h.request("GET", "/", headers={"Accept": "text/plain"})
             conns.append(h)
             # If you uncomment the next line, you can raise the
             # number of connections much higher without running
@@ -241,10 +236,8 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
     def testChunkingRequestWithoutContent(self):
         h = HTTPConnection(LOCALHOST, self.port)
-        h.putrequest('GET', '/')
-        h.putheader('Accept', 'text/plain')
-        h.putheader('Transfer-Encoding', 'chunked')
-        h.endheaders()
+        h.request("GET", "/", headers={"Accept": "text/plain",
+                                       "Transfer-Encoding": "chunked"})
         h.send("0\r\n\r\n")
         response = h.getresponse()
         self.failUnlessEqual(int(response.status), 200)
@@ -257,10 +250,8 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         expect = s * 12
 
         h = HTTPConnection(LOCALHOST, self.port)
-        h.putrequest('GET', '/')
-        h.putheader('Accept', 'text/plain')
-        h.putheader('Transfer-Encoding', 'chunked')
-        h.endheaders()
+        h.request("GET", "/", headers={"Accept": "text/plain",
+                                       "Transfer-Encoding": "chunked"})
         for n in range(12):
             h.send(control_line)
             h.send(s)
