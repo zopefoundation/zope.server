@@ -17,8 +17,12 @@ $Id$
 """
 import asyncore
 import ftplib
-import socket
 import unittest
+import socket
+import sys
+import traceback
+import unittest
+
 from time import time
 from types import StringType
 from StringIO import StringIO
@@ -29,7 +33,6 @@ from zope.server.ftp.server import FTPServer, status_messages
 from zope.server.ftp.tests import demofs
 from zope.server.taskthreads import ThreadedTaskDispatcher
 from zope.server.tests.asyncerror import AsyncoreErrorHook
-from zope.server.trigger import trigger
 
 td = ThreadedTaskDispatcher()
 
@@ -106,26 +109,35 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.thread_started.set()
         import select
         from errno import EBADF
-        nerr = 0
         while self.run_loop:
             self.counter = self.counter + 1
+            # Note that it isn't acceptable to fail out of
+            # this loop. That will likely make the tests hang.
             try:
                 asyncore.poll(0.1)
+                continue
             except select.error, data:
+                print "EXCEPTION POLLING IN LOOP(): ", data
                 if data[0] == EBADF:
-                    nerr += 1
-                    if nerr > 100:
-                        # Things are pretty bad if we got here
-                        for socket in asyncore.socket_map.values():
-                            if not isinstance(socket, trigger):
-                                try:
-                                    socket.close()
-                                except:
-                                    pass
-                        break
-                else:
-                    raise
-
+                    for key in asyncore.socket_map.keys():
+                        print
+                        try:
+                            select.select([], [], [key], 0.0)
+                        except select.error, v:
+                            print "Bad entry in socket map", key, v
+                            print asyncore.socket_map[key]
+                            print asyncore.socket_map[key].__class__
+                            del asyncore.socket_map[key]
+                        else:
+                            print "OK entry in socket map", key
+                            print asyncore.socket_map[key]
+                            print asyncore.socket_map[key].__class__
+                        print
+            except:
+                print "WEIRD EXCEPTION IN LOOP"
+                traceback.print_exception(*(sys.exc_info()+(100,)))
+            print
+                
     def getFTPConnection(self, login=1):
         ftp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ftp.connect((LOCALHOST, self.port))
