@@ -24,6 +24,16 @@ class PublisherHTTPServer(HTTPServer):
 
     def __init__(self, request_factory, sub_protocol=None, *args, **kw):
 
+        # XXX This 'adjustment' to args[0] (the hostname for the HTTP server)
+        # under Windows is to get Zope to accept connections from other machines
+        # when the host name is omitted from the server address (in zope.conf).
+        # The address comes in as 'localhost' from ZConfig by way of some
+        # dubious special handling. See collector issue 383 for more info.
+        import sys
+        if sys.platform[:3] == "win" and args[0] == 'localhost':
+            args = ('',) + args[1:]
+
+
         # The common HTTP
         self.request_factory = request_factory
 
