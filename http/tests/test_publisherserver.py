@@ -11,7 +11,7 @@
 ##############################################################################
 """
 
-$Id: test_publisherserver.py,v 1.5 2003/04/09 09:49:36 ryzaja Exp $
+$Id: test_publisherserver.py,v 1.6 2003/11/21 17:12:45 jim Exp $
 """
 
 import unittest
@@ -22,7 +22,7 @@ from zope.server.taskthreads import ThreadedTaskDispatcher
 from zope.server.http.publisherhttpserver import PublisherHTTPServer
 
 from zope.component.tests.placelesssetup import PlacelessSetup
-from zope.component.adapter import provideAdapter
+import zope.component
 
 from zope.i18n.interfaces import IUserPreferredCharsets
 
@@ -92,7 +92,8 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
     def setUp(self):
         PlacelessSetup.setUp(self)
-        provideAdapter(IHTTPRequest, IUserPreferredCharsets, HTTPCharsets)
+        as = zope.component.getService(None, 'Adapters')
+        as.provideAdapter(IHTTPRequest, IUserPreferredCharsets, [HTTPCharsets])
         obj = tested_object()
         obj.folder = tested_object()
         obj.folder.item = tested_object()
