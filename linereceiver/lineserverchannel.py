@@ -19,6 +19,7 @@ protocols that use a line-based command structure.
 $Id$
 """
 
+from asyncore import compact_traceback
 import os
 import sys
 
@@ -106,6 +107,27 @@ class LineServerChannel(ServerChannelBase):
         # TODO: Some logging should go on here.
 
 
+    def handle_error_no_close(self):
+        """See asyncore.dispatcher.handle_error()"""
+        nil, t, v, tbinfo = compact_traceback()
+
+        # sometimes a user repr method will crash.
+        try:
+            self_repr = repr(self)
+        except:
+            self_repr = '<__repr__(self) failed for object at %0x>' % id(self)
+
+        self.log_info(
+            'uncaptured python exception, closing channel %s (%s:%s %s)' % (
+                self_repr,
+                t,
+                v,
+                tbinfo
+                ),
+            'error'
+            )
+
+
     def exception(self):
         if DEBUG:
             import traceback
@@ -116,4 +138,5 @@ class LineServerChannel(ServerChannelBase):
         except:
             info = str(t)
         self.reply('INTERNAL_ERROR', info)
-        self.handle_error()
+        self.handle_error_no_close()
+        self.close_when_done()
