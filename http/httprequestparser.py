@@ -15,7 +15,7 @@
 This server uses asyncore to accept connections and do initial
 processing but threads to do work.
 
-$Id: httprequestparser.py,v 1.2 2002/12/25 14:15:24 jim Exp $
+$Id: httprequestparser.py,v 1.3 2003/06/06 19:29:12 stevea Exp $
 """
 
 import re
@@ -25,6 +25,7 @@ from zope.server.fixedstreamreceiver import FixedStreamReceiver
 from zope.server.buffers import OverflowableBuffer
 from zope.server.utilities import find_double_newline
 from zope.server.interfaces import IStreamConsumer
+from zope.interface import implements
 
 try:
     from cStringIO import StringIO
@@ -39,7 +40,7 @@ class HTTPRequestParser:
     a server task constructor.
     """
 
-    __implements__ = IStreamConsumer
+    implements(IStreamConsumer)
 
     completed = 0  # Set once request is completed.
     empty = 0        # Set if no request was made.

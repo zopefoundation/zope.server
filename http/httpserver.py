@@ -15,7 +15,7 @@
 This server uses asyncore to accept connections and do initial
 processing but threads to do work.
 
-$Id: httpserver.py,v 1.2 2002/12/25 14:15:24 jim Exp $
+$Id: httpserver.py,v 1.3 2003/06/06 19:29:12 stevea Exp $
 """
 
 from zope.server.serverbase import ServerBase
@@ -24,8 +24,6 @@ from zope.server.http.httpserverchannel import HTTPServerChannel
 
 class HTTPServer(ServerBase):
     """This is a generic HTTP Server."""
-
-    __implements__ = ServerBase.__implements__
 
     channel_class = HTTPServerChannel
     SERVER_IDENT = 'zope.server.http'

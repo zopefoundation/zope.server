@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: httpserverchannel.py,v 1.2 2002/12/25 14:15:24 jim Exp $
+$Id: httpserverchannel.py,v 1.3 2003/06/06 19:29:12 stevea Exp $
 """
 
 from zope.server.serverchannelbase import ServerChannelBase
@@ -23,8 +23,6 @@ from zope.server.http.httprequestparser import HTTPRequestParser
 
 class HTTPServerChannel(ServerChannelBase):
     """HTTP-specific Server Channel"""
-
-    __implements__ = ServerChannelBase.__implements__
 
     task_class = HTTPTask
     parser_class = HTTPRequestParser

@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: publisherhttpserver.py,v 1.2 2002/12/25 14:15:24 jim Exp $
+$Id: publisherhttpserver.py,v 1.3 2003/06/06 19:29:12 stevea Exp $
 """
 
 from zope.server.http.httpserver import HTTPServer
@@ -22,8 +22,6 @@ from zope.publisher.publish import publish
 
 class PublisherHTTPServer(HTTPServer):
     """Zope Publisher-specific HTTP Server"""
-
-    __implements__ = HTTPServer.__implements__
 
     def __init__(self, request_factory, sub_protocol=None, *args, **kw):
         sub_protocol = str(sub_protocol)

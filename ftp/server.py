@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: server.py,v 1.2 2003/03/13 18:49:17 alga Exp $
+$Id: server.py,v 1.3 2003/06/06 19:29:11 stevea Exp $
 """
 
 import posixpath
@@ -29,6 +29,7 @@ from zope.server.interfaces.ftp import IFTPCommandHandler
 from zope.server.serverchannelbase import ChannelBaseClass
 from zope.server.buffers import OverflowableBuffer
 from zope.server.interfaces import ITask
+from zope.interface import implements
 
 status_messages = {
     'OPEN_DATA_CONN'   : '150 Opening %s mode data connection for file list',
@@ -87,7 +88,7 @@ class FTPServerChannel(LineServerChannel):
     """The FTP Server Channel represents a connection to a particular
        client. We can therefore store information here."""
 
-    __implements__ = LineServerChannel.__implements__, IFTPCommandHandler
+    implements(IFTPCommandHandler)
 
 
     # List of commands that are always available
@@ -693,8 +694,6 @@ class PassiveAcceptor(asyncore.dispatcher):
        It would be nice if we could make both channels the same.
        Hmmm.."""
 
-    __implements__ = asyncore.dispatcher.__implements__
-
     ready = None
 
     def __init__ (self, control_channel):
@@ -775,7 +774,7 @@ class RecvChannel(ChannelBaseClass):
 
 class FinishedRecvTask:
 
-    __implements__ = ITask
+    implements(ITask)
 
     def __init__(self, control_channel, inbuf, finish_args):
         self.control_channel = control_channel

@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: publisher.py,v 1.2 2003/04/09 09:49:35 ryzaja Exp $
+$Id: publisher.py,v 1.3 2003/06/06 19:29:11 stevea Exp $
 """
 
 import posixpath
@@ -26,12 +26,13 @@ from zope.server.interfaces.ftp import IFileSystemAccess
 from zope.server.ftp.server import FTPServer
 from zope.publisher.publish import publish
 
+from zope.interface import implements
 
 class PublisherFileSystem:
     """Generic Publisher FileSystem implementation.
     """
 
-    __implements__ = IFileSystem
+    implements(IFileSystem)
 
     def __init__ (self, credentials, request_factory):
         self.credentials = credentials
@@ -143,7 +144,7 @@ class PublisherFTPServer(FTPServer):
 
 class PublisherFileSystemAccess:
 
-    __implements__ = IFileSystemAccess
+    implements(IFileSystemAccess)
 
     def __init__(self, request_factory):
         self.request_factory = request_factory
@@ -152,7 +153,7 @@ class PublisherFileSystemAccess:
         # We can't actually do any authentication initially, as the
         # user may not be defined at the root.
         pass
-    
+
     def open(self, credentials):
         return PublisherFileSystem(credentials, self.request_factory)
 

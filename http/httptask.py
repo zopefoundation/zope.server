@@ -15,7 +15,7 @@
 This server uses asyncore to accept connections and do initial
 processing but threads to do work.
 
-$Id: httptask.py,v 1.2 2002/12/25 14:15:24 jim Exp $
+$Id: httptask.py,v 1.3 2003/06/06 19:29:12 stevea Exp $
 """
 
 import socket
@@ -25,6 +25,8 @@ from zope.server.http.http_date import build_http_date
 
 from zope.server.interfaces import IHeaderOutput
 from zope.server.interfaces import ITask
+
+from zope.interface import implements
 
 rename_headers = {
     'CONTENT_LENGTH' : 'CONTENT_LENGTH',
@@ -38,7 +40,7 @@ class HTTPTask:
        Subclass this and override the execute() method.
     """
 
-    __implements__ = ITask, IHeaderOutput  #, IOutputStream
+    implements(ITask, IHeaderOutput)  #, IOutputStream
 
     instream = None
     close_on_finish = 1

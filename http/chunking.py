@@ -13,16 +13,17 @@
 ##############################################################################
 """
 
-$Id: chunking.py,v 1.2 2002/12/25 14:15:24 jim Exp $
+$Id: chunking.py,v 1.3 2003/06/06 19:29:12 stevea Exp $
 """
 
 from zope.server.utilities import find_double_newline
 from zope.server.interfaces import IStreamConsumer
+from zope.interface import implements
 
 
 class ChunkedReceiver:
 
-    __implements__ = IStreamConsumer
+    implements(IStreamConsumer)
 
     chunk_remainder = 0
     control_line = ''

@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: test_httpserver.py,v 1.4 2003/04/28 22:25:02 jeremy Exp $
+$Id: test_httpserver.py,v 1.5 2003/06/06 19:29:12 stevea Exp $
 """
 
 import unittest
@@ -26,6 +26,7 @@ from zope.server.http.httpserver import HTTPServer
 from zope.server.adjustments import Adjustments
 from zope.server.interfaces import ITask
 from zope.server.tests.asyncerror import AsyncoreErrorHook
+from zope.interface import implements
 
 from httplib import HTTPConnection
 from httplib import HTTPResponse as ClientHTTPResponse
@@ -62,7 +63,7 @@ class EchoHTTPServer(HTTPServer):
 
 class SleepingTask:
 
-    __implements__ = ITask
+    implements(ITask)
 
     def service(self):
         sleep(0.2)
