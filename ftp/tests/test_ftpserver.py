@@ -17,6 +17,7 @@ $Id$
 """
 
 import asyncore
+
 import unittest
 import socket
 from types import StringType
@@ -31,10 +32,13 @@ from zope.server.ftp.tests import demofs
 
 from zope.server.tests.asyncerror import AsyncoreErrorHook
 
+from zope.server.trigger import trigger
+
 
 import ftplib
 
 from time import time
+
 
 td = ThreadedTaskDispatcher()
 
@@ -111,14 +115,23 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.thread_started.set()
         import select
         from errno import EBADF
+        nerr = 0
         while self.run_loop:
             self.counter = self.counter + 1
-            # print 'loop', self.counter
             try:
                 asyncore.poll(0.1)
             except select.error, data:
                 if data[0] == EBADF:
-                    print "exception polling in loop(): ", data
+                    nerr += 1
+                    if nerr > 100:
+                        # Things are pretty bad if we got here
+                        for socket in asyncore.socket_map.values():
+                            if not isinstance(socket, trigger):
+                                try:
+                                    socket.close()
+                                except:
+                                    pass
+                        break
                 else:
                     raise
 
