@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: publisherhttpserver.py,v 1.4 2003/07/03 19:37:39 jim Exp $
+$Id: publisherhttpserver.py,v 1.5 2003/07/22 09:33:43 ryzaja Exp $
 """
 
 from zope.server.http.httpserver import HTTPServer
@@ -44,6 +44,7 @@ class PublisherHTTPServer(HTTPServer):
         request = self.request_factory(instream, task, env)
         response = request.response
         response.setHeaderOutput(task)
+        response.setHTTPTransaction(task)
         publish(request)
 
 class PMDBHTTPServer(PublisherHTTPServer):
