@@ -21,8 +21,8 @@ from zope.interface import Attribute
 class ISocket(Interface):
     """Represents a socket.
 
-       Note: Most of this documentation is taken from the Python Library
-             Reference.
+    Note: Most of this documentation is taken from the Python Library
+    Reference.
     """
 
     def listen(backlog):
@@ -240,10 +240,9 @@ class IServer(Interface):
        implement this interface or inherit its base class) is that it
        uses a mix of asynchronous and thread-based mechanism to
        serve. While the low-level socket listener uses async, the
-       actual request is executed in a thread.  This has the huge
-       advantage that if a request takes really long to process, the
-       server does not hang at that point to wait for the request to
-       finish.
+       actual request is executed in a thread.  This is important
+       because even if a request takes a long time to process, the
+       server can service other requests simultaneously.
     """
 
     channel_class = Attribute("""
