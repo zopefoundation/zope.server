@@ -145,4 +145,6 @@ class ServerBase(asyncore.dispatcher, object):
                 self.log_info ('warning: server accept() threw an exception',
                                'warning')
             return
+        for (level, optname, value) in self.adj.socket_options:
+            conn.setsockopt(level, optname, value)
         self.channel_class(self, conn, addr, self.adj)

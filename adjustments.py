@@ -15,6 +15,8 @@
 
 $Id$
 """
+import socket
+
 from zope.server import maxsockets
 
 
@@ -33,7 +35,11 @@ class Adjustments(object):
     recv_bytes = 8192
 
     # send_bytes is the number of bytes to send to socket.send().
-    send_bytes = 8192
+    # Multiples of 9000 should avoid partly-filled packets, but don't
+    # set this larger than the TCP write buffer size.  In Linux,
+    # /proc/sys/net/ipv4/tcp_wmem controls the minimum, default, and
+    # maximum sizes of TCP write buffers.
+    send_bytes = 9000
 
     # copy_bytes is the number of bytes to copy from one file to another.
     copy_bytes = 65536
@@ -60,6 +66,14 @@ class Adjustments(object):
 
     # Boolean: turn off to not log premature client disconnects.
     log_socket_errors = 1
+
+    # The socket options to set on receiving a connection.
+    # It is a list of (level, optname, value) tuples.
+    # TCP_NODELAY is probably good for Zope, since Zope buffers
+    # data itself.
+    socket_options = [
+        (socket.SOL_TCP, socket.TCP_NODELAY, 1),
+        ]
 
 
 default_adj = Adjustments()
