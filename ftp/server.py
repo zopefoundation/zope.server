@@ -710,7 +710,17 @@ class PassiveListener(asyncore.dispatcher):
             self.accepted.close()
 
     def handle_accept (self):
-        self.accepted, addr = self.accept()
+        """Accept a connection from the client.
+
+        For some reason, sometimes accept() returns None instead of a
+        socket.  This code ignores that case.
+        """
+        v = self.accept()
+        if v is None:
+            return
+        self.accepted, addr = v
+        if self.accepted is None:
+            return
         self.accepted.setblocking(0)
         self.closed = True
         self.close()
