@@ -20,7 +20,7 @@ import time
 import sys
 
 from zope.server.http.http_date import monthname
-from zope.server.logger.filelogger import FileLogger
+from zope.server.logger.pythonlogger import PythonLogger
 from zope.server.logger.resolvinglogger import ResolvingLogger
 from zope.server.logger.unresolvinglogger import UnresolvingLogger
 
@@ -31,7 +31,7 @@ class CommonHitLogger:
     def __init__(self, logger_object=None, resolver=None):
         if logger_object is None:
             # logger_object is an IMessageLogger
-            logger_object = FileLogger(sys.stdout)
+            logger_object = PythonLogger('hitlog')
 
         # self.output is an IRequestLogger
         if resolver is not None:
