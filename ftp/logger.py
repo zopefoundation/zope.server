@@ -16,38 +16,19 @@
 $Id$
 """
 import time
-import sys
 
-from zope.server.logger.filelogger import FileLogger
-from zope.server.logger.resolvinglogger import ResolvingLogger
-from zope.server.logger.unresolvinglogger import UnresolvingLogger
+from zope.server.http.commonaccesslogger import CommonAccessLogger
 
-class CommonFTPActivityLogger(object):
-    """Outputs hits in common HTTP log format.
-    """
-
-    def __init__(self, logger_object=None, resolver=None):
-        if logger_object is None:
-            logger_object = FileLogger(sys.stdout)
-
-        if resolver is not None:
-            self.output = ResolvingLogger(resolver, logger_object)
-        else:
-            self.output = UnresolvingLogger(logger_object)
-
+class CommonFTPActivityLogger(CommonAccessLogger):
+    """Outputs hits in common HTTP log format."""
 
     def log(self, task):
-        """
-        Receives a completed task and logs it in the
-        common log format.
-        """
-
-        now = time.localtime(time.time())
-
-        message = '%s [%s] "%s %s"' % (task.channel.username,
-                                       time.strftime('%Y/%m/%d %H:%M', now),
+        """Receives a completed task and logs it in the common log format."""
+        now = time.time()
+        message = ' - %s [%s] "%s %s"' % (task.channel.username,
+                                       self.log_date_string(now),
                                        task.m_name[4:].upper(),
                                        task.channel.cwd,
                                        )
 
-        self.output.logRequest('127.0.0.1', message)
+        self.output.logRequest(task.channel.addr[0], message)

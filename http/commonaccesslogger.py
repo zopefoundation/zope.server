@@ -17,7 +17,6 @@ $Id$
 """
 
 import time
-import sys
 
 from zope.server.http.http_date import monthname
 from zope.server.logger.pythonlogger import PythonLogger
@@ -73,12 +72,8 @@ class CommonAccessLogger(object):
         return '%d/%s/%02d:%02d:%02d:%02d %s' % (
             D, monthname[M], Y, h, m, s, tz)
 
-
     def log(self, task):
-        """
-        Receives a completed task and logs it in the
-        common log format.
-        """
+        """Receives a completed task and logs it in the common log format."""
         now = time.time()
         request_data = task.request_data
         req_headers = request_data.headers
