@@ -13,8 +13,6 @@
 
 $Id$
 """
-__metaclass__ = type
-
 import posixpath
 from zope.exceptions import Unauthorized
 from zope.server.interfaces.ftp import IFileSystem
@@ -25,7 +23,7 @@ execute = 1
 read = 2
 write = 4
 
-class File:
+class File(object):
     type = 'f'
     modified=None
 
@@ -70,7 +68,7 @@ class Directory(File):
     def __iter__(self):
         return iter(self.files)
 
-class DemoFileSystem:
+class DemoFileSystem(object):
     __doc__ = IFileSystem.__doc__
 
     implements(IFileSystem)
@@ -286,7 +284,7 @@ class DemoFileSystem:
         f = d[name]
         return f.type == 'f' and f.accessable(self.user, write)
 
-class DemoFileSystemAccess:
+class DemoFileSystemAccess(object):
     __doc__ = IFileSystemAccess.__doc__
 
     implements(IFileSystemAccess)

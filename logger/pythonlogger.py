@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Proxy between the server's and Python's logger interfaces.
 
 $Id$
 """
@@ -20,12 +20,8 @@ import logging
 from zope.server.interfaces.logger import IMessageLogger
 from zope.interface import implements
 
-__metaclass__ = type
-
-
 class PythonLogger:
-    """Proxy for Python's logging module
-    """
+    """Proxy for Python's logging module"""
 
     implements(IMessageLogger)
 

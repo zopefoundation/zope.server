@@ -22,14 +22,11 @@ the error from propagating all the way back to asyncore.
 
 $Id$
 """
-
-__metaclass__ = type
-
 import asyncore
 import sys
 import traceback
 
-class AsyncoreErrorHook:
+class AsyncoreErrorHook(object):
     """Convert asyncore errors into unittest failures.
 
     Call hook_asyncore_error in setUp() and unhook_asyncore_error() in
