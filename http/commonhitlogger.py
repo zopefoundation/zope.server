@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: commonhitlogger.py,v 1.2 2002/12/25 14:15:24 jim Exp $
+$Id: commonhitlogger.py,v 1.3 2003/07/06 10:23:18 andreasjung Exp $
 """
 
 import time
@@ -71,7 +71,7 @@ class CommonHitLogger:
                 self.tz_for_log_alt = tz
 
         return '%d/%s/%02d:%02d:%02d:%02d %s' % (
-            Y, monthname[M], D, h, m, s, tz)
+            D, monthname[M], Y, h, m, s, tz)
 
 
     def log(self, task):
