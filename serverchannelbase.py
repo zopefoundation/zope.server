@@ -11,11 +11,13 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Server-Channel Base Class
 
-$Id: serverchannelbase.py,v 1.3 2003/06/04 08:40:32 stevea Exp $
-"""
+This module provides a base implementation for the server channel. It can only
+be used as a mix-in to actual server channel implementations.
 
+$Id: serverchannelbase.py,v 1.4 2004/02/16 21:34:37 srichter Exp $
+"""
 import os
 import time
 import sys
@@ -39,11 +41,11 @@ running_lock = allocate_lock()
 
 
 class ServerChannelBase(ChannelBaseClass, object):
-    """Base class for a high-performance, mixed-mode server-side channel.
-    """
+    """Base class for a high-performance, mixed-mode server-side channel."""
 
     implements(IServerChannel)
 
+    # See zope.server.interfaces.IServerChannel
     parser_class = None       # Subclasses must provide a parser class
     task_class = None         # ... and a task class.
 
@@ -61,19 +63,24 @@ class ServerChannelBase(ChannelBaseClass, object):
     #
 
     def __init__(self, server, conn, addr, adj=None):
+        """See async.dispatcher"""
         ChannelBaseClass.__init__(self, conn, addr, adj)
         self.server = server
         self.last_activity = t = self.creation_time
         self.check_maintenance(t)
 
     def add_channel(self, map=None):
-        """This hook keeps track of opened HTTP channels.
+        """See async.dispatcher
+
+        This hook keeps track of opened HTTP channels.
         """
         ChannelBaseClass.add_channel(self, map)
         self.__class__.active_channels[self._fileno] = self
 
     def del_channel(self, map=None):
-        """This hook keeps track of closed HTTP channels.
+        """See async.dispatcher
+
+        This hook keeps track of closed HTTP channels.
         """
         ChannelBaseClass.del_channel(self, map)
         ac = self.__class__.active_channels
@@ -82,7 +89,9 @@ class ServerChannelBase(ChannelBaseClass, object):
             del ac[fd]
 
     def check_maintenance(self, now):
-        """Performs maintenance if necessary.
+        """See async.dispatcher
+
+        Performs maintenance if necessary.
         """
         ncc = self.__class__.next_channel_cleanup
         if now < ncc[0]:
@@ -91,12 +100,16 @@ class ServerChannelBase(ChannelBaseClass, object):
         self.maintenance()
 
     def maintenance(self):
-        """Kills off dead connections.
+        """See async.dispatcher
+
+        Kills off dead connections.
         """
         self.kill_zombies()
 
     def kill_zombies(self):
-        """Closes connections that have not had any activity in a while.
+        """See async.dispatcher
+
+        Closes connections that have not had any activity in a while.
 
         The timeout is configured through adj.channel_timeout (seconds).
         """
@@ -108,7 +121,9 @@ class ServerChannelBase(ChannelBaseClass, object):
                 channel.close()
 
     def received(self, data):
-        """Receive input asynchronously and send requests to
+        """See async.dispatcher
+
+        Receive input asynchronously and send requests to
         receivedCompleteRequest().
         """
         preq = self.proto_request
@@ -129,7 +144,9 @@ class ServerChannelBase(ChannelBaseClass, object):
             data = data[n:]
 
     def receivedCompleteRequest(self, req):
-        """If there are tasks running or requests on hold, queue
+        """See async.dispatcher
+
+        If there are tasks running or requests on hold, queue
         the request, otherwise execute it.
         """
         do_now = 0
@@ -154,7 +171,9 @@ class ServerChannelBase(ChannelBaseClass, object):
                 self.start_task(task)
 
     def start_task(self, task):
-        """Starts the given task.
+        """See async.dispatcher
+
+        Starts the given task.
 
         *** For thread safety, this should only be called from the main
         (async) thread. ***"""
@@ -167,7 +186,9 @@ class ServerChannelBase(ChannelBaseClass, object):
         self.server.addTask(task)
 
     def handle_error(self):
-        """Handles program errors (not communication errors)
+        """See async.dispatcher
+
+        Handles program errors (not communication errors)
         """
         t, v = sys.exc_info()[:2]
         if t is SystemExit or t is KeyboardInterrupt:
@@ -175,7 +196,9 @@ class ServerChannelBase(ChannelBaseClass, object):
         asyncore.dispatcher.handle_error(self)
 
     def handle_comm_error(self):
-        """Handles communication errors (not program errors)
+        """See async.dispatcher
+
+        Handles communication errors (not program errors)
         """
         if self.adj.log_socket_errors:
             self.handle_error()

@@ -11,11 +11,10 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""HTTP Server that uses the Zope Publisher for executing the request
+"""HTTP Server that uses the Zope Publisher for executing a task.
 
-$Id: publisherhttpserver.py,v 1.8 2004/02/05 22:19:10 srichter Exp $
+$Id: publisherhttpserver.py,v 1.9 2004/02/16 21:34:38 srichter Exp $
 """
-
 from zope.server.http.httpserver import HTTPServer
 from zope.publisher.publish import publish
 
@@ -24,15 +23,15 @@ class PublisherHTTPServer(HTTPServer):
     """Zope Publisher-specific HTTP Server"""
 
     def __init__(self, request_factory, sub_protocol=None, *args, **kw):
-        sub_protocol = str(sub_protocol)
 
+        # The common HTTP
         self.request_factory = request_factory
 
-        # An HTTP server is not limited to server up HTML; it can be
+        # An HTTP server is not limited to serving up HTML; it can be
         # used for other protocols, like XML-RPC, SOAP and so as well
         # Here we just allow the logger to output the sub-protocol type.
         if sub_protocol:
-            self.SERVER_IDENT += ' (%s)' %sub_protocol
+            self.SERVER_IDENT += ' (%s)' %str(sub_protocol)
 
         HTTPServer.__init__(self, *args, **kw)
 
@@ -47,10 +46,9 @@ class PublisherHTTPServer(HTTPServer):
         response.setHTTPTransaction(task)
         publish(request)
 
-class PMDBHTTPServer(PublisherHTTPServer):
-    """Enter the post-mortem debugger when there's an error
 
-    """
+class PMDBHTTPServer(PublisherHTTPServer):
+    """Enter the post-mortem debugger when there's an error"""
 
     def executeRequest(self, task):
         """Overrides HTTPServer.executeRequest()."""

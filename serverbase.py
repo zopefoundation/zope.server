@@ -11,11 +11,13 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Server Base Class
 
-$Id: serverbase.py,v 1.3 2003/06/04 08:40:32 stevea Exp $
-"""
+This module provides a base implementation for a channel-based server. It can
+only be used as a mix-in to actual server implementations.
 
+$Id: serverbase.py,v 1.4 2004/02/16 21:34:37 srichter Exp $
+"""
 import asyncore
 import logging
 import socket
@@ -26,11 +28,11 @@ from zope.interface import implements
 
 
 class ServerBase(asyncore.dispatcher, object):
-    """Async. server base for launching derivatives of ServerChannelBase.
-    """
+    """Async. server base for launching derivatives of ServerChannelBase."""
 
     implements(IServer)
 
+    # See zope.server.interfaces.IServer
     channel_class = None    # Override with a channel class.
     SERVER_IDENT = 'zope.server.serverbase'  # Override.
 
@@ -54,6 +56,7 @@ class ServerBase(asyncore.dispatcher, object):
             self.accept_connections()
 
     def log(self, message):
+        """See zope.server.interfaces.IDispatcherLogging"""
         # Override asyncore's default log()
         self.logger.info(message)
 
@@ -64,9 +67,11 @@ class ServerBase(asyncore.dispatcher, object):
         }
 
     def log_info(self, message, type='info'):
+        """See zope.server.interfaces.IDispatcherLogging"""
         self.logger.log(self.level_mapping.get(type, logging.INFO), message)
 
     def computeServerName(self, ip=''):
+        """Given an IP, try to determine the server name."""
         if ip:
             server_name = str(ip)
         else:
@@ -100,6 +105,7 @@ class ServerBase(asyncore.dispatcher, object):
 
 
     def addTask(self, task):
+        """See zope.server.interfaces.ITaskDispatcher"""
         td = self.task_dispatcher
         if td is not None:
             td.addTask(task)
@@ -107,24 +113,24 @@ class ServerBase(asyncore.dispatcher, object):
             task.service()
 
     def readable(self):
-        'See IDispatcher'
+        """See zope.server.interfaces.IDispatcher"""
         return (self.accepting and
                 len(asyncore.socket_map) < self.adj.connection_limit)
 
     def writable(self):
-        'See IDispatcher'
+        """See zope.server.interfaces.IDispatcher"""
         return 0
 
     def handle_read(self):
-        'See IDispatcherEventHandler'
+        """See zope.server.interfaces.IDispatcherEventHandler"""
         pass
 
     def handle_connect(self):
-        'See IDispatcherEventHandler'
+        """See zope.server.interfaces.IDispatcherEventHandler"""
         pass
 
     def handle_accept(self):
-        'See IDispatcherEventHandler'
+        """See zope.server.interfaces.IDispatcherEventHandler"""
         try:
             v = self.accept()
             if v is None:

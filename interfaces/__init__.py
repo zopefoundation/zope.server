@@ -13,12 +13,10 @@
 ##############################################################################
 """Server interfaces.
 
-$Id: __init__.py,v 1.2 2002/12/25 14:15:26 jim Exp $
+$Id: __init__.py,v 1.3 2004/02/16 21:34:39 srichter Exp $
 """
-
 from zope.interface import Interface
 from zope.interface import Attribute
-
 
 class ISocket(Interface):
     """Represents a socket.
@@ -27,52 +25,58 @@ class ISocket(Interface):
              Reference.
     """
 
-    def listen(num):
-        """Listen for connections made to the socket. The backlog argument
-           specifies the maximum number of queued connections and should
-           be at least 1; the maximum value is system-dependent (usually
-           5).
+    def listen(backlog):
+        """Listen for connections made to the socket.
+
+        The 'backlog' argument specifies the maximum number of queued
+        connections and should be at least 1; the maximum value is
+        system-dependent (usually 5).
         """
 
     def bind(addr):
-        """Bind the socket to address. The socket must not already be bound.
+        """Bind the socket to address.
+
+        The socket must not already be bound.
         """
 
     def connect(address):
-        """Connect to a remote socket at address.
-        """
+        """Connect to a remote socket at address."""
 
     def accept():
-        """Accept a connection. The socket must be bound to an address and
-           listening for connections. The return value is a pair (conn,
-           address) where conn is a new socket object usable to send and
-           receive data on the connection, and address is the address
-           bound to the socket on the other end of the connection.
+        """Accept a connection.
+
+        The socket must be bound to an address and listening for
+        connections. The return value is a pair (conn, address) where conn is
+        a new socket object usable to send and receive data on the connection,
+        and address is the address bound to the socket on the other end of the
+        connection.
         """
 
     def recv(buffer_size):
-        """Receive data from the socket. The return value is a string
-           representing the data received. The maximum amount of data
-           to be received at once is specified by bufsize. See the
-           Unix manual page recv(2) for the meaning of the optional
-           argument flags; it defaults to zero.
+        """Receive data from the socket.
+
+        The return value is a string representing the data received. The
+        maximum amount of data to be received at once is specified by
+        bufsize. See the Unix manual page recv(2) for the meaning of the
+        optional argument flags; it defaults to zero.
         """
 
     def send(data):
-        """Send data to the socket. The socket must be connected to a
-           remote socket. The optional flags argument has the same
-           meaning as for recv() above. Returns the number of bytes
-           sent. Applications are responsible for checking that all
-           data has been sent; if only some of the data was
-           transmitted, the application needs to attempt delivery of
-           the remaining data.
+        """Send data to the socket.
+
+        The socket must be connected to a remote socket. The optional flags
+        argument has the same meaning as for recv() above. Returns the number
+        of bytes sent. Applications are responsible for checking that all data
+        has been sent; if only some of the data was transmitted, the
+        application needs to attempt delivery of the remaining data.
         """
 
     def close():
-        """Close the socket. All future operations on the socket
-           object will fail. The remote end will receive no more data
-           (after queued data is flushed). Sockets are automatically
-           closed when they are garbage-collected.
+        """Close the socket.
+
+        All future operations on the socket object will fail. The remote end
+        will receive no more data (after queued data is flushed). Sockets are
+        automatically closed when they are garbage-collected.
         """
 
 
@@ -91,7 +95,7 @@ class ITaskDispatcher(Interface):
         while for its turn.
         """
 
-    def shutdown(cancel_pending=1, timeout=5):
+    def shutdown(cancel_pending=True, timeout=5):
         """Shuts down all handler threads and may cancel pending tasks.
         """
 
@@ -285,8 +289,9 @@ class IDispatcherLogging(Interface):
 
 class IServerChannel(Interface):
 
-    parser_class = Attribute("Subclasses must provide a parser class")
-    task_class = Attribute("Subclasses must provide a task class.")
+    parser_class = Attribute("""Subclasses must provide a parser class""")
+    task_class = Attribute("""Specifies the ITask class to be used for
+                           generating tasks.""")
 
     active_channels = Attribute("Class-specific channel tracker")
     next_channel_cleanup = Attribute("Class-specific cleanup time")

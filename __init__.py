@@ -11,14 +11,17 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Zope 3's Servers
 
-$Id: __init__.py,v 1.3 2003/06/07 06:54:25 stevea Exp $
-"""
+This package contains generic base classes for channel-based servers, the
+servers themselves and helper objects, such as tasks and requests.
 
+$Id: __init__.py,v 1.4 2004/02/16 21:34:37 srichter Exp $
+"""
 import asyncore
 
 from zope.server.interfaces import IDispatcher
 from zope.interface import classImplements
 
+# Tell the the async.dispatcher that it implements IDispatcher.
 classImplements(asyncore.dispatcher, IDispatcher)

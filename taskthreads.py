@@ -1,4 +1,7 @@
-# Copyright 2001-2002 Zope Corporation and Contributors.  All Rights Reserved.
+##############################################################################
+#
+# Copyright (c) 2001, 2002 Zope Corporation and Contributors.
+# All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
 # Version 2.0 (ZPL).  A copy of the ZPL should accompany this distribution.
@@ -6,8 +9,12 @@
 # WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
 # FOR A PARTICULAR PURPOSE.
+#
+##############################################################################
+"""Threaded Task Dispatcher
 
-
+$Id: taskthreads.py,v 1.5 2004/02/16 21:34:37 srichter Exp $
+"""
 from Queue import Queue, Empty
 from thread import allocate_lock, start_new_thread
 from time import time, sleep
@@ -18,6 +25,7 @@ from zope.interface import implements
 
 
 class ThreadedTaskDispatcher:
+    """A Task Dispatcher that creates a thread for each task."""
 
     implements(ITaskDispatcher)
 
@@ -51,6 +59,7 @@ class ThreadedTaskDispatcher:
                 mlock.release()
 
     def setThreadCount(self, count):
+        """See zope.server.interfaces.ITaskDispatcher"""
         mlock = self.thread_mgmt_lock
         mlock.acquire()
         try:
@@ -76,6 +85,7 @@ class ThreadedTaskDispatcher:
             mlock.release()
 
     def addTask(self, task):
+        """See zope.server.interfaces.ITaskDispatcher"""
         if task is None:
             raise ValueError, "No task passed to addTask()."
         # assert ITask.isImplementedBy(task)
@@ -86,7 +96,8 @@ class ThreadedTaskDispatcher:
             task.cancel()
             raise
 
-    def shutdown(self, cancel_pending=1, timeout=5):
+    def shutdown(self, cancel_pending=True, timeout=5):
+        """See zope.server.interfaces.ITaskDispatcher"""
         self.setThreadCount(0)
         # Ensure the threads shut down.
         threads = self.threads
@@ -107,4 +118,5 @@ class ThreadedTaskDispatcher:
                 pass
 
     def getPendingTasksEstimate(self):
+        """See zope.server.interfaces.ITaskDispatcher"""
         return self.queue.qsize()

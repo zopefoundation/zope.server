@@ -11,13 +11,13 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
-This server uses asyncore to accept connections and do initial
-processing but threads to do work.
+"""HTTP Task
 
-$Id: httptask.py,v 1.3 2003/06/06 19:29:12 stevea Exp $
-"""
+An HTTP task that can execute an HTTP request with the help of the channel and
+the server it belongs to.
 
+$Id: httptask.py,v 1.4 2004/02/16 21:34:38 srichter Exp $
+"""
 import socket
 import time
 
@@ -65,7 +65,7 @@ class HTTPTask:
         self.version = version
 
     def service(self):
-        'See ITask'
+        """See zope.server.interfaces.ITask"""
         try:
             try:
                 self.start()
@@ -79,35 +79,35 @@ class HTTPTask:
             self.channel.end_task(self.close_on_finish)
 
     def cancel(self):
-        'See ITask'
+        """See zope.server.interfaces.ITask"""
         self.channel.close_when_done()
 
     def defer(self):
-        'See ITask'
+        """See zope.server.interfaces.ITask"""
         pass
 
     def setResponseStatus(self, status, reason):
-        """See the IHeaderOutput interface."""
+        """See zope.server.interfaces.IHeaderOutput"""
         self.status = status
         self.reason = reason
 
     def setResponseHeaders(self, mapping):
-        """See the IHeaderOutput interface."""
+        """See zope.server.interfaces.IHeaderOutput"""
         self.response_headers.update(mapping)
 
     def appendResponseHeaders(self, lst):
-        """See the IHeaderOutput interface."""
+        """See zope.server.interfaces.IHeaderOutput"""
         accum = self.accumulated_headers
         if accum is None:
             self.accumulated_headers = accum = []
         accum.extend(lst)
 
     def wroteResponseHeader(self):
-        """See the IHeaderOutput interface."""
+        """See zope.server.interfaces.IHeaderOutput"""
         return self.wrote_header
 
     def setAuthUserName(self, name):
-        """See the IHeaderOutput interface."""
+        """See zope.server.interfaces.IHeaderOutput"""
         self.auth_user_name = name
 
     def prepareResponseHeaders(self):

@@ -11,11 +11,12 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""Zope Publisher-based FTP Server
 
-$Id: publisher.py,v 1.3 2003/06/06 19:29:11 stevea Exp $
-"""
+This FTP server uses the Zope 3 Publisher to execute commands.
 
+$Id: publisher.py,v 1.4 2004/02/16 21:34:38 srichter Exp $
+"""
 import posixpath
 
 from cStringIO import StringIO
@@ -29,8 +30,7 @@ from zope.publisher.publish import publish
 from zope.interface import implements
 
 class PublisherFileSystem:
-    """Generic Publisher FileSystem implementation.
-    """
+    """Generic Publisher FileSystem implementation."""
 
     implements(IFileSystem)
 
@@ -122,6 +122,7 @@ class PublisherFileSystem:
             path = '/'
         return path
 
+
 class NoOutput:
     """An output stream lookalike that warns you if you try to
     dump anything into it."""
@@ -133,6 +134,7 @@ class NoOutput:
         pass
 
     close = flush
+
 
 class PublisherFTPServer(FTPServer):
     """Generic FTP Server"""
