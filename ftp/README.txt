@@ -4,7 +4,7 @@ FTP Framework
   framework.
 
   The core server is implemented in server.py. This relies on a
-  file-system abstraction, defined in zope.server.interface.ft.
+  file-system abstraction, defined in zope.server.interfaces.py.
 
   The publisher module provides the connection to the object
   publsihing system by providing a file-system implementation that
