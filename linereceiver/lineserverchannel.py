@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: lineserverchannel.py,v 1.2 2002/12/25 14:15:26 jim Exp $
+$Id: lineserverchannel.py,v 1.3 2003/03/13 18:49:18 alga Exp $
 """
 
 import os
@@ -74,7 +74,7 @@ class LineServerChannel(ServerChannelBase):
         assert isinstance(command, LineCommandParser)
         cmd = command.cmd
         method = 'cmd_' + cmd.lower()
-        if ( not self.authenticated and method not in self.special_commands):
+        if (not self.authenticated and method not in self.special_commands):
             # The user is not logged in, therefore don't allow anything
             self.reply(self.not_auth_reply)
 

@@ -1,7 +1,7 @@
 ##############################################################################
 # Copyright (c) 2003 Zope Corporation and Contributors.
 # All Rights Reserved.
-# 
+#
 # This software is subject to the provisions of the Zope Public License,
 # Version 2.0 (ZPL).  A copy of the ZPL should accompany this distribution.
 # THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
@@ -11,7 +11,7 @@
 ##############################################################################
 """Demo file-system implementation, for testing
 
-$Id: demofs.py,v 1.1 2003/02/03 15:09:01 jim Exp $
+$Id: demofs.py,v 1.2 2003/03/13 18:49:17 alga Exp $
 """
 __metaclass__ = type
 
@@ -85,7 +85,7 @@ class DemoFileSystem:
 
         while path.startswith('/'):
             path = path[1:]
-            
+
         d = self.files
         if path:
             for name in path.split('/'):
@@ -104,13 +104,13 @@ class DemoFileSystem:
         if d is None:
             raise OSError("No such file or directory:", path)
         return d
-    
+
     def getdir(self, path):
         d = self.getany(path)
         if d.type != 'd':
             raise OSError("Not a directory:", path)
         return d
-    
+
     def getfile(self, path):
         d = self.getany(path)
         if d.type != 'f':
@@ -126,7 +126,7 @@ class DemoFileSystem:
     def type(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
         f = self.get(path)
-        return getattr(f, 'type', None)        
+        return getattr(f, 'type', None)
 
     def names(self, path, filter=None):
         "See zope.server.interfaces.ftp.IFileSystem"
@@ -149,7 +149,7 @@ class DemoFileSystem:
             info['mtime'] = file.modified
 
         return info
-    
+
     def ls(self, path, filter=None):
         "See zope.server.interfaces.ftp.IFileSystem"
         f = self.getdir(path)
@@ -177,7 +177,7 @@ class DemoFileSystem:
     def lsinfo(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
         f = self.getany(path)
-        return self._lsinfo(posixpath.split(path)[1], f) 
+        return self._lsinfo(posixpath.split(path)[1], f)
 
     def mtime(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
@@ -188,7 +188,7 @@ class DemoFileSystem:
         "See zope.server.interfaces.ftp.IFileSystem"
         f = self.getany(path)
         return len(getattr(f, 'data', ''))
-        
+
     def mkdir(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
         path, name = posixpath.split(path)
@@ -198,7 +198,7 @@ class DemoFileSystem:
         newdir = self.Directory()
         newdir.grant(self.user, read | write)
         d.files[name] = newdir
-        
+
     def remove(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
         path, name = posixpath.split(path)
@@ -209,7 +209,7 @@ class DemoFileSystem:
         if f.type == 'd':
             raise OSError('Is a directory:', name)
         del d.files[name]
-                          
+
     def rmdir(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
         path, name = posixpath.split(path)
@@ -255,7 +255,7 @@ class DemoFileSystem:
         if append:
             f.data += instream.read()
         else:
-            
+
             if start:
                 if start < 0:
                     raise ValueError("Negative starting file position")
@@ -284,7 +284,7 @@ class DemoFileSystem:
             return d.accessable(self.user, write)
         f = d[name]
         return f.type == 'f' and f.accessable(self.user, write)
-            
+
 class DemoFileSystemAccess:
     __doc__ = IFileSystemAccess.__doc__
 

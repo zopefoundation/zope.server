@@ -11,7 +11,7 @@
 ##############################################################################
 """
 
-$Id: test_publisherserver.py,v 1.3 2002/12/31 02:52:21 jim Exp $
+$Id: test_publisherserver.py,v 1.4 2003/03/13 18:49:18 alga Exp $
 """
 
 import unittest
@@ -191,4 +191,4 @@ def test_suite():
     return loader.loadTestsFromTestCase(Tests)
 
 if __name__=='__main__':
-    unittest.TextTestRunner().run( test_suite() )
+    unittest.TextTestRunner().run(test_suite())

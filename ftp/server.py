@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: server.py,v 1.1 2003/02/03 15:08:55 jim Exp $
+$Id: server.py,v 1.2 2003/03/13 18:49:17 alga Exp $
 """
 
 import posixpath
@@ -207,14 +207,14 @@ class FTPServerChannel(LineServerChannel):
             except GetoptError:
                 self.reply('ERR_ARGS')
                 return
-                
+
             if len(args) > 1:
                 self.reply('ERR_ARGS')
                 return
 
             args = args and args[0] or ''
-                
-            
+
+
         fs = self._getFileSystem()
         path = self._generatePath(args)
         if not fs.type(path):
@@ -255,7 +255,7 @@ class FTPServerChannel(LineServerChannel):
 
         path = self._generatePath(path)
 
-        
+
         if fs.type(path) == 'd' and not directory:
             if long:
                 file_list = map(ls, fs.ls(path))
@@ -288,9 +288,9 @@ class FTPServerChannel(LineServerChannel):
                          mtime.hour, mtime. minute, mtime.second)
             else:
                 mtime = 0, 0, 0, 0, 0, 0
-            
+
             self.reply('FILE_DATE', mtime)
-            
+
 
     def cmd_mkd(self, args):
         'See IFTPCommandHandler'
@@ -703,7 +703,7 @@ class PassiveAcceptor(asyncore.dispatcher):
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         # bind to an address on the interface that the
         # control connection is coming from.
-        self.bind ( (self.control_channel.getsockname()[0], 0) )
+        self.bind((self.control_channel.getsockname()[0], 0))
         self.addr = self.getsockname()
         self.listen(1)
 

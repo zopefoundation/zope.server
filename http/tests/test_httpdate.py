@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: test_httpdate.py,v 1.1 2003/01/09 12:45:33 anthony Exp $
+$Id: test_httpdate.py,v 1.2 2003/03/13 18:49:18 alga Exp $
 """
 
 import unittest
@@ -33,4 +33,4 @@ def test_suite():
     return loader.loadTestsFromTestCase(Tests)
 
 if __name__=='__main__':
-    unittest.TextTestRunner().run( test_suite() )
+    unittest.TextTestRunner().run(test_suite())

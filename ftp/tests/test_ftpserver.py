@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: test_ftpserver.py,v 1.4 2003/02/03 15:09:01 jim Exp $
+$Id: test_ftpserver.py,v 1.5 2003/03/13 18:49:17 alga Exp $
 """
 
 import asyncore
@@ -347,4 +347,4 @@ def test_suite():
     return loader.loadTestsFromTestCase(Tests)
 
 if __name__=='__main__':
-    unittest.TextTestRunner().run( test_suite() )
+    unittest.TextTestRunner().run(test_suite())
