@@ -38,11 +38,11 @@ class DualModeChannel(asyncore.dispatcher):
     the main loop.
     """
 
-    # will_close is set to 1 to close the socket.
-    will_close = 0
+    # will_close is set to True to close the socket.
+    will_close = False
 
     # boolean: async or sync mode
-    async_mode = 1
+    async_mode = True
 
     def __init__(self, conn, addr, adj=None):
         self.addr = addr
@@ -110,13 +110,13 @@ class DualModeChannel(asyncore.dispatcher):
 
         The main thread will stop calling received().
         """
-        self.async_mode = 0
+        self.async_mode = False
 
     #
     # SYNCHRONOUS METHODS
     #
 
-    def flush(self, block=1):
+    def flush(self, block=True):
         """Sends pending data.
 
         If block is set, this pauses the application.  If it is turned
@@ -127,13 +127,13 @@ class DualModeChannel(asyncore.dispatcher):
             while self._flush_some():
                 pass
             return
-        blocked = 0
+        blocked = False
         try:
             while self.outbuf:
                 # We propagate errors to the application on purpose.
                 if not blocked:
                     self.socket.setblocking(1)
-                    blocked = 1
+                    blocked = True
                 self._flush_some()
         finally:
             if blocked:
@@ -144,7 +144,7 @@ class DualModeChannel(asyncore.dispatcher):
 
         The main thread will begin calling received() again.
         """
-        self.async_mode = 1
+        self.async_mode = True
         self.pull_trigger()
 
     #
@@ -183,11 +183,11 @@ class DualModeChannel(asyncore.dispatcher):
         # Flush all possible.
         while self._flush_some():
             pass
-        self.will_close = 1
+        self.will_close = True
         if not self.async_mode:
             # For safety, don't close the socket until the
             # main thread calls handle_write().
-            self.async_mode = 1
+            self.async_mode = True
             self.pull_trigger()
 
     def close(self):
@@ -195,4 +195,5 @@ class DualModeChannel(asyncore.dispatcher):
         # closed in a thread, the main loop can end up with a bad file
         # descriptor.
         assert self.async_mode
+        self.connected = False
         asyncore.dispatcher.close(self)
