@@ -15,7 +15,7 @@
 
 XXX longer description goes here.
 
-$Id: test_publisher.py,v 1.1 2003/02/03 15:09:01 jim Exp $
+$Id: test_publisher.py,v 1.2 2004/03/20 13:38:17 philikon Exp $
 """
 
 import demofs
@@ -51,7 +51,7 @@ class Publication:
             request.env['path'] += "/" + request.env['name']
         return mapply(command, request = request.env)
 
-    def afterCall(self, request):
+    def afterCall(self, request, ob):
         pass
 
     def handleException(self, object, request, info, retry_allowed=True):
