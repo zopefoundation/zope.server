@@ -11,9 +11,9 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""HTTP Server that uses the Zope Publisher for executing the request
 
-$Id: publisherhttpserver.py,v 1.7 2004/02/03 21:53:32 sidnei Exp $
+$Id: publisherhttpserver.py,v 1.8 2004/02/05 22:19:10 srichter Exp $
 """
 
 from zope.server.http.httpserver import HTTPServer
