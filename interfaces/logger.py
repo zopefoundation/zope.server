@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: logger.py,v 1.2 2002/12/25 14:15:26 jim Exp $
+$Id: logger.py,v 1.3 2003/04/09 09:49:37 ryzaja Exp $
 """
 
 from zope.interface import Interface
@@ -26,14 +26,6 @@ class IRequestLogger(Interface):
 
     def logRequest(ip, message):
         """Logs the ip address and message at the appropriate place."""
-
-
-"""
-
-$Id: logger.py,v 1.2 2002/12/25 14:15:26 jim Exp $
-"""
-
-from zope.interface import Interface
 
 
 class IMessageLogger(Interface):

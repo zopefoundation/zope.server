@@ -13,17 +13,12 @@
 ##############################################################################
 """
 
-$Id: test_ftpserver.py,v 1.5 2003/03/13 18:49:17 alga Exp $
+$Id: test_ftpserver.py,v 1.6 2003/04/09 09:49:35 ryzaja Exp $
 """
 
 import asyncore
 import unittest
-import tempfile
-import os
 import socket
-import shutil
-import sys
-import traceback
 from types import StringType
 from StringIO import StringIO
 
@@ -31,7 +26,6 @@ from threading import Thread, Event
 from zope.server.taskthreads import ThreadedTaskDispatcher
 from zope.server.ftp.server import FTPServer, status_messages
 from zope.server.adjustments import Adjustments
-from zope.server.interfaces import ITask
 
 from zope.server.ftp.tests import demofs
 
@@ -40,7 +34,7 @@ from zope.server.tests.asyncerror import AsyncoreErrorHook
 
 import ftplib
 
-from time import sleep, time
+from time import time
 
 td = ThreadedTaskDispatcher()
 

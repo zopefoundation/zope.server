@@ -8,7 +8,6 @@
 # FOR A PARTICULAR PURPOSE.
 
 
-import sys
 from Queue import Queue, Empty
 from thread import allocate_lock, start_new_thread
 from time import time, sleep

@@ -13,13 +13,12 @@
 ##############################################################################
 """
 
-$Id: dualmodechannel.py,v 1.2 2002/12/25 14:15:23 jim Exp $
+$Id: dualmodechannel.py,v 1.3 2003/04/09 09:49:35 ryzaja Exp $
 """
 
 import asyncore
 import socket
 from time import time
-from UserDict import UserDict
 
 import selecttrigger
 from zope.server.adjustments import default_adj

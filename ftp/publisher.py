@@ -13,12 +13,9 @@
 ##############################################################################
 """
 
-$Id: publisher.py,v 1.1 2003/02/03 15:08:55 jim Exp $
+$Id: publisher.py,v 1.2 2003/04/09 09:49:35 ryzaja Exp $
 """
 
-import re
-import stat
-import time
 import posixpath
 
 from cStringIO import StringIO

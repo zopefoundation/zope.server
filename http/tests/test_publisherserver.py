@@ -11,12 +11,11 @@
 ##############################################################################
 """
 
-$Id: test_publisherserver.py,v 1.4 2003/03/13 18:49:18 alga Exp $
+$Id: test_publisherserver.py,v 1.5 2003/04/09 09:49:36 ryzaja Exp $
 """
 
 import unittest
 from asyncore import socket_map, poll
-import sys
 from threading import Thread
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
@@ -36,7 +35,7 @@ from zope.publisher.http import HTTPRequest
 
 from httplib import HTTPConnection
 
-from time import sleep, time
+from time import sleep
 
 td = ThreadedTaskDispatcher()
 

@@ -13,10 +13,9 @@
 ##############################################################################
 """Abstract file-system tests
 
-$Id: fstests.py,v 1.1 2003/02/03 15:09:01 jim Exp $
+$Id: fstests.py,v 1.2 2003/04/09 09:49:35 ryzaja Exp $
 """
 
-import stat
 from StringIO import StringIO
 from zope.interface.verify import verifyObject
 from zope.server.interfaces.ftp import IFileSystem
