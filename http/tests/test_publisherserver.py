@@ -11,7 +11,7 @@
 ##############################################################################
 """
 
-$Id: test_publisherserver.py,v 1.8 2004/03/15 20:42:14 jim Exp $
+$Id: test_publisherserver.py,v 1.9 2004/03/20 18:47:35 srichter Exp $
 """
 
 import unittest
@@ -168,12 +168,12 @@ class Tests(PlacelessSetup, unittest.TestCase):
         self.testResponse(path='/_protected', status_expected=401)
 
     def testRedirectMethod(self):
-        self.testResponse(path='/redirect_method', status_expected=302)
+        self.testResponse(path='/redirect_method', status_expected=303)
 
     def testRedirectException(self):
-        self.testResponse(path='/redirect_exception', status_expected=302)
+        self.testResponse(path='/redirect_exception', status_expected=303)
         self.testResponse(path='/folder/redirect_exception',
-                          status_expected=302)
+                          status_expected=303)
 
     def testConflictRetry(self):
         # Expect the "Accepted" response since the retries will succeed.
