@@ -11,7 +11,7 @@
 ##############################################################################
 """Demo file-system implementation, for testing
 
-$Id: demofs.py,v 1.2 2003/03/13 18:49:17 alga Exp $
+$Id: demofs.py,v 1.3 2003/06/04 11:13:49 stevea Exp $
 """
 __metaclass__ = type
 
@@ -19,6 +19,7 @@ import posixpath
 from zope.exceptions import Unauthorized
 from zope.server.interfaces.ftp import IFileSystem
 from zope.server.interfaces.ftp import IFileSystemAccess
+from zope.interface import implements
 
 execute = 1
 read = 2
@@ -72,7 +73,7 @@ class Directory(File):
 class DemoFileSystem:
     __doc__ = IFileSystem.__doc__
 
-    __implements__ =  IFileSystem
+    implements(IFileSystem)
 
     File = File
     Directory = Directory
@@ -288,7 +289,7 @@ class DemoFileSystem:
 class DemoFileSystemAccess:
     __doc__ = IFileSystemAccess.__doc__
 
-    __implements__ =  IFileSystemAccess
+    implements(IFileSystemAccess)
 
     def __init__(self, files, users):
         self.files = files
