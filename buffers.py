@@ -75,7 +75,7 @@ class FileBasedBuffer:
         self.remain = self.remain - bytes
 
     def newfile(self):
-        raise 'NotImplemented'
+        raise NotImplementedError()
 
     def prune(self):
         file = self.file
