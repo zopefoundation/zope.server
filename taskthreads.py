@@ -13,7 +13,7 @@
 ##############################################################################
 """Threaded Task Dispatcher
 
-$Id: taskthreads.py,v 1.5 2004/02/16 21:34:37 srichter Exp $
+$Id: taskthreads.py,v 1.6 2004/03/05 22:09:33 jim Exp $
 """
 from Queue import Queue, Empty
 from thread import allocate_lock, start_new_thread
@@ -88,7 +88,7 @@ class ThreadedTaskDispatcher:
         """See zope.server.interfaces.ITaskDispatcher"""
         if task is None:
             raise ValueError, "No task passed to addTask()."
-        # assert ITask.isImplementedBy(task)
+        # assert ITask.providedBy(task)
         try:
             task.defer()
             self.queue.put(task)

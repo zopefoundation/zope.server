@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: server.py,v 1.4 2003/06/30 19:31:05 jeremy Exp $
+$Id: server.py,v 1.5 2004/03/05 22:09:34 jim Exp $
 """
 
 import posixpath
@@ -886,7 +886,7 @@ class FTPServer(ServerBase):
 
     def __init__(self, ip, port, fs_access, *args, **kw):
 
-        assert IFileSystemAccess.isImplementedBy(fs_access)
+        assert IFileSystemAccess.providedBy(fs_access)
         self.fs_access = fs_access
 
         super(FTPServer, self).__init__(ip, port, *args, **kw)
