@@ -76,7 +76,8 @@ class HTTPTask(object):
                 if self.channel.adj.log_socket_errors:
                     raise
         finally:
-            self.channel.end_task(self.close_on_finish)
+            if self.close_on_finish:
+                self.channel.close_when_done()
 
     def cancel(self):
         """See zope.server.interfaces.ITask"""

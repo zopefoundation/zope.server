@@ -280,27 +280,8 @@ class IServerChannel(Interface):
     task_class = Attribute("""Specifies the ITask class to be used for
                            generating tasks.""")
 
-    active_channels = Attribute("Class-specific channel tracker")
-    next_channel_cleanup = Attribute("Class-specific cleanup time")
-
-    proto_request = Attribute("A request parser instance")
-    ready_requests = Attribute("A list of requests to be processed.")
-    last_activity = Attribute("Time of last activity")
-    running_tasks = Attribute("boolean")
-
-
-    def queue_request(self, req):
-        """Queues a request to be processed in sequence by a task.
-        """
-
-    def end_task(self, close):
-        """Called at the end of a task, may launch another task.
-        """
-
-    def create_task(self, req):
-        """Creates a new task and queues it for execution.
-
-        The task may get executed in another thread.
+    def queue_task(task):
+        """Queues a channel-related task to be processed in sequence.
         """
 
 

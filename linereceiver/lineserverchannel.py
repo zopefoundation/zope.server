@@ -65,7 +65,7 @@ class LineServerChannel(ServerChannelBase):
         }
 
 
-    def process_request(self, command):
+    def handle_request(self, command):
         """Processes a command.
 
         Some commands use an alternate thread.
@@ -79,7 +79,8 @@ class LineServerChannel(ServerChannelBase):
 
         elif method in self.thread_commands:
             # Process in another thread.
-            return self.task_class(self, command, method)
+            task = self.task_class(self, command, method)
+            self.queue_task(task)
 
         elif hasattr(self, method):
             try:
@@ -88,7 +89,6 @@ class LineServerChannel(ServerChannelBase):
                 self.exception()
         else:
             self.reply(self.unknown_reply, cmd.upper())
-        return None
 
 
     def reply(self, code, args=(), flush=1):
