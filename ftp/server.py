@@ -29,7 +29,7 @@ from zope.server.interfaces.ftp import IFileSystemAccess
 from zope.server.interfaces.ftp import IFTPCommandHandler
 from zope.server.linereceiver.lineserverchannel import LineServerChannel
 from zope.server.serverbase import ServerBase
-from zope.server.serverchannelbase import ChannelBaseClass
+from zope.server.dualmodechannel import DualModeChannel
 
 status_messages = {
     'OPEN_DATA_CONN'   : '150 Opening %s mode data connection for file list',
@@ -722,7 +722,7 @@ class PassiveAcceptor(asyncore.dispatcher):
         self.close()
 
 
-class RecvChannel(ChannelBaseClass):
+class RecvChannel(DualModeChannel):
     """ """
 
     complete_transfer = 0
@@ -732,7 +732,7 @@ class RecvChannel(ChannelBaseClass):
         self.control_channel = control_channel
         self.finish_args = finish_args
         self.inbuf = OverflowableBuffer(control_channel.adj.inbuf_overflow)
-        ChannelBaseClass.__init__(self, None, None, control_channel.adj)
+        DualModeChannel.__init__(self, None, None, control_channel.adj)
         # Note that this channel starts out in async mode.
 
     def writable (self):
@@ -765,7 +765,7 @@ class RecvChannel(ChannelBaseClass):
         finally:
             if self.socket is not None:
                 # XXX asyncore.dispatcher.close() doesn't like socket == None
-                ChannelBaseClass.close(self)
+                DualModeChannel.close(self)
 
 
 
@@ -804,7 +804,7 @@ class FinishedRecvTask(object):
         pass
 
 
-class XmitChannel(ChannelBaseClass):
+class XmitChannel(DualModeChannel):
 
     opened = 0
     _fileno = None  # provide a default for asyncore.dispatcher._fileno
@@ -813,7 +813,7 @@ class XmitChannel(ChannelBaseClass):
         self.control_channel = control_channel
         self.ok_reply_args = ok_reply_args
         self.set_sync()
-        ChannelBaseClass.__init__(self, None, None, control_channel.adj)
+        DualModeChannel.__init__(self, None, None, control_channel.adj)
 
     def _open(self):
         """Signal the client to open the connection."""
@@ -826,7 +826,7 @@ class XmitChannel(ChannelBaseClass):
             raise IOError, 'Client FTP connection closed'
         if not self.opened:
             self._open()
-        ChannelBaseClass.write(self, data)
+        DualModeChannel.write(self, data)
 
     def readable(self):
         return not self.connected
@@ -864,7 +864,7 @@ class XmitChannel(ChannelBaseClass):
         finally:
             if self.socket is not None:
                 # XXX asyncore.dispatcher.close() doesn't like socket == None
-                ChannelBaseClass.close(self)
+                DualModeChannel.close(self)
 
 
 class ApplicationXmitStream(object):

@@ -25,22 +25,14 @@ import asyncore
 from thread import allocate_lock
 from zope.interface import implements
 
-# Enable ZOPE_SERVER_SIMULT_MODE to enable experimental
-# simultaneous channel mode, which may improve or degrade
-# throughput depending on load characteristics.
-if os.environ.get('ZOPE_SERVER_SIMULT_MODE'):
-    from zope.server.dualmodechannel import SimultaneousModeChannel as \
-         ChannelBaseClass
-else:
-    from zope.server.dualmodechannel import DualModeChannel as ChannelBaseClass
-
+from zope.server.dualmodechannel import DualModeChannel
 from zope.server.interfaces import IServerChannel
 
 # Synchronize access to the "running_tasks" attributes.
 running_lock = allocate_lock()
 
 
-class ServerChannelBase(ChannelBaseClass, object):
+class ServerChannelBase(DualModeChannel, object):
     """Base class for a high-performance, mixed-mode server-side channel."""
 
     implements(IServerChannel)
@@ -59,12 +51,12 @@ class ServerChannelBase(ChannelBaseClass, object):
     running_tasks = 0         # boolean: true when any task is being executed
 
     #
-    # ASYNCHRONOUS METHODS (incl. __init__)
+    # ASYNCHRONOUS METHODS (including __init__)
     #
 
     def __init__(self, server, conn, addr, adj=None):
         """See async.dispatcher"""
-        ChannelBaseClass.__init__(self, conn, addr, adj)
+        DualModeChannel.__init__(self, conn, addr, adj)
         self.server = server
         self.last_activity = t = self.creation_time
         self.check_maintenance(t)
@@ -72,17 +64,17 @@ class ServerChannelBase(ChannelBaseClass, object):
     def add_channel(self, map=None):
         """See async.dispatcher
 
-        This hook keeps track of opened HTTP channels.
+        This hook keeps track of opened channels.
         """
-        ChannelBaseClass.add_channel(self, map)
+        DualModeChannel.add_channel(self, map)
         self.__class__.active_channels[self._fileno] = self
 
     def del_channel(self, map=None):
         """See async.dispatcher
 
-        This hook keeps track of closed HTTP channels.
+        This hook keeps track of closed channels.
         """
-        ChannelBaseClass.del_channel(self, map)
+        DualModeChannel.del_channel(self, map)
         ac = self.__class__.active_channels
         fd = self._fileno
         if fd in ac:

@@ -68,9 +68,6 @@ class DualModeChannel(asyncore.dispatcher):
     def handle_write(self):
         if not self.async_mode:
             return
-        self.inner_handle_write()
-
-    def inner_handle_write(self):
         if self.outbuf:
             try:
                 self._flush_some()
@@ -87,9 +84,6 @@ class DualModeChannel(asyncore.dispatcher):
     def handle_read(self):
         if not self.async_mode:
             return
-        self.inner_handle_read()
-
-    def inner_handle_read(self):
         try:
             data = self.recv(self.adj.recv_bytes)
         except socket.error:
@@ -121,16 +115,6 @@ class DualModeChannel(asyncore.dispatcher):
     #
     # SYNCHRONOUS METHODS
     #
-
-    def write(self, data):
-        if data:
-            self.outbuf.append(data)
-        while len(self.outbuf) >= self.adj.send_bytes:
-            # Send what we can without blocking.
-            # We propagate errors to the application on purpose
-            # (to stop the application if the connection closes).
-            if not self._flush_some():
-                break
 
     def flush(self, block=1):
         """Sends pending data.
@@ -167,6 +151,16 @@ class DualModeChannel(asyncore.dispatcher):
     # METHODS USED IN BOTH MODES
     #
 
+    def write(self, data):
+        if data:
+            self.outbuf.append(data)
+        while len(self.outbuf) >= self.adj.send_bytes:
+            # Send what we can without blocking.
+            # We propagate errors to the application on purpose
+            # (to stop the application if the connection closes).
+            if not self._flush_some():
+                break
+
     def pull_trigger(self):
         """Wakes up the main loop.
         """
@@ -186,96 +180,12 @@ class DualModeChannel(asyncore.dispatcher):
         return 0
 
     def close_when_done(self):
-        # We might be able close immediately.
+        # Flush all possible.
         while self._flush_some():
             pass
-        if not self.outbuf:
-            # Quick exit.
-            self.close()
-        else:
-            # Wait until outbuf is flushed.
-            self.will_close = 1
-            if not self.async_mode:
-                self.async_mode = 1
-                self.pull_trigger()
-
-
-allocate_lock = None
-
-
-class SimultaneousModeChannel(DualModeChannel):
-    """Layer on top of DualModeChannel that allows communication in
-    both the main thread and other threads at the same time.
-
-    The channel operates in synchronous mode with an asynchronous
-    helper.  The asynchronous callbacks empty the output buffer
-    and fill the input buffer.
-    """
-
-    def __init__(self, conn, addr, adj=None):
-        global allocate_lock
-        if allocate_lock is None:
-            from thread import allocate_lock
-
-        # writelock protects all accesses to outbuf, since reads and
-        # writes of buffers in this class need to be serialized.
-        writelock = allocate_lock()
-        self._writelock_acquire = writelock.acquire
-        self._writelock_release = writelock.release
-        self._writelock_locked = writelock.locked
-        DualModeChannel.__init__(self, conn, addr, adj)
-
-    #
-    # ASYNCHRONOUS METHODS
-    #
-
-    def writable(self):
-        return self.will_close or (
-            self.outbuf and not self._writelock_locked())
-
-    def handle_write(self):
-        if not self._writelock_acquire(0):
-            # A synchronous method is writing.
-            return
-        try:
-            self.inner_handle_write()
-        finally:
-            self._writelock_release()
-
-    def readable(self):
-        return not self.will_close
-
-    def handle_read(self):
-        self.inner_handle_read()
-
-    def set_sync(self):
-        pass
-
-    #
-    # SYNCHRONOUS METHODS
-    #
-
-    def write(self, data):
-        self._writelock_acquire()
-        try:
-            DualModeChannel.write(self, data)
-        finally:
-            self._writelock_release()
-
-    def flush(self, block=1):
-        self._writelock_acquire()
-        try:
-            DualModeChannel.flush(self, block)
-        finally:
-            self._writelock_release()
-
-    def set_async(self):
-        pass
-
-    #
-    # METHODS USED IN BOTH MODES
-    #
-
-    def close_when_done(self):
         self.will_close = 1
-        self.pull_trigger()
+        if not self.async_mode:
+            # For safety, don't close the socket until the
+            # main thread calls handle_write().
+            self.async_mode = 1
+            self.pull_trigger()
