@@ -11,7 +11,7 @@
 ##############################################################################
 """
 
-$Id: test_publisherserver.py,v 1.6 2003/11/21 17:12:45 jim Exp $
+$Id: test_publisherserver.py,v 1.7 2004/01/12 08:02:01 philikon Exp $
 """
 
 import unittest
@@ -91,7 +91,7 @@ class tested_object:
 class Tests(PlacelessSetup, unittest.TestCase):
 
     def setUp(self):
-        PlacelessSetup.setUp(self)
+        super(Tests, self).setUp()
         as = zope.component.getService(None, 'Adapters')
         as.provideAdapter(IHTTPRequest, IUserPreferredCharsets, [HTTPCharsets])
         obj = tested_object()
