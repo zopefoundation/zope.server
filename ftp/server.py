@@ -13,7 +13,7 @@
 ##############################################################################
 """
 
-$Id: server.py,v 1.3 2003/06/06 19:29:11 stevea Exp $
+$Id: server.py,v 1.4 2003/06/30 19:31:05 jeremy Exp $
 """
 
 import posixpath
@@ -387,14 +387,12 @@ class FTPServerChannel(LineServerChannel):
             self.reply('ERR_IS_NOT_FILE', path)
             return
 
-        mode = 'r' + self.type_mode_map[self.transfer_mode]
         start = 0
         if self.restart_position:
             start = self.restart_position
             self.restart_position = 0
 
-        ok_reply = (
-            'OPEN_CONN', (self.type_map[self.transfer_mode], path) )
+        ok_reply = 'OPEN_CONN', (self.type_map[self.transfer_mode], path)
         cdc = XmitChannel(self, ok_reply)
         self.client_dc = cdc
         outstream = ApplicationXmitStream(cdc)
@@ -477,7 +475,6 @@ class FTPServerChannel(LineServerChannel):
         start = 0
         if self.restart_position:
             self.start = self.restart_position
-            restart_position = 0
         mode = write_mode + self.type_mode_map[self.transfer_mode]
 
         if not self._getFileSystem().writable(path):
@@ -590,10 +587,10 @@ class FTPServerChannel(LineServerChannel):
                 cdc.bind(('', self.server.port - 1))
             try:
                 cdc.connect((ip, port))
-            except socket.error, err:
+            except socket.error:
                 cdc.close('NO_DATA_CONN')
 
-
+                
     def notifyClientDCClosing(self, *reply_args):
         if self.client_dc is not None:
             self.client_dc = None
