@@ -11,14 +11,14 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
+"""HTTP Server Date/Time utilities
 
-$Id: http_date.py,v 1.4 2003/03/26 11:52:54 stevea Exp $
+$Id: http_date.py,v 1.5 2004/03/20 00:01:07 srichter Exp $
 """
-
 import re
 import string
 import time
+import calendar
 
 def concat(*args):
     return ''.join(args)
@@ -134,15 +134,14 @@ def build_http_date(when):
             hh, mm, ss)
 
 def parse_http_date(d):
-    d = string.lower(d)
-    tz = time.timezone
+    d = d.lower()
     m = rfc850_reg.match(d)
     if m and m.end() == len(d):
-        retval = int(time.mktime(unpack_rfc850(m)) - tz)
+        retval = int(calendar.timegm(unpack_rfc850(m)))
     else:
         m = rfc822_reg.match(d)
         if m and m.end() == len(d):
-            retval = int(time.mktime(unpack_rfc822(m)) - tz)
+            retval = int(calendar.timegm(unpack_rfc822(m)))
         else:
             return 0
     return retval
