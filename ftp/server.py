@@ -206,7 +206,7 @@ class FTPServerChannel(LineServerChannel):
         opts = ()
         if args.strip().startswith('-'):
             try:
-                opts, args = getopt(args.split(), 'lad')
+                opts, args = getopt(args.split(), 'Llad')
             except GetoptError:
                 self.reply('ERR_ARGS')
                 return
