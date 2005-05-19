@@ -59,6 +59,8 @@ class PublicationWithConflict(DefaultPublication):
             DefaultPublication.handleException(self, object, request, exc_info,
                                                retry_allowed)
 
+class Accepted(Exception):
+    pass
 
 class tested_object(object):
     """Docstring required by publisher."""
@@ -80,7 +82,7 @@ class tested_object(object):
         Returns 202 status only after (wait_tries) tries.
         """
         if self.tries >= int(wait_tries):
-            raise "Accepted"
+            raise Accepted
         else:
             self.tries += 1
             raise Conflict
