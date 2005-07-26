@@ -17,6 +17,7 @@ $Id$
 """
 from zope.server.http.httpserver import HTTPServer
 from zope.publisher.publish import publish
+import zope.security.management
 
 
 class PublisherHTTPServer(HTTPServer):
@@ -74,6 +75,10 @@ class PMDBHTTPServer(PublisherHTTPServer):
             import sys, pdb
             print "%s:" % sys.exc_info()[0]
             print sys.exc_info()[1]
-            pdb.post_mortem(sys.exc_info()[2])
-            raise
+            zope.security.management.restoreInteraction()
+            try:
+                pdb.post_mortem(sys.exc_info()[2])
+                raise
+            finally:
+                zope.security.management.endInteraction()
 
