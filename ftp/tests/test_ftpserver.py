@@ -56,7 +56,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         td.setThreadCount(1)
         if len(asyncore.socket_map) != 1:
             # Let sockets die off.
-            # XXX tests should be more careful to clear the socket map.
+            # TODO tests should be more careful to clear the socket map.
             asyncore.poll(0.1)
         self.orig_map_size = len(asyncore.socket_map)
         self.hook_asyncore_error()
@@ -249,9 +249,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
 
     def XXXtestHELP(self):
-        # XXX This test doesn't work.  I think it is because execute()
-        #     doesn't read the whole reply.  The execeute() helper
-        #     function should be fixed, but that's for another day.
+        # TODO This test doesn't work.  I think it is because execute()
+        #      doesn't read the whole reply.  The execeute() helper
+        #      function should be fixed, but that's for another day.
         result = status_messages['HELP_START'] + '\r\n'
         result += 'Help goes here somewhen.\r\n'
         result += status_messages['HELP_END']

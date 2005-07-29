@@ -80,7 +80,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         td.setThreadCount(4)
         if len(socket_map) != 1:
             # Let sockets die off.
-            # XXX tests should be more careful to clear the socket map.
+            # TODO tests should be more careful to clear the socket map.
             poll(0.1)
         self.orig_map_size = len(socket_map)
         self.hook_asyncore_error()
