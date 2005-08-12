@@ -85,6 +85,25 @@ Hello mickey.
                          'd=b+%2B%2F%3D%26b%3Aint&c+%2B%2F%3D%26c%3Aint=6')
         self.assertEqual(parser.getBodyStream().getvalue(), 'Hello mick')
 
+    def testDuplicateHeaders(self):
+        # Ensure that headers with the same key get concatenated as per
+        # RFC2616.
+        data = """\
+GET /foobar HTTP/8.4
+x-forwarded-for: 10.11.12.13
+x-forwarded-for: unknown,127.0.0.1
+X-Forwarded_for: 255.255.255.255
+content-length: 7
+
+Hello.
+"""
+        self.feed(data)
+        self.failUnless(self.parser.completed)
+        self.assertEqual(self.parser.headers, {
+                'CONTENT_LENGTH': '7',
+                'X_FORWARDED_FOR':
+                    '10.11.12.13, unknown,127.0.0.1, 255.255.255.255',
+                })
 
 def test_suite():
     loader = unittest.TestLoader()

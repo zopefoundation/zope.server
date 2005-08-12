@@ -126,7 +126,14 @@ class HTTPRequestParser(object):
                 key = line[:index]
                 value = line[index + 1:].strip()
                 key1 = key.upper().replace('-', '_')
-                headers[key1] = value
+                # If a header already exists, we append subsequent values
+                # seperated by a comma. Applications already need to handle
+                # the comma seperated values, as HTTP front ends might do 
+                # the concatenation for you (behavior specified in RFC2616).
+                try:
+                    headers[key1] += ', %s' % value
+                except KeyError:
+                    headers[key1] = value
             # else there's garbage in the headers?
 
         command, uri, version = self.crack_first_line()
@@ -143,7 +150,10 @@ class HTTPRequestParser(object):
                 buf = OverflowableBuffer(self.adj.inbuf_overflow)
                 self.body_rcv = ChunkedReceiver(buf)
         if not self.chunked:
-            cl = int(headers.get('CONTENT_LENGTH', 0))
+            try:
+                cl = int(headers.get('CONTENT_LENGTH', 0))
+            except ValueError:
+                cl = 0
             self.content_length = cl
             if cl > 0:
                 buf = OverflowableBuffer(self.adj.inbuf_overflow)

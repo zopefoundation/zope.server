@@ -129,8 +129,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         if add_headers:
             headers.update(add_headers)
         headers["Accept"] = "text/plain"
-        if body:
-            headers["Content-Length"] = str(int(len(body)))
+        # Content-Length header automatically added by HTTPConnection.request
+        #if body:
+        #    headers["Content-Length"] = str(int(len(body)))
         h.request("GET", "/", body, headers)
         response = h.getresponse()
         self.failUnlessEqual(int(response.status), 200)
