@@ -87,7 +87,7 @@ class ThreadedTaskDispatcher(object):
     def addTask(self, task):
         """See zope.server.interfaces.ITaskDispatcher"""
         if task is None:
-            raise ValueError, "No task passed to addTask()."
+            raise ValueError("No task passed to addTask().")
         # assert ITask.providedBy(task)
         try:
             task.defer()

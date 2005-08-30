@@ -152,7 +152,7 @@ else:
                 else:
                     break
             else:
-                raise RuntimeError, 'Cannot bind trigger!'
+                raise RuntimeError('Cannot bind trigger!')
 
             a.listen(1)
             w.setblocking(0)

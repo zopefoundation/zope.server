@@ -34,7 +34,7 @@ class Tests(unittest.TestCase):
             data = data[consumed:]
             if parser.completed:
                 return
-        raise ValueError, 'Looping'
+        raise ValueError('Looping')
 
     def testSimpleGET(self):
         data = """\

@@ -149,7 +149,7 @@ class ServerChannelBase(DualModeChannel, object):
         """
         t, v = sys.exc_info()[:2]
         if t is SystemExit or t is KeyboardInterrupt:
-            raise t, v
+            raise t(v)
         asyncore.dispatcher.handle_error(self)
 
     def handle_comm_error(self):

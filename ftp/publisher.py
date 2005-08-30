@@ -128,7 +128,7 @@ class NoOutput(object):
     dump anything into it."""
 
     def write(self, data):
-        raise RuntimeError, "Not a writable stream"
+        raise RuntimeError("Not a writable stream")
 
     def flush(self):
         pass

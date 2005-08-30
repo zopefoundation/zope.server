@@ -196,7 +196,7 @@ class HTTPRequestParser(object):
     def split_uri(self):
         m = self.path_regex.match (self.uri)
         if m.end() != len(self.uri):
-            raise ValueError, "Broken URI"
+            raise ValueError("Broken URI")
         else:
             path, query, self.fragment = m.groups()
             if path and '%' in path:

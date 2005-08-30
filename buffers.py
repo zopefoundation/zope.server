@@ -75,9 +75,8 @@ class FileBasedBuffer(object):
 
     def skip(self, bytes, allow_prune=0):
         if self.remain < bytes:
-            raise ValueError, (
-                "Can't skip %d bytes in buffer of %d bytes" %
-                (bytes, self.remain))
+            raise ValueError("Can't skip %d bytes in buffer of %d bytes" % (
+                                 bytes, self.remain))
         self.file.seek(bytes, 1)
         self.remain = self.remain - bytes
 

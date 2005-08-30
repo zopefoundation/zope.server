@@ -896,7 +896,7 @@ class RETRChannel(FTPDataChannel):
 
     def write(self, data):
         if self.control_channel is None:
-            raise IOError, 'Client FTP connection closed'
+            raise IOError('Client FTP connection closed')
         if not self.opened:
             self._open()
         FTPDataChannel.write(self, data)
