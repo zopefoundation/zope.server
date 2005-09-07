@@ -30,6 +30,8 @@ def fakeWrite(body):
 class WSGIHTTPServer(HTTPServer):
     """Zope Publisher-specific WSGI-compliant HTTP Server"""
 
+    application = None
+
     def __init__(self, application, sub_protocol=None, *args, **kw):
 
         if sys.platform[:3] == "win" and args[0] == 'localhost':
