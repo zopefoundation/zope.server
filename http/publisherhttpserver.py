@@ -27,8 +27,8 @@ class PublisherHTTPServer(wsgihttpserver.WSGIHTTPServer):
 
         def application(environ, start_response):
             request = request_factory(environ['wsgi.input'], environ)
+            request = publish(request)
             response = request.response
-            publish(request)
             start_response(response.getStatusString(), response.getHeaders())
             return response.result.body
 
@@ -42,9 +42,8 @@ class PMDBHTTPServer(wsgihttpserver.WSGIHTTPServer):
 
         def application(environ, start_response):
             request = request_factory(environ['wsgi.input'], environ)
-            response = request.response
             try:
-                publish(request, handle_errors=False)
+                request = publish(request, handle_errors=False)
             except:
                 import sys, pdb
                 print "%s:" % sys.exc_info()[0]
@@ -55,12 +54,16 @@ class PMDBHTTPServer(wsgihttpserver.WSGIHTTPServer):
                     raise
                 finally:
                     zope.security.management.endInteraction()
+
+            response = request.response
             start_response(response.getStatusString(), response.getHeaders())
             return response.result.body
 
         return super(PublisherHTTPServer, self).__init__(
             application, sub_protocol, *args, **kw)
 
+
+# BBB: Backward-compatibility.
 zope.deprecation.deprecated(
     ('PublisherHTTPServer', 'PMDBHTTPServer'),
     'This plain publisher support has been replaced in favor of the '

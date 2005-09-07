@@ -104,8 +104,8 @@ class Tests(PlacelessSetup, unittest.TestCase):
         def application(environ, start_response):
             request = BrowserRequest(environ['wsgi.input'], environ)
             request.setPublication(pub)
+            request = publish(request)
             response = request.response
-            publish(request)
             start_response(response.getStatusString(), response.getHeaders())
             return response.result.body
 
