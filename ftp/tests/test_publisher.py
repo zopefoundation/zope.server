@@ -80,16 +80,13 @@ class Response(object):
 
     _exc = _body = None
 
-    def setBody(self, result):
-        self._body = result
-
-    def outputBody(self):
-        pass
+    def setResult(self, result):
+        self._result = result
 
     def getResult(self):
         if self._exc:
             raise self._exc[0], self._exc[1]
-        return self._body
+        return self._result
 
 class RequestFactory(object):
 

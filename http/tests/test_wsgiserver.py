@@ -16,25 +16,24 @@ $Id$
 import unittest
 from asyncore import socket_map, poll
 from threading import Thread
+from time import sleep
+from httplib import HTTPConnection
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
-from zope.server.http.publisherhttpserver import PublisherHTTPServer
+from zope.server.http.wsgihttpserver import WSGIHTTPServer
 
 from zope.component.testing import PlacelessSetup
 import zope.component
 
 from zope.i18n.interfaces import IUserPreferredCharsets
 
+from zope.publisher.publish import publish
 from zope.publisher.http import IHTTPRequest
 from zope.publisher.http import HTTPCharsets
 from zope.publisher.browser import BrowserRequest
 from zope.publisher.base import DefaultPublication
 from zope.publisher.interfaces import Redirect, Retry
 from zope.publisher.http import HTTPRequest
-
-from httplib import HTTPConnection
-
-from time import sleep
 
 td = ThreadedTaskDispatcher()
 
@@ -102,15 +101,19 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
         pub = PublicationWithConflict(obj)
 
-        def request_factory(input_stream, output_steam, env):
-            request = BrowserRequest(input_stream, output_steam, env)
+        def application(environ, start_response):
+            request = BrowserRequest(environ['wsgi.input'], environ)
             request.setPublication(pub)
-            return request
+            request = publish(request)
+            response = request.response
+            start_response(response.getStatusString(), response.getHeaders())
+            return response.consumeBody()
 
         td.setThreadCount(4)
         # Bind to any port on localhost.
-        self.server = PublisherHTTPServer(request_factory, 'Browser',
-                                          LOCALHOST, 0, task_dispatcher=td)
+        self.server = WSGIHTTPServer(application, 'Browser',
+                                     LOCALHOST, 0, task_dispatcher=td)
+
         self.port = self.server.socket.getsockname()[1]
         self.run_loop = 1
         self.thread = Thread(target=self.loop)
