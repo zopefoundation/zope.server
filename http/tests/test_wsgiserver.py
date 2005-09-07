@@ -107,7 +107,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
             request = publish(request)
             response = request.response
             start_response(response.getStatusString(), response.getHeaders())
-            return response.result.body
+            return response.consumeBody()
 
         td.setThreadCount(4)
         # Bind to any port on localhost.

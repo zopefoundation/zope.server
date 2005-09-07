@@ -30,7 +30,7 @@ class PublisherHTTPServer(wsgihttpserver.WSGIHTTPServer):
             request = publish(request)
             response = request.response
             start_response(response.getStatusString(), response.getHeaders())
-            return response.result.body
+            return response.consumeBody()
 
         return super(PublisherHTTPServer, self).__init__(
             application, sub_protocol, *args, **kw)
@@ -57,7 +57,7 @@ class PMDBHTTPServer(wsgihttpserver.WSGIHTTPServer):
 
             response = request.response
             start_response(response.getStatusString(), response.getHeaders())
-            return response.result.body
+            return response.consumeBody()
 
         return super(PublisherHTTPServer, self).__init__(
             application, sub_protocol, *args, **kw)
