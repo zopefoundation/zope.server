@@ -26,7 +26,7 @@ class DemoFileSystem(demofs.DemoFileSystem):
 
     def rename(self, path, old, new):
         return demofs.DemoFileSystem.rename(
-            self, "%s/%s" % (path, old), "%s/%s" % (path, new)) 
+            self, "%s/%s" % (path, old), "%s/%s" % (path, new))
 
 class Publication(object):
 
@@ -35,7 +35,7 @@ class Publication(object):
 
     def beforeTraversal(self, request):
         pass
-    
+
     def getApplication(self, request):
         return self.root
 
@@ -56,11 +56,11 @@ class Publication(object):
 
     def handleException(self, object, request, info, retry_allowed=True):
         request.response._exc = info[:2]
-        
+
 
 class Request(object):
 
-    def __init__(self, input, output, env):
+    def __init__(self, input, env):
         self.env = env
         self.response = Response()
         self.user = env['credentials']
@@ -93,8 +93,8 @@ class RequestFactory(object):
     def __init__(self, root):
         self.pub = Publication(root)
 
-    def __call__(self, input, output, env):
-        r = Request(input, output, env)
+    def __call__(self, input, env):
+        r = Request(input, env)
         r.publication = self.pub
         return r
 

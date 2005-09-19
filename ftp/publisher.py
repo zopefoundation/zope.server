@@ -102,10 +102,9 @@ class PublisherFileSystem(object):
             env['path'], env['name'] = posixpath.split(path)
         else:
             env['path'] = path
-            
+
         env['credentials'] = self.credentials
-        # NoOutput avoids creating a black hole.
-        request = self.request_factory(StringIO(''), NoOutput(), env)
+        request = self.request_factory(StringIO(''), env)
 
         # Note that publish() calls close() on request, which deletes the
         # response from the request, so that we need to keep track of it.
@@ -121,19 +120,6 @@ class PublisherFileSystem(object):
             # We just ignore it.
             path = '/'
         return path
-
-
-class NoOutput(object):
-    """An output stream lookalike that warns you if you try to
-    dump anything into it."""
-
-    def write(self, data):
-        raise RuntimeError("Not a writable stream")
-
-    def flush(self):
-        pass
-
-    close = flush
 
 
 class PublisherFTPServer(FTPServer):
