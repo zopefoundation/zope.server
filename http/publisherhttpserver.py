@@ -68,4 +68,4 @@ zope.deprecation.deprecated(
     ('PublisherHTTPServer', 'PMDBHTTPServer'),
     'This plain publisher support has been replaced in favor of the '
     'WSGI HTTP server '
-    'The reference will be gone in X3.4.')
+    'The reference will be gone in Zope 3.4.')
