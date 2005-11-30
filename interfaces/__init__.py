@@ -155,7 +155,7 @@ class IDispatcherEventHandler(Interface):
         """
 
     def handle_error():
-        """An error occured, but we are still trying to fix it.
+        """An error occurred, but we are still trying to fix it.
         """
 
     def handle_expt():
