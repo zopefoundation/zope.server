@@ -20,10 +20,10 @@ import ftplib
 import unittest
 import socket
 import sys
+import time
 import traceback
 import unittest
 
-from time import time
 from types import StringType
 from StringIO import StringIO
 from threading import Thread, Event
@@ -71,12 +71,12 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         fs = demofs.DemoFileSystem(root_dir, 'foo')
         fs.writefile('/test/existing', StringIO('test initial data'))
         fs.writefile('/private/existing', StringIO('private initial data'))
-        
+
         self.__fs = fs = demofs.DemoFileSystem(root_dir, 'root')
         fs.writefile('/existing', StringIO('root initial data'))
 
         fs_access = demofs.DemoFileSystemAccess(root_dir, {'foo': 'bar'})
-        
+
         self.server = FTPServer(LOCALHOST, SERVER_PORT, fs_access,
                                 task_dispatcher=td, adj=my_adj)
         if CONNECT_TO_PORT == 0:
@@ -98,12 +98,12 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         td.shutdown()
         self.server.close()
         # Make sure all sockets get closed by asyncore normally.
-        timeout = time() + 2
+        timeout = time.time() + 2
         while 1:
             if len(asyncore.socket_map) == self.orig_map_size:
                 # Clean!
                 break
-            if time() >= timeout:
+            if time.time() >= timeout:
                 self.fail('Leaked a socket: %s' % `asyncore.socket_map`)
                 break
             asyncore.poll(0.1)
@@ -142,7 +142,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 print "WEIRD EXCEPTION IN LOOP"
                 traceback.print_exception(*(sys.exc_info()+(100,)))
             print
-                
+
     def getFTPConnection(self, login=1):
         ftp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ftp.connect((LOCALHOST, self.port))
@@ -168,16 +168,16 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
             for command in commands:
                 ftp.send('%s\r\n' %command)
+                time.sleep(.01)
                 result = ftp.recv(10000)
-
             self.failUnless(result.endswith('\r\n'))
         finally:
             ftp.close()
-        return result.split('\r\n')[0]
+        return result
 
 
     def testABOR(self):
-        self.assertEqual(self.execute('ABOR', 1),
+        self.assertEqual(self.execute('ABOR', 1).rstrip(),
                          status_messages['TRANSFER_ABORTED'])
 
 
@@ -226,35 +226,36 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.testNOOP()
 
     def testCDUP(self):
-        self.assertEqual(self.execute(('CWD test', 'CDUP'), 1),
+        self.execute('CWD test', 1)
+        self.assertEqual(self.execute('CDUP', 1).rstrip(),
                          status_messages['SUCCESS_250'] %'CDUP')
-        self.assertEqual(self.execute('CDUP', 1),
+        self.assertEqual(self.execute('CDUP', 1).rstrip(),
                          status_messages['SUCCESS_250'] %'CDUP')
 
 
     def testCWD(self):
-        self.assertEqual(self.execute('CWD test', 1),
+        self.assertEqual(self.execute('CWD test', 1).rstrip(),
                          status_messages['SUCCESS_250'] %'CWD')
-        self.assertEqual(self.execute('CWD foo', 1),
+        self.assertEqual(self.execute('CWD foo', 1).rstrip(),
                          status_messages['ERR_NO_DIR'] %'/foo')
 
 
     def testDELE(self):
-        self.assertEqual(self.execute('DELE test/existing', 1),
+        self.assertEqual(self.execute('DELE test/existing', 1).rstrip(),
                          status_messages['SUCCESS_250'] %'DELE')
         res = self.execute('DELE bar', 1).split()[0]
         self.assertEqual(res, '550')
-        self.assertEqual(self.execute('DELE', 1),
+        self.assertEqual(self.execute('DELE', 1).rstrip(),
                          status_messages['ERR_ARGS'])
 
 
-    def XXXtestHELP(self):
+    def testHELP(self):
         # TODO This test doesn't work.  I think it is because execute()
         #      doesn't read the whole reply.  The execeute() helper
         #      function should be fixed, but that's for another day.
         result = status_messages['HELP_START'] + '\r\n'
         result += 'Help goes here somewhen.\r\n'
-        result += status_messages['HELP_END']
+        result += status_messages['HELP_END'] + '\r\n'
 
         self.assertEqual(self.execute('HELP', 1), result)
 
@@ -294,23 +295,24 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
 
     def testNOOP(self):
-        self.assertEqual(self.execute('NOOP', 0),
+        self.assertEqual(self.execute('NOOP', 0).rstrip(),
                          status_messages['SUCCESS_200'] %'NOOP')
-        self.assertEqual(self.execute('NOOP', 1),
+        self.assertEqual(self.execute('NOOP', 1).rstrip(),
                          status_messages['SUCCESS_200'] %'NOOP')
 
 
     def testPASS(self):
-        self.assertEqual(self.execute('PASS', 0),
+        self.assertEqual(self.execute('PASS', 0).rstrip(),
                          status_messages['LOGIN_MISMATCH'])
-        self.assertEqual(self.execute(('USER blah', 'PASS bar'), 0),
+        self.execute('USER blah', 0)
+        self.assertEqual(self.execute('PASS bar', 0).rstrip(),
                          status_messages['LOGIN_MISMATCH'])
 
 
     def testQUIT(self):
-        self.assertEqual(self.execute('QUIT', 0),
+        self.assertEqual(self.execute('QUIT', 0).rstrip(),
                          status_messages['GOODBYE'])
-        self.assertEqual(self.execute('QUIT', 1),
+        self.assertEqual(self.execute('QUIT', 1).rstrip(),
                          status_messages['GOODBYE'])
 
 
@@ -350,9 +352,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
 
     def testUSER(self):
-        self.assertEqual(self.execute('USER foo', 0),
+        self.assertEqual(self.execute('USER foo', 0).rstrip(),
                          status_messages['PASS_REQUIRED'])
-        self.assertEqual(self.execute('USER', 0),
+        self.assertEqual(self.execute('USER', 0).rstrip(),
                          status_messages['ERR_ARGS'])
 
 
