@@ -13,6 +13,7 @@
 
 $Id$
 """
+import StringIO
 import unittest
 from asyncore import socket_map, poll
 from threading import Thread
@@ -107,7 +108,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
             request = publish(request)
             response = request.response
             start_response(response.getStatusString(), response.getHeaders())
-            return response.consumeBody()
+            return response.consumeBodyIter()
 
         td.setThreadCount(4)
         # Bind to any port on localhost.
@@ -187,7 +188,21 @@ class Tests(PlacelessSetup, unittest.TestCase):
         # conflicts.
         self.testResponse(path='/conflict?wait_tries=10', status_expected=409)
 
+    def test_server_uses_iterable(self):
+        # Make sure that the task write method isn't called with a
+        # str or non iterable
+        class FakeTask:
+            getCGIEnvironment = lambda _: {}
+            class request_data:
+                getBodyStream = lambda _: StringIO.StringIO()
+            request_data = request_data()
+            setResponseStatus = appendResponseHeaders = lambda *_: None
 
+            def write(self, v):
+                if isinstance(v, str):
+                    raise TypeError("Should only write iterables")
+                list(v)
+        self.server.executeRequest(FakeTask())
 
 def test_suite():
     loader = unittest.TestLoader()

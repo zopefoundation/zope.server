@@ -60,7 +60,7 @@ class WSGIHTTPServer(HTTPServer):
             return fakeWrite
 
         # Call the application to handle the request and write a response
-        task.write(''.join(self.application(env, start_response)))
+        task.write(self.application(env, start_response))
 
 
 class PMDBWSGIHTTPServer(WSGIHTTPServer):
@@ -83,7 +83,7 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
 
         # Call the application to handle the request and write a response
         try:
-            task.write(''.join(self.application(env, start_response)))
+            task.write(self.application(env, start_response))
         except:
             import sys, pdb
             print "%s:" % sys.exc_info()[0]
