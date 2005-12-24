@@ -39,6 +39,53 @@ def doctest_ServerBase():
 
     """
 
+class FakeSocket:
+    data        = ''
+    setblocking = lambda *_: None
+    fileno      = lambda *_: 42
+    getpeername = lambda *_: ('localhost', 42)
+
+    def send(self, data):
+        self.data += data
+        return len(data)
+    
+
+def channels_accept_iterables():
+    r"""
+Channels accept iterables (they special-case strings).
+
+    >>> from zope.server.dualmodechannel import DualModeChannel
+    >>> socket = FakeSocket()
+    >>> channel = DualModeChannel(socket, ('localhost', 42))
+
+    >> channel.write("First")
+    >> channel.flush()
+    >> print socket.data
+    First
+
+    >>> channel.write(["First", "\n", "Second", "\n", "Third"])
+    >>> channel.flush()
+    >>> print socket.data
+    First
+    Second
+    Third
+
+    >>> def count():
+    ...     yield '\n1\n2\n3\n'
+    ...     yield 'I love to count. Ha ha ha.'
+
+    >>> channel.write(count())
+    >>> channel.flush()
+    >>> print socket.data
+    First
+    Second
+    Third
+    1
+    2
+    3
+    I love to count. Ha ha ha.
+    
+"""
 
 def test_suite():
     return doctest.DocTestSuite()

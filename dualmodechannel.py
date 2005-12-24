@@ -152,8 +152,14 @@ class DualModeChannel(asyncore.dispatcher):
     #
 
     def write(self, data):
-        if data:
-            self.outbuf.append(data)
+        if isinstance(data, str):
+            if data:
+                self.outbuf.append(data)
+        else:
+            for v in data:
+                if v:
+                    self.outbuf.append(v)
+
         while len(self.outbuf) >= self.adj.send_bytes:
             # Send what we can without blocking.
             # We propagate errors to the application on purpose
