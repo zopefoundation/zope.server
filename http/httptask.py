@@ -229,8 +229,7 @@ class HTTPTask(object):
             self.bytes_written += len(rh)
             self.wrote_header = 1
         if data:
-            channel.write(data)
-            self.bytes_written += len(data)
+            self.bytes_written += channel.write(data)
 
     def flush(self):
         self.channel.flush()

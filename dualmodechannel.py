@@ -152,13 +152,16 @@ class DualModeChannel(asyncore.dispatcher):
     #
 
     def write(self, data):
+        wrote = 0
         if isinstance(data, str):
             if data:
                 self.outbuf.append(data)
+                wrote = len(data) 
         else:
             for v in data:
                 if v:
                     self.outbuf.append(v)
+                    wrote += len(v)
 
         while len(self.outbuf) >= self.adj.send_bytes:
             # Send what we can without blocking.
@@ -166,6 +169,8 @@ class DualModeChannel(asyncore.dispatcher):
             # (to stop the application if the connection closes).
             if not self._flush_some():
                 break
+
+        return wrote
 
     def pull_trigger(self):
         """Wakes up the main loop.

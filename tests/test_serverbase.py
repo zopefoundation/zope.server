@@ -58,12 +58,16 @@ Channels accept iterables (they special-case strings).
     >>> socket = FakeSocket()
     >>> channel = DualModeChannel(socket, ('localhost', 42))
 
-    >> channel.write("First")
-    >> channel.flush()
-    >> print socket.data
+    >>> channel.write("First")
+    5
+    
+    >>> channel.flush()
+    >>> print socket.data
     First
 
-    >>> channel.write(["First", "\n", "Second", "\n", "Third"])
+    >>> channel.write(["\n", "Second", "\n", "Third"])
+    13
+    
     >>> channel.flush()
     >>> print socket.data
     First
@@ -75,6 +79,8 @@ Channels accept iterables (they special-case strings).
     ...     yield 'I love to count. Ha ha ha.'
 
     >>> channel.write(count())
+    33
+    
     >>> channel.flush()
     >>> print socket.data
     First
