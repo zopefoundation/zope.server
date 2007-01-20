@@ -126,6 +126,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
         self.thread.join()
         td.shutdown()
         self.server.close()
+        super(Tests, self).tearDown()
 
     def loop(self):
         while self.run_loop:
