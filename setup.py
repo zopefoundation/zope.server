@@ -18,13 +18,10 @@ $Id$
 
 import os
 
-try:
-    from setuptools import setup, Extension
-except ImportError, e:
-    from distutils.core import setup, Extension
+from setuptools import setup, find_packages
 
 setup(name='zope.server',
-      version='3.4-dev',
+      version='3.4dev',
       url='http://svn.zope.org/zope.server',
       license='ZPL 2.1',
       description='Zope server',
@@ -34,18 +31,8 @@ setup(name='zope.server',
                        "channel-based servers, the servers themselves and"
                        "helper objects, such as tasks and requests.",
 
-      packages=['zope',
-                'zope.server',
-                'zope.server.ftp',
-                'zope.server.ftp.tests',
-                'zope.server.http',
-                'zope.server.http.tests',
-                'zope.server.interfaces',
-                'zope.server.linereceiver',
-                'zope.server.logger',
-                'zope.server.logger.tests',
-                'zope.server.tests'],
-      package_dir = {'': 'src'},
+      packages=find_packages('src'),
+	  package_dir = {'': 'src'},
 
       namespace_packages=['zope',],
       
