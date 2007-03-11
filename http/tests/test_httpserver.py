@@ -292,6 +292,82 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         response_body = response.read()
         self.failUnlessEqual(response_body, expect)
 
+    def testKeepaliveHttp10(self):
+        # Handling of Keep-Alive within HTTP 1.0
+        data = "Default: Don't keep me alive"
+        s = ("GET / HTTP/1.0\n"
+             "Content-Length: %d\n"
+             "\n"
+             "%s") % (len(data), data)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((LOCALHOST, self.port))
+        sock.send(s)
+        response = ClientHTTPResponse(sock)
+        response.begin()
+        self.failUnlessEqual(int(response.status), 200)
+        connection = response.getheader('Connection', '')
+        # We sent no Connection: Keep-Alive header
+        # Connection: close (or no header) is default. 
+        self.failUnless(connection != 'Keep-Alive')
+        
+        # If header Connection: Keep-Alive is explicitly sent, 
+        # we want to keept the connection open, we also need to return
+        # the corresponding header
+        data = "Keep me alive"
+        s = ("GET / HTTP/1.0\n"
+             "Connection: Keep-Alive\n"
+             "Content-Length: %d\n"
+             "\n"
+             "%s") % (len(data), data)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((LOCALHOST, self.port))
+        sock.send(s)
+        response = ClientHTTPResponse(sock)
+        response.begin()
+        self.failUnlessEqual(int(response.status), 200)
+        connection = response.getheader('Connection', '')
+        self.failUnlessEqual(connection, 'Keep-Alive')
+
+    def testKeepaliveHttp11(self):
+        # Handling of Keep-Alive within HTTP 1.1
+
+        # All connections are kept alive, unless stated otherwise
+        data = "Default: Keep me alive"
+        s = ("GET / HTTP/1.1\n"
+             "Content-Length: %d\n"
+             "\n"
+             "%s") % (len(data), data)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((LOCALHOST, self.port))
+        sock.send(s)
+        response = ClientHTTPResponse(sock)
+        response.begin()
+        self.failUnlessEqual(int(response.status), 200)
+        self.failUnless(response.getheader('connection') != 'close')
+
+        # no idea why the test publisher handles this request incorrectly
+        # it would be less typing in the test :)
+        # h = HTTPConnection(LOCALHOST, self.port)
+        # h.request("GET", "/")
+        # response = h.getresponse()
+        # self.failUnlessEqual(int(response.status), 200)
+        # self.failUnless(response.getheader('connection') != 'close')
+ 
+        # specifying Connection: close explicitly 
+        data = "Don't keep me alive"
+        s = ("GET / HTTP/1.1\n"
+             "Connection: close\n"
+             "Content-Length: %d\n"
+             "\n"
+             "%s") % (len(data), data)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((LOCALHOST, self.port))
+        sock.send(s)
+        response = ClientHTTPResponse(sock)
+        response.begin()
+        self.failUnlessEqual(int(response.status), 200)
+        self.failUnlessEqual(response.getheader('connection'), 'close')
+
 
 def test_suite():
     loader = unittest.TestLoader()

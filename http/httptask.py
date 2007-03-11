@@ -116,6 +116,9 @@ class HTTPTask(object):
         connection = self.request_data.headers.get('CONNECTION', '').lower()
         close_it = 0
         response_headers = self.response_headers
+        accumulated_headers = self.accumulated_headers
+        if accumulated_headers is None:
+            accumulated_headers = []
 
         if version == '1.0':
             if connection == 'keep-alive':
@@ -126,6 +129,9 @@ class HTTPTask(object):
             else:
                 close_it = 1
         elif version == '1.1':
+            if 'connection: close' in (header.lower() for header in 
+                accumulated_headers):
+                close_it = 1
             if connection == 'close':
                 close_it = 1
             elif 'Transfer-Encoding' in response_headers:
@@ -135,7 +141,10 @@ class HTTPTask(object):
                 # Replying with headers only.
                 pass
             elif not ('Content-Length' in response_headers):
-                close_it = 1
+                if 'content-length' not in (header.lower() for header in
+                    accumulated_headers):
+                    close_it = 1                
+            # under HTTP 1.1 keep-alive is default, no need to set the header
         else:
             # Close if unrecognized HTTP version.
             close_it = 1
