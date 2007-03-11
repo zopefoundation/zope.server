@@ -345,6 +345,21 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.failUnlessEqual(int(response.status), 200)
         self.failUnless(response.getheader('connection') != 'close')
 
+        # Explicitly set keep-alive
+        data = "Default: Keep me alive"
+        s = ("GET / HTTP/1.1\n"
+             "Connection: keep-alive\n"
+             "Content-Length: %d\n"
+             "\n"
+             "%s") % (len(data), data)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((LOCALHOST, self.port))
+        sock.send(s)
+        response = ClientHTTPResponse(sock)
+        response.begin()
+        self.failUnlessEqual(int(response.status), 200)
+        self.failUnless(response.getheader('connection') != 'close')
+
         # no idea why the test publisher handles this request incorrectly
         # it would be less typing in the test :)
         # h = HTTPConnection(LOCALHOST, self.port)

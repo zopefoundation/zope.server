@@ -141,7 +141,9 @@ class HTTPTask(object):
                 # Replying with headers only.
                 pass
             elif not ('Content-Length' in response_headers):
-                if 'content-length' not in (header.lower() for header in
+                # accumulated_headers is a simple list, we need to cut off
+                # the value of content-length manually
+                if 'content-length' not in (header[:14].lower() for header in
                     accumulated_headers):
                     close_it = 1                
             # under HTTP 1.1 keep-alive is default, no need to set the header
