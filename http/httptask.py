@@ -44,7 +44,7 @@ class HTTPTask(object):
     instream = None
     close_on_finish = 1
     status = '200'
-    reason = 'Ok'
+    reason = 'OK'
     wrote_header = 0
     accumulated_headers = None
     bytes_written = 0
