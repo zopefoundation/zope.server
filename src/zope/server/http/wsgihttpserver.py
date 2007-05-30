@@ -13,12 +13,11 @@
 ##############################################################################
 """WSGI-compliant HTTP Server that uses the Zope Publisher for executing a task.
 
-$Id: publisherhttpserver.py 29535 2005-03-17 22:44:37Z garrett $
+$Id$
 """
 import re
 import sys
 from zope.server.http.httpserver import HTTPServer
-from zope.publisher.publish import publish
 import zope.security.management
 
 
