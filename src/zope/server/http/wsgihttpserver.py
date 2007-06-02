@@ -45,11 +45,29 @@ class WSGIHTTPServer(HTTPServer):
 
         HTTPServer.__init__(self, *args, **kw)
 
+    def _constructWSGIEnvironment(self, task):
+        env = task.getCGIEnvironment()
+
+        # deduce the URL scheme (http or https)
+        if (env.get('HTTPS', '').lower() == "on" or
+            env.get('SERVER_PORT_SECURE') == "1"):
+            protocol = 'https'
+        else:
+            protocol = 'http'
+
+        # the following environment variables are required by the WSGI spec
+        env['wsgi.version'] = (1,0)
+        env['wsgi.url_scheme'] = protocol
+        env['wsgi.errors'] = sys.stderr # apps should use the logging module
+        env['wsgi.multithread'] = True
+        env['wsgi.multiprocess'] = True
+        env['wsgi.run_once'] = False
+        env['wsgi.input'] = task.request_data.getBodyStream()
+        return env
 
     def executeRequest(self, task):
         """Overrides HTTPServer.executeRequest()."""
-        env = task.getCGIEnvironment()
-        env['wsgi.input'] = task.request_data.getBodyStream()
+        env = self._constructWSGIEnvironment(task)
 
         def start_response(status, headers):
             # Prepare the headers for output
@@ -69,8 +87,7 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
 
     def executeRequest(self, task):
         """Overrides HTTPServer.executeRequest()."""
-        env = task.getCGIEnvironment()
-        env['wsgi.input'] = task.request_data.getBodyStream()
+        env = self._constructWSGIEnvironment(task)
         env['wsgi.handleErrors'] = False
 
         def start_response(status, headers):
