@@ -45,6 +45,9 @@ setup(name='zope.server',
                           'zope.security',
                           'zope.deprecation'],
       include_package_data = True,
-
       zip_safe = False,
+      entry_points = """
+      [paste.server_runner]
+      main = zope.server.http.wsgihttpserver:run_paste
+      """
       )

@@ -17,7 +17,9 @@ $Id$
 """
 import re
 import sys
+import ThreadedAsync
 from zope.server.http.httpserver import HTTPServer
+from zope.server.taskthreads import ThreadedTaskDispatcher
 import zope.security.management
 
 
@@ -94,3 +96,14 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
             finally:
                 zope.security.management.endInteraction()
 
+
+def run_paste(wsgi_app, global_conf, name='zope.server.http',
+              host='127.0.0.1', port=8080, threads=4):
+    port = int(port)
+    threads = int(threads)
+
+    task_dispatcher = ThreadedTaskDispatcher()
+    task_dispatcher.setThreadCount(threads)
+    server = WSGIHTTPServer(wsgi_app, name, host, port,
+                            task_dispatcher=task_dispatcher)    
+    ThreadedAsync.loop()
