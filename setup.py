@@ -21,7 +21,7 @@ import os
 from setuptools import setup, find_packages
 
 setup(name='zope.server',
-      version = '3.5.0a1',
+      version = '3.5.0a2',
       url='http://svn.zope.org/zope.server',
       license='ZPL 2.1',
       description='Zope server',
