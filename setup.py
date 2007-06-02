@@ -27,9 +27,7 @@ setup(name='zope.server',
       description='Zope server',
       author='Zope Corporation and Contributors',
       author_email='zope3-dev@zope.org',
-      long_description="This package contains generic base classes for"
-                       "channel-based servers, the servers themselves and"
-                       "helper objects, such as tasks and requests.",
+      long_description=open('README.txt').read(),
 
       packages=find_packages('src'),
 	  package_dir = {'': 'src'},
