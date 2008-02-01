@@ -30,10 +30,10 @@ setup(name='zope.server',
       long_description=open('README.txt').read(),
 
       packages=find_packages('src'),
-	  package_dir = {'': 'src'},
+      package_dir = {'': 'src'},
 
       namespace_packages=['zope',],
-      
+
       tests_require = ['zope.testing',
                        'zope.i18n',
                        'zope.component'],
@@ -41,7 +41,8 @@ setup(name='zope.server',
                           'zope.interface',
                           'zope.publisher',
                           'zope.security',
-                          'zope.deprecation'],
+                          'zope.deprecation',
+                          'ZODB3'],
       include_package_data = True,
       zip_safe = False,
       entry_points = """
