@@ -20,6 +20,12 @@ use zope.server's WSGI gateway from a configuration file, e.g.::
 Changes
 =======
 
+3.5.? (2008-02-01)
+------------------
+
+- Fix of 599 error on conflict error in request
+  see: http://mail.zope.org/pipermail/zope-dev/2008-January/030844.html
+
 3.4.1 and 3.5.0a2 (2007-06-02)
 ------------------------------
 
