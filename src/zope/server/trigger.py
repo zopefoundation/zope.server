@@ -15,10 +15,19 @@
 import asyncore
 import os
 import socket
+import struct
 import thread
 import errno
 
-from ZODB.utils import positive_id
+_ADDRESS_MASK = 256 ** struct.calcsize('P')
+def positive_id(obj):
+    """Return id(obj) as a non-negative integer."""
+
+    result = id(obj)
+    if result < 0:
+        result += _ADDRESS_MASK
+        assert result > 0
+    return result
 
 # Original comments follow; they're hard to follow in the context of
 # ZEO's use of triggers.  TODO:  rewrite from a ZEO perspective.

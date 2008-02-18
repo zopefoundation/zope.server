@@ -15,9 +15,9 @@
 
 $Id$
 """
+import asyncore
 import re
 import sys
-import ThreadedAsync
 from zope.server.http.httpserver import HTTPServer
 from zope.server.taskthreads import ThreadedTaskDispatcher
 import zope.security.management
@@ -123,4 +123,4 @@ def run_paste(wsgi_app, global_conf, name='zope.server.http',
     task_dispatcher.setThreadCount(threads)
     server = WSGIHTTPServer(wsgi_app, name, host, port,
                             task_dispatcher=task_dispatcher)    
-    ThreadedAsync.loop()
+    asyncore.loop()

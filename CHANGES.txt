@@ -10,6 +10,8 @@ CHANGES
 - Fix of 599 error on conflict error in request
   see: http://mail.zope.org/pipermail/zope-dev/2008-January/030844.html
 
+- Removed dependency on ZODB.
+
 3.4.1 and 3.5.0a2 (2007-06-02)
 ------------------------------
 
