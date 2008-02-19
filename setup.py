@@ -56,7 +56,6 @@ setup(
                         'zope.publisher',
                         'zope.security',
                         'zope.deprecation',
-	                'ZODB3',
                         ],
     include_package_data = True,
     zip_safe = False,
