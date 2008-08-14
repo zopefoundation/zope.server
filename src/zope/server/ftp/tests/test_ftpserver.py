@@ -29,7 +29,6 @@ from StringIO import StringIO
 from threading import Thread, Event
 
 from zope.server.adjustments import Adjustments
-from zope.server.ftp.server import FTPServer, status_messages
 from zope.server.ftp.tests import demofs
 from zope.server.taskthreads import ThreadedTaskDispatcher
 from zope.server.tests.asyncerror import AsyncoreErrorHook
@@ -53,6 +52,9 @@ def retrlines(ftpconn, cmd):
 class Tests(unittest.TestCase, AsyncoreErrorHook):
 
     def setUp(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.server import FTPServer
         td.setThreadCount(1)
         if len(asyncore.socket_map) != 1:
             # Let sockets die off.
@@ -144,6 +146,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             print
 
     def getFTPConnection(self, login=1):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.server import status_messages
         ftp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ftp.connect((LOCALHOST, self.port))
         result = ftp.recv(10000).split()[0]
@@ -177,6 +182,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
 
     def testABOR(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.server import status_messages
         self.assertEqual(self.execute('ABOR', 1).rstrip(),
                          status_messages['TRANSFER_ABORTED'])
 
@@ -226,6 +234,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.testNOOP()
 
     def testCDUP(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.server import status_messages
         self.execute('CWD test', 1)
         self.assertEqual(self.execute('CDUP', 1).rstrip(),
                          status_messages['SUCCESS_250'] %'CDUP')
@@ -234,6 +245,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
 
     def testCWD(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.server import status_messages
         self.assertEqual(self.execute('CWD test', 1).rstrip(),
                          status_messages['SUCCESS_250'] %'CWD')
         self.assertEqual(self.execute('CWD foo', 1).rstrip(),
@@ -241,6 +255,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
 
     def testDELE(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.server import status_messages
         self.assertEqual(self.execute('DELE test/existing', 1).rstrip(),
                          status_messages['SUCCESS_250'] %'DELE')
         res = self.execute('DELE bar', 1).split()[0]
@@ -250,6 +267,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
 
     def testHELP(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.server import status_messages
         # TODO This test doesn't work.  I think it is because execute()
         #      doesn't read the whole reply.  The execeute() helper
         #      function should be fixed, but that's for another day.
@@ -295,6 +315,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
 
     def testNOOP(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.server import status_messages
         self.assertEqual(self.execute('NOOP', 0).rstrip(),
                          status_messages['SUCCESS_200'] %'NOOP')
         self.assertEqual(self.execute('NOOP', 1).rstrip(),
@@ -302,6 +325,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
 
     def testPASS(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.server import status_messages
         self.assertEqual(self.execute('PASS', 0).rstrip(),
                          status_messages['LOGIN_MISMATCH'])
         self.execute('USER blah', 0)
@@ -310,6 +336,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
 
     def testQUIT(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.server import status_messages
         self.assertEqual(self.execute('QUIT', 0).rstrip(),
                          status_messages['GOODBYE'])
         self.assertEqual(self.execute('QUIT', 1).rstrip(),
@@ -352,6 +381,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
 
     def testUSER(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.server import status_messages
         self.assertEqual(self.execute('USER foo', 0).rstrip(),
                          status_messages['PASS_REQUIRED'])
         self.assertEqual(self.execute('USER', 0).rstrip(),

@@ -20,7 +20,6 @@ from unittest import TestCase, TestSuite, main, makeSuite
 from fstests import FileSystemTests
 from StringIO import StringIO
 from zope.publisher.publish import mapply
-from zope.server.ftp.publisher import PublisherFileSystem
 
 class DemoFileSystem(demofs.DemoFileSystem):
 
@@ -109,6 +108,9 @@ class TestPublisherFileSystem(FileSystemTests, TestCase):
         fs.writefile(self.unwritable_filename, StringIO("save this"))
         fs.get(self.unwritable_filename).revoke('bob', demofs.write)
 
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.ftp.publisher import PublisherFileSystem
         self.filesystem = PublisherFileSystem('bob', RequestFactory(fs))
 
 def test_suite():
