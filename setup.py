@@ -17,20 +17,34 @@ $Id$
 """
 
 import os
-
 from setuptools import setup, find_packages
+
+def read(*rnames):
+    return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(name='zope.server',
       version = '3.4.3dev',
-      url='http://svn.zope.org/zope.server',
       license='ZPL 2.1',
-      description='Zope server',
+      description='Zope server (Web and FTP)',
       author='Zope Corporation and Contributors',
-      author_email='zope3-dev@zope.org',
-      long_description="This package contains generic base classes for"
-                       "channel-based servers, the servers themselves and"
-                       "helper objects, such as tasks and requests.",
-
+      author_email='zope-dev@zope.org',
+       long_description=(
+        read('README.txt')
+        + '\n\n' +
+        read('CHANGES.txt')
+        ),
+      keywords=('zope3 server http ftp'),
+      classifiers = [
+          'Development Status :: 5 - Production/Stable',
+          'Environment :: Web Environment',
+          'Intended Audience :: Developers',
+          'License :: OSI Approved :: Zope Public License',
+          'Programming Language :: Python',
+          'Natural Language :: English',
+          'Operating System :: OS Independent',
+          'Topic :: Internet :: WWW/HTTP',
+          'Framework :: Zope3'],
+      url='http://cheeseshop.python.org/pypi/zope.server',
       packages=find_packages('src'),
       package_dir = {'': 'src'},
 
