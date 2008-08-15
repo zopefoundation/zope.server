@@ -21,7 +21,6 @@ from time import sleep
 from httplib import HTTPConnection
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
-from zope.server.http.wsgihttpserver import WSGIHTTPServer
 
 from zope.component.testing import PlacelessSetup
 import zope.component
@@ -122,6 +121,9 @@ class WSGIInfo(object):
 class Tests(PlacelessSetup, unittest.TestCase):
 
     def setUp(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.http.wsgihttpserver import WSGIHTTPServer
         super(Tests, self).setUp()
         zope.component.provideAdapter(HTTPCharsets, [IHTTPRequest],
                                       IUserPreferredCharsets, '')

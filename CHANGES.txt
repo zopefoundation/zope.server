@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+3.5.1dev (unreleased)
+---------------------
+
+- Moved some imports from test modules to their setUp to prevent
+  failures when ZEO tests are run by the same testrunner
+
 3.5.0 (2008-03-01)
 ------------------
 
@@ -12,8 +18,8 @@ CHANGES
 
 - Removed dependency on ZODB.
 
-3.4.1 and 3.5.0a2 (2007-06-02)
-------------------------------
+3.5.0a2 (2007-06-02)
+--------------------
 
 Made WSGI server really WSGI-compliant by adding variables to the
 environment that are required by the spec.
@@ -23,13 +29,12 @@ environment that are required by the spec.
 
 Added a factory and entry point for PasteDeploy.
 
-3.4.0 (2007-06-02)
-------------------
+3.4 (2007-04-22)
+----------------
 
-Removed an unused import. Unchanged otherwise.
-
-3.4.0a1 (2007-04-22)
---------------------
-
-Initial release as a separate project, corresponds to zope.server
+- Initial release as a separate project, corresponds to zope.server
 from Zope 3.4.0a1
+
+- Made WSGI server really WSGI-compliant by adding variables to the
+environment that are required by the spec.
+

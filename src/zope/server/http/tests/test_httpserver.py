@@ -21,7 +21,6 @@ import socket
 
 from threading import Thread, Event
 from zope.server.taskthreads import ThreadedTaskDispatcher
-from zope.server.http.httpserver import HTTPServer
 from zope.server.adjustments import Adjustments
 from zope.server.interfaces import ITask
 from zope.server.tests.asyncerror import AsyncoreErrorHook
@@ -45,20 +44,6 @@ my_adj.outbuf_overflow = 10000
 my_adj.inbuf_overflow = 10000
 
 
-class EchoHTTPServer(HTTPServer):
-
-    def executeRequest(self, task):
-        headers = task.request_data.headers
-        if 'CONTENT_LENGTH' in headers:
-            cl = headers['CONTENT_LENGTH']
-            task.response_headers['Content-Length'] = cl
-        instream = task.request_data.getBodyStream()
-        while 1:
-            data = instream.read(8192)
-            if not data:
-                break
-            task.write(data)
-
 
 class SleepingTask(object):
 
@@ -77,6 +62,23 @@ class SleepingTask(object):
 class Tests(unittest.TestCase, AsyncoreErrorHook):
 
     def setUp(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.http.httpserver import HTTPServer
+        class EchoHTTPServer(HTTPServer):
+
+            def executeRequest(self, task):
+                headers = task.request_data.headers
+                if 'CONTENT_LENGTH' in headers:
+                    cl = headers['CONTENT_LENGTH']
+                    task.response_headers['Content-Length'] = cl
+                instream = task.request_data.getBodyStream()
+                while 1:
+                    data = instream.read(8192)
+                    if not data:
+                        break
+                    task.write(data)
+
         td.setThreadCount(4)
         if len(socket_map) != 1:
             # Let sockets die off.
