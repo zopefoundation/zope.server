@@ -23,7 +23,7 @@ def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(name='zope.server',
-      version = '3.4.3',
+      version = '3.4.4dev',
       license='ZPL 2.1',
       description='Zope server (Web and FTP)',
       author='Zope Corporation and Contributors',
