@@ -33,8 +33,8 @@ Added a factory and entry point for PasteDeploy.
 ----------------
 
 - Initial release as a separate project, corresponds to zope.server
-from Zope 3.4.0a1
+  from Zope 3.4.0a1
 
 - Made WSGI server really WSGI-compliant by adding variables to the
-environment that are required by the spec.
+  environment that are required by the spec.
 
