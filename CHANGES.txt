@@ -8,6 +8,10 @@ CHANGES
 - Moved some imports from test modules to their setUp to prevent
   failures when ZEO tests are run by the same testrunner
 
+- Removed unused dependency on zope.deprecation.
+
+- Remove old zpkg-related DEPENDENCIES.cfg file.
+
 3.5.0 (2008-03-01)
 ------------------
 

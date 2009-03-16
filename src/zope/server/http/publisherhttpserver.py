@@ -15,7 +15,6 @@
 
 $Id$
 """
-import zope.deprecation
 from zope.server.http import wsgihttpserver
 from zope.publisher.publish import publish
 import zope.security.management
