@@ -2,8 +2,8 @@
 CHANGES
 =======
 
-3.5.1dev (unreleased)
----------------------
+3.6.0 (2009-05-27)
+------------------
 
 - Moved some imports from test modules to their setUp to prevent
   failures when ZEO tests are run by the same testrunner
