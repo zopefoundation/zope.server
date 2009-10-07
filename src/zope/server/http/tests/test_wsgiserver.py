@@ -70,11 +70,11 @@ class tested_object(object):
 
     def redirect_method(self, REQUEST):
         "Generates a redirect using the redirect() method."
-        REQUEST.response.redirect("http://somewhere.com/redirect")
+        REQUEST.response.redirect("/redirect")
 
     def redirect_exception(self):
         "Generates a redirect using an exception."
-        raise Redirect("http://somewhere.com/exception")
+        raise Redirect("/exception")
 
     def conflict(self, REQUEST, wait_tries):
         """

@@ -5,6 +5,8 @@ CHANGES
 3.6.1 (unreleased)
 ------------------
 
+- Made tests pass with current zope.publisher which restricts redirects to the
+  current host by default.
 
 3.6.0 (2009-05-27)
 ------------------
