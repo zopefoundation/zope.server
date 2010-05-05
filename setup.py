@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2006 Zope Corporation and Contributors.
+# Copyright (c) 2006 Zope Foundation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -29,7 +29,7 @@ def read(*rnames):
 setup(
     name='zope.server',
     version = '3.6.2dev',
-    author='Zope Corporation and Contributors',
+    author='Zope Foundation and Contributors',
     author_email='zope-dev@zope.org',
     description='Zope Server (Web and FTP)',
     long_description=(
