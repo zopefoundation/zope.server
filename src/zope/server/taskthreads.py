@@ -24,6 +24,9 @@ from zope.server.interfaces import ITaskDispatcher
 from zope.interface import implements
 
 
+log = logging.getLogger(__name__)
+
+
 class ThreadedTaskDispatcher(object):
     """A Task Dispatcher that creates a thread for each task."""
 
@@ -47,7 +50,7 @@ class ThreadedTaskDispatcher(object):
                 try:
                     task.service()
                 except:
-                    logging.exception('Exception during task')
+                    log.exception('Exception during task')
         finally:
             mlock = self.thread_mgmt_lock
             mlock.acquire()
@@ -104,7 +107,7 @@ class ThreadedTaskDispatcher(object):
         expiration = time() + timeout
         while threads:
             if time() >= expiration:
-                logging.error("%d thread(s) still running" % len(threads))
+                log.error("%d thread(s) still running" % len(threads))
                 break
             sleep(0.1)
         if cancel_pending:

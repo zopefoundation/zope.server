@@ -6,7 +6,8 @@ CHANGES
 3.6.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- The log message "Exception during task" is no longer logged to the root
+  logger but to zope.server.taskthreads.
 
 
 3.6.1 (2009-10-07)
