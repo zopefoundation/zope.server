@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Fixed Stream Receiver
-
-$Id$
 """
 
 from zope.server.interfaces import IStreamConsumer

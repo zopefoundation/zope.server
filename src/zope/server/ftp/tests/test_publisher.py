@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Test the FTP publisher.
-
-$Id$
 """
 import demofs
 from unittest import TestCase, TestSuite, main, makeSuite

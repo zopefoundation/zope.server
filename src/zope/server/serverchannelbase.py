@@ -15,8 +15,6 @@
 
 This module provides a base implementation for the server channel. It can only
 be used as a mix-in to actual server channel implementations.
-
-$Id$
 """
 import os
 import time

@@ -14,8 +14,6 @@
 """Syslog Logger
 
 Writes log messages to syslog.
-
-$Id$
 """
 
 import os

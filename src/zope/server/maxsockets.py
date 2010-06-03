@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Find max number of sockets allowed.
-
-$Id$
 """
 # Medusa max_sockets module.
 

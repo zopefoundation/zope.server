@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Unresolving Logger
-
-$Id$
 """
 from zope.server.interfaces.logger import IRequestLogger
 from zope.interface import implements

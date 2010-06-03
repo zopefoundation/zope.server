@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Python Logger tests
-
-$Id$
 """
 import unittest
 import logging

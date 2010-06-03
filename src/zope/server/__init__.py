@@ -15,8 +15,6 @@
 
 This package contains generic base classes for channel-based servers, the
 servers themselves and helper objects, such as tasks and requests.
-
-$Id$
 """
 import asyncore
 

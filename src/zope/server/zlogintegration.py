@@ -15,8 +15,6 @@
 
 As a side effect of importing this module, asyncore's logging will be
 redirected to the logging module.
-
-$Id$
 """
 
 import logging

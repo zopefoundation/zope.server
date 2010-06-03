@@ -10,8 +10,6 @@
 # FOR A PARTICULAR PURPOSE.
 ##############################################################################
 """Test Puvlisher-based HTTP Server
-
-$Id$
 """
 import StringIO
 import unittest

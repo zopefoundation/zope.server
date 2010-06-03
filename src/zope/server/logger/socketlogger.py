@@ -14,8 +14,6 @@
 """Socket Logger
 
 Sends logging messages to a socket.
-
-$Id$
 """
 import asynchat
 import socket

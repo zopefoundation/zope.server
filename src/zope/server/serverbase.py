@@ -15,8 +15,6 @@
 
 This module provides a base implementation for a channel-based server. It can
 only be used as a mix-in to actual server implementations.
-
-$Id$
 """
 import asyncore
 import logging

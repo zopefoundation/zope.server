@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Threaded Task Dispatcher
-
-$Id$
 """
 from Queue import Queue, Empty
 from thread import allocate_lock, start_new_thread

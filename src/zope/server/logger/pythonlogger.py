@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Proxy between the server's and Python's logger interfaces.
-
-$Id$
 """
 import logging
 

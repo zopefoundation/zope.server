@@ -14,8 +14,6 @@
 """Zope Publisher-based FTP Server
 
 This FTP server uses the Zope 3 Publisher to execute commands.
-
-$Id$
 """
 import posixpath
 

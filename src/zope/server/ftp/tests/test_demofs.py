@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Test the Demo Filesystem implementation.
-
-$Id$
 """
 import demofs
 from unittest import TestCase, TestSuite, main, makeSuite

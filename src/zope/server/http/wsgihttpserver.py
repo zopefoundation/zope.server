@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """WSGI-compliant HTTP Server that uses the Zope Publisher for executing a task.
-
-$Id$
 """
 import asyncore
 import re

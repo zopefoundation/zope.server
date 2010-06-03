@@ -15,8 +15,6 @@
 
 An HTTP task that can execute an HTTP request with the help of the channel and
 the server it belongs to.
-
-$Id$
 """
 import socket
 import time

@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Server interfaces.
-
-$Id$
 """
 from zope.interface import Interface
 from zope.interface import Attribute

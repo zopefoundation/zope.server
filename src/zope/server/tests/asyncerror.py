@@ -19,8 +19,6 @@ exceptions, the test is marked as a failure, because asyncore handles
 the exception.  This framework causes the unit test to fail.  If code
 being tested expects the errors to occur, it can add code to prevent
 the error from propagating all the way back to asyncore.
-
-$Id$
 """
 import asyncore
 import sys

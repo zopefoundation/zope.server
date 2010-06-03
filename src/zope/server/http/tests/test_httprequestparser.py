@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """HTTP Request Parser tests
-
-$Id$
 """
 import unittest
 from zope.server.http.httprequestparser import HTTPRequestParser

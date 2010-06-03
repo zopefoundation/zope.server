@@ -10,8 +10,6 @@
 # FOR A PARTICULAR PURPOSE.
 ##############################################################################
 """FTP server specific interfaces.
-
-$Id$
 """
 from zope.interface import Interface
 

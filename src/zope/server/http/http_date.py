@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """HTTP Server Date/Time utilities
-
-$Id$
 """
 import re
 import string

@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Line Command Parser
-
-$Id$
 """
 from zope.server.interfaces import IStreamConsumer
 from zope.interface import implements

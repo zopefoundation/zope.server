@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Abstract file-system tests
-
-$Id$
 """
 from StringIO import StringIO
 from zope.interface.verify import verifyObject

@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Data Chunk Receiver
-
-$Id$
 """
 
 from zope.server.utilities import find_double_newline

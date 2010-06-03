@@ -10,8 +10,6 @@
 # FOR A PARTICULAR PURPOSE.
 ##############################################################################
 """Demo file-system implementation, for testing
-
-$Id$
 """
 import posixpath
 from zope.security.interfaces import Unauthorized

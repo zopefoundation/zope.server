@@ -14,8 +14,6 @@
 """Rotating File Logger
 
 Rotates a log file in time intervals.
-
-$Id$
 """
 import time
 import os

@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """HTTP Server Channel
-
-$Id$
 """
 from zope.server.serverchannelbase import ServerChannelBase
 from zope.server.http.httptask import HTTPTask

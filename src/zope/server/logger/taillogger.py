@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Tail Logger
-
-$Id$
 """
 from zope.server.interfaces.logger import IMessageLogger
 from zope.interface import implements

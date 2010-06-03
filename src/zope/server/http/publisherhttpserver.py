@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """HTTP Server that uses the Zope Publisher for executing a task.
-
-$Id$
 """
 from zope.server.http import wsgihttpserver
 from zope.publisher.publish import publish

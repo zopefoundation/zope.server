@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Common Access Logger tests
-
-$Id$
 """
 import unittest
 import logging

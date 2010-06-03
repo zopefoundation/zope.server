@@ -15,8 +15,6 @@
 
 This channels evaluates requests line by line. This is particular useful for
 protocols that use a line-based command structure.
-
-$Id$
 """
 
 from asyncore import compact_traceback
