@@ -3,7 +3,7 @@ CHANGES
 =======
 
 
-3.6.2 (unreleased)
+3.6.2 (2010-06-11)
 ------------------
 
 - The log message "Exception during task" is no longer logged to the root
