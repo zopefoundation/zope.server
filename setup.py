@@ -26,7 +26,7 @@ def read(*rnames):
 
 setup(
     name='zope.server',
-    version = '3.7.0',
+    version = '3.7.1dev',
     author='Zope Foundation and Contributors',
     author_email='zope-dev@zope.org',
     description='Zope Server (Web and FTP)',
