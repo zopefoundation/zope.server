@@ -61,6 +61,15 @@ class WSGIHTTPServer(HTTPServer):
         env['wsgi.multiprocess'] = True
         env['wsgi.run_once'] = False
         env['wsgi.input'] = task.request_data.getBodyStream()
+
+        # Add some proprietary proxy information.
+        # Note: Derived request parsers might not have these new attributes,
+        # so fail gracefully.
+        try:
+            env['zserver.proxy.scheme'] = task.request_data.proxy_scheme
+            env['zserver.proxy.host'] = task.request_data.proxy_netloc
+        except AttributeError:
+            pass
         return env
 
     def executeRequest(self, task):

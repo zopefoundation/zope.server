@@ -18,6 +18,7 @@ processing but threads to do work.
 """
 import re
 from urllib import unquote
+import urlparse
 
 from zope.server.fixedstreamreceiver import FixedStreamReceiver
 from zope.server.buffers import OverflowableBuffer
@@ -172,7 +173,7 @@ class HTTPRequestParser(object):
         return r
 
     first_line_re = re.compile (
-        '([^ ]+) (?:[^ :?#]+://[^ ?#/]*)?([^ ]+)(( HTTP/([0-9.]+))$|$)')
+        '([^ ]+) ((?:[^ :?#]+://[^ ?#/]*(?:[0-9]{1,5})?)?[^ ]+)(( HTTP/([0-9.]+))$|$)')
 
     def crack_first_line(self):
         r = self.first_line
@@ -186,23 +187,14 @@ class HTTPRequestParser(object):
         else:
             return None, None, None
 
-    path_regex = re.compile (
-    #     path    query     fragment
-        r'([^?#]*)(\?[^#]*)?(#.*)?'
-        )
-
     def split_uri(self):
-        m = self.path_regex.match (self.uri)
-        if m.end() != len(self.uri):
-            raise ValueError("Broken URI")
-        else:
-            path, query, self.fragment = m.groups()
-            if path and '%' in path:
-                path = unquote(path)
-            self.path = path
-            if query:
-                query = query[1:]
-            self.query = query
+        (self.proxy_scheme, self.proxy_netloc, path, self.query, self.fragment) = \
+            urlparse.urlsplit(self.uri)
+        if path and '%' in path:
+            path = unquote(path)
+        self.path = path
+        if self.query == '':
+            self.query = None
 
     def getBodyStream(self):
         body_rcv = self.body_rcv

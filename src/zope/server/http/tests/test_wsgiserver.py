@@ -116,6 +116,14 @@ class WSGIInfo(object):
         """Return whether WSGI app is invoked only once or not"""
         return str(bool(REQUEST['wsgi.run_once']))
 
+    def proxy_scheme(self, REQUEST):
+        """Return the proxy scheme."""
+        return REQUEST['zserver.proxy.scheme']
+
+    def proxy_host(self, REQUEST):
+        """Return the proxy host."""
+        return REQUEST['zserver.proxy.host']
+
 class Tests(PlacelessSetup, unittest.TestCase):
 
     def setUp(self):
@@ -251,6 +259,14 @@ class Tests(PlacelessSetup, unittest.TestCase):
     def testWSGIRunOnce(self):
         status, response_body = self.invokeRequest('/wsgi/run_once')
         self.assertEqual('False', response_body)
+
+    def testWSGIProxy(self):
+        status, response_body = self.invokeRequest(
+            'https://zope.org:8080/wsgi/proxy_scheme')
+        self.assertEqual('https', response_body)
+        status, response_body = self.invokeRequest(
+            'https://zope.org:8080/wsgi/proxy_host')
+        self.assertEqual('zope.org:8080', response_body)
 
     def test_server_uses_iterable(self):
         # Make sure that the task write method isn't called with a

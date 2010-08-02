@@ -26,7 +26,7 @@ def read(*rnames):
 
 setup(
     name='zope.server',
-    version = '3.6.3dev',
+    version = '3.7.0',
     author='Zope Foundation and Contributors',
     author_email='zope-dev@zope.org',
     description='Zope Server (Web and FTP)',
@@ -59,6 +59,11 @@ setup(
                         'zope.publisher',
                         'zope.security',
                         ],
+    extras_require = dict([
+        ('test', ['zope.testing',
+                 'zope.i18n',
+                 'zope.component']),
+        ]),
     include_package_data = True,
     zip_safe = False,
     entry_points = """

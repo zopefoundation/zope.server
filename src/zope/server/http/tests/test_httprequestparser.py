@@ -56,6 +56,8 @@ Hello.
         self.assertEqual(parser.path, '/foobar')
         self.assertEqual(parser.command, 'GET')
         self.assertEqual(parser.query, None)
+        self.assertEqual(parser.proxy_scheme, '')
+        self.assertEqual(parser.proxy_netloc, '')
         self.assertEqual(parser.getBodyStream().getvalue(), 'Hello.\n')
 
     def testComplexGET(self):
@@ -82,6 +84,29 @@ Hello mickey.
         self.assertEqual(parser.query,
                          'd=b+%2B%2F%3D%26b%3Aint&c+%2B%2F%3D%26c%3Aint=6')
         self.assertEqual(parser.getBodyStream().getvalue(), 'Hello mick')
+
+    def testProxyGET(self):
+        data = """\
+GET https://example.com:8080/foobar HTTP/8.4
+content-length: 7
+
+Hello.
+"""
+        parser = self.parser
+        self.feed(data)
+        self.failUnless(parser.completed)
+        self.assertEqual(parser.version, '8.4')
+        self.failIf(parser.empty)
+        self.assertEqual(parser.headers,
+                         {'CONTENT_LENGTH': '7',
+                          })
+        self.assertEqual(parser.path, '/foobar')
+        self.assertEqual(parser.command, 'GET')
+        self.assertEqual(parser.proxy_scheme, 'https')
+        self.assertEqual(parser.proxy_netloc, 'example.com:8080')
+        self.assertEqual(parser.command, 'GET')
+        self.assertEqual(parser.query, None)
+        self.assertEqual(parser.getBodyStream().getvalue(), 'Hello.\n')
 
     def testDuplicateHeaders(self):
         # Ensure that headers with the same key get concatenated as per

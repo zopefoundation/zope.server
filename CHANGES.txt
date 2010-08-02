@@ -3,11 +3,17 @@ CHANGES
 =======
 
 
-3.6.3 (unreleased)
+3.7.0 (2010-08-01)
 ------------------
 
-- Nothing changed yet.
+- Implemented proxy support. Proxy requests contain a full URIs and the
+  request parser used to throw that information away. Using
+  ``urlparse.urlsplit()``, all pieces of the URL are recorded.
 
+- The proxy acheme and netloc/hostname are exposed in the WSGI environment as
+  ``zserver.proxy.scheme`` and ``zserver.proxy.host``.
+
+- Made tests runnable via buildout again.
 
 3.6.2 (2010-06-11)
 ------------------
