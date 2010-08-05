@@ -139,6 +139,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         response_body = response.read()
         self.failUnlessEqual(length, len(response_body))
         self.failUnlessEqual(response_body, body)
+        # HTTP 1.1 requires the server and date header.
+        self.assertEqual(response.getheader('server'), 'zope.server.http')
+        self.assert_(response.getheader('date') is not None)
 
     def testMultipleRequestsWithoutBody(self):
         # Tests the use of multiple requests in a single connection.
@@ -307,10 +310,10 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.failUnlessEqual(int(response.status), 200)
         connection = response.getheader('Connection', '')
         # We sent no Connection: Keep-Alive header
-        # Connection: close (or no header) is default. 
+        # Connection: close (or no header) is default.
         self.failUnless(connection != 'Keep-Alive')
-        
-        # If header Connection: Keep-Alive is explicitly sent, 
+
+        # If header Connection: Keep-Alive is explicitly sent,
         # we want to keept the connection open, we also need to return
         # the corresponding header
         data = "Keep me alive"
@@ -367,8 +370,8 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         # response = h.getresponse()
         # self.failUnlessEqual(int(response.status), 200)
         # self.failUnless(response.getheader('connection') != 'close')
- 
-        # specifying Connection: close explicitly 
+
+        # specifying Connection: close explicitly
         data = "Don't keep me alive"
         s = ("GET / HTTP/1.1\n"
              "Connection: close\n"

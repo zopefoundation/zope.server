@@ -3,10 +3,14 @@ CHANGES
 =======
 
 
-3.7.1 (undefined)
+3.8.0 (2010-08-05)
 ------------------
 
-- Nothing changed yet.
+- Implemented correct server proxy behavior. The HTTP server would always add
+  a "Server" and "Date" response header to the list of response headers
+  regardless whether one had been set already. The HTTP 1.1 spec specifies
+  that a proxy server must not modify the "Server" and "Date" header but add a
+  "Via" header instead.
 
 3.7.0 (2010-08-01)
 ------------------

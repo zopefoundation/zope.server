@@ -84,6 +84,11 @@ class tested_object(object):
             self.tries += 1
             raise Conflict
 
+    def proxy(self, REQUEST):
+        """Behaves like a real proxy response."""
+        REQUEST.response.addHeader('Server', 'Fake/1.0')
+        REQUEST.response.addHeader('Date', 'Thu, 01 Apr 2010 12:00:00 GMT')
+        return 'Proxied Content'
 
 class WSGIInfo(object):
     """Docstring required by publisher"""
@@ -171,7 +176,8 @@ class Tests(PlacelessSetup, unittest.TestCase):
         while self.run_loop:
             poll(0.1, socket_map)
 
-    def invokeRequest(self, path='/', add_headers=None, request_body=''):
+    def invokeRequest(self, path='/', add_headers=None, request_body='',
+                      return_response=False):
         h = HTTPConnection(LOCALHOST, self.port)
         h.putrequest('GET', path)
         h.putheader('Accept', 'text/plain')
@@ -184,6 +190,8 @@ class Tests(PlacelessSetup, unittest.TestCase):
         if request_body:
             h.send(request_body)
         response = h.getresponse()
+        if return_response:
+            return response
         length = int(response.getheader('Content-Length', '0'))
         if length:
             response_body = response.read(length)
@@ -230,6 +238,20 @@ class Tests(PlacelessSetup, unittest.TestCase):
         # Expect a "Conflict" response since there will be too many
         # conflicts.
         self.assertEqual(status, 409)
+
+    def testServerAsProxy(self):
+        response = self.invokeRequest(
+            '/proxy', return_response=True)
+        # The headers set by the proxy are honored,
+        self.assertEqual(
+            response.getheader('Server'), 'Fake/1.0')
+        self.assertEqual(
+            response.getheader('Date'), 'Thu, 01 Apr 2010 12:00:00 GMT')
+        # The server adds a Via header.
+        self.assertEqual(
+            response.getheader('Via'), 'zope.server.http (Browser)')
+        # And the content got here too.
+        self.assertEqual(response.read(), 'Proxied Content')
 
     def testWSGIVariables(self):
         # Assert that the environment contains all required WSGI variables

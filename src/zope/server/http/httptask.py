@@ -52,9 +52,7 @@ class HTTPTask(object):
     def __init__(self, channel, request_data):
         self.channel = channel
         self.request_data = request_data
-        self.response_headers = {
-            'Server': channel.server.SERVER_IDENT,
-            }
+        self.response_headers = {}
         version = request_data.version
         if version not in ('1.0', '1.1'):
             # fall back to a version we support.
@@ -127,7 +125,7 @@ class HTTPTask(object):
             else:
                 close_it = 1
         elif version == '1.1':
-            if 'connection: close' in (header.lower() for header in 
+            if 'connection: close' in (header.lower() for header in
                 accumulated_headers):
                 close_it = 1
             if connection == 'close':
@@ -143,7 +141,7 @@ class HTTPTask(object):
                 # the value of content-length manually
                 if 'content-length' not in (header[:14].lower() for header in
                     accumulated_headers):
-                    close_it = 1                
+                    close_it = 1
             # under HTTP 1.1 keep-alive is default, no need to set the header
         else:
             # Close if unrecognized HTTP version.
@@ -152,6 +150,18 @@ class HTTPTask(object):
         self.close_on_finish = close_it
         if close_it:
             self.response_headers['Connection'] = 'close'
+
+        # Set the Server and Date field, if not yet specified. This is needed
+        # if the server is used as a proxy.
+        if 'server' not in (header[:6].lower() for header in
+                            accumulated_headers):
+            self.response_headers['Server'] = self.channel.server.SERVER_IDENT
+        else:
+            self.response_headers['Via'] = self.channel.server.SERVER_IDENT
+        if 'date' not in (header[:4].lower() for header in
+                            accumulated_headers):
+            self.response_headers['Date'] = build_http_date(self.start_time)
+
 
     def buildResponseHeader(self):
         self.prepareResponseHeaders()
@@ -221,7 +231,6 @@ class HTTPTask(object):
     def start(self):
         now = time.time()
         self.start_time = now
-        self.response_headers['Date'] = build_http_date (now)
 
     def finish(self):
         if not self.wrote_header:
