@@ -13,9 +13,8 @@
 ##############################################################################
 """Tests for zope.server.serverbase
 """
+import doctest
 import unittest
-
-from zope.testing import doctest
 
 
 def doctest_ServerBase():
@@ -46,7 +45,7 @@ class FakeSocket:
     def send(self, data):
         self.data += data
         return len(data)
-    
+
 
 def channels_accept_iterables():
     r"""
@@ -58,14 +57,14 @@ Channels accept iterables (they special-case strings).
 
     >>> channel.write("First")
     5
-    
+
     >>> channel.flush()
     >>> print socket.data
     First
 
     >>> channel.write(["\n", "Second", "\n", "Third"])
     13
-    
+
     >>> channel.flush()
     >>> print socket.data
     First
@@ -78,7 +77,7 @@ Channels accept iterables (they special-case strings).
 
     >>> channel.write(count())
     33
-    
+
     >>> channel.flush()
     >>> print socket.data
     First
@@ -88,7 +87,7 @@ Channels accept iterables (they special-case strings).
     2
     3
     I love to count. Ha ha ha.
-    
+
 """
 
 def test_suite():

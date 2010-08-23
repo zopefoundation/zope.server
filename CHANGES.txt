@@ -6,7 +6,8 @@ CHANGES
 3.8.1 (unreleased)
 ------------------
 
-- No changes yet.
+- Using python's ``doctest`` module instead of deprecated
+  ``zope.testing.doctest``.
 
 3.8.0 (2010-08-05)
 ------------------
