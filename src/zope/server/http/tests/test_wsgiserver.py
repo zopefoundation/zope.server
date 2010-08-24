@@ -131,10 +131,13 @@ class WSGIInfo(object):
 
 class Tests(PlacelessSetup, unittest.TestCase):
 
-    def setUp(self):
+    def _getServerClass(self):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.http.wsgihttpserver import WSGIHTTPServer
+        return WSGIHTTPServer
+
+    def setUp(self):
         super(Tests, self).setUp()
         zope.component.provideAdapter(HTTPCharsets, [IHTTPRequest],
                                       IUserPreferredCharsets, '')
@@ -156,8 +159,9 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
         td.setThreadCount(4)
         # Bind to any port on localhost.
-        self.server = WSGIHTTPServer(application, 'Browser',
-                                     LOCALHOST, 0, task_dispatcher=td)
+        ServerClass = self._getServerClass()
+        self.server = ServerClass(application, 'Browser',
+                                  LOCALHOST, 0, task_dispatcher=td)
 
         self.port = self.server.socket.getsockname()[1]
         self.run_loop = 1
@@ -290,10 +294,17 @@ class Tests(PlacelessSetup, unittest.TestCase):
             'https://zope.org:8080/wsgi/proxy_host')
         self.assertEqual('zope.org:8080', response_body)
 
-    def test_server_uses_iterable(self):
-        # Make sure that the task write method isn't called with a
-        # str or non iterable
+    def test_ensure_multiple_task_write_calls(self):
+        # In order to get data out as fast as possible, the WSGI server needs
+        # to call task.write() multiple times.
+        orig_app = self.server.application
+        def app(eviron, start_response):
+            start_response('200 Ok', [])
+            return ['This', 'is', 'my', 'response.']
+        self.server.application = app
+
         class FakeTask:
+            counter = 0
             getCGIEnvironment = lambda _: {}
             class request_data:
                 getBodyStream = lambda _: StringIO.StringIO()
@@ -301,14 +312,39 @@ class Tests(PlacelessSetup, unittest.TestCase):
             setResponseStatus = appendResponseHeaders = lambda *_: None
 
             def write(self, v):
-                if isinstance(v, str):
-                    raise TypeError("Should only write iterables")
-                list(v)
-        self.server.executeRequest(FakeTask())
+                self.counter += 1
+
+        task = FakeTask()
+        self.server.executeRequest(task)
+        self.assertEqual(task.counter, 4)
+
+        self.server.application = orig_app
+
+
+class PMDBTests(Tests):
+
+    def _getServerClass(self):
+        # import only now to prevent the testrunner from importing it too early
+        # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
+        from zope.server.http.wsgihttpserver import PMDBWSGIHTTPServer
+        return PMDBWSGIHTTPServer
+
+    def testWSGIVariables(self):
+        # Assert that the environment contains all required WSGI variables
+        status, response_body = self.invokeRequest('/wsgi')
+        wsgi_variables = set(response_body.split())
+        self.assertEqual(wsgi_variables,
+                         set(['wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
+                              'wsgi.errors', 'wsgi.multithread',
+                              'wsgi.multiprocess', 'wsgi.handleErrors',
+                              'wsgi.run_once']))
 
 
 def test_suite():
-    return unittest.TestSuite(unittest.makeSuite(Tests))
+    return unittest.TestSuite((
+        unittest.makeSuite(Tests),
+        unittest.makeSuite(PMDBTests),
+        ))
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

@@ -3,8 +3,17 @@ CHANGES
 =======
 
 
-3.8.1 (unreleased)
+3.8.1 (2010-08-24)
 ------------------
+
+- When the result of a WSGI application was received, ``task.write()`` was
+  only called once to transmit the data. This prohibited the transmission of
+  partial results. Now the WSGI server iterates through the result itself
+  making multiple ``task.write()`` calls, which will cause partial data to be
+  transmitted.
+
+- Created a second test case instance for the post-mortem WSGI server, so it
+  is tested as well.
 
 - Using python's ``doctest`` module instead of deprecated
   ``zope.testing.doctest``.

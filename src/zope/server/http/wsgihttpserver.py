@@ -86,7 +86,11 @@ class WSGIHTTPServer(HTTPServer):
             return fakeWrite
 
         # Call the application to handle the request and write a response
-        task.write(self.application(env, start_response))
+        result = self.application(env, start_response)
+        # By iterating manually at this point, we execute task.write()
+        # multiple times, allowing partial data to be sent.
+        for value in result:
+            task.write(value)
 
 
 class PMDBWSGIHTTPServer(WSGIHTTPServer):
@@ -108,7 +112,11 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
 
         # Call the application to handle the request and write a response
         try:
-            task.write(self.application(env, start_response))
+            result = self.application(env, start_response)
+            # By iterating manually at this point, we execute task.write()
+            # multiple times, allowing partial data to be sent.
+            for value in result:
+                task.write(value)
         except:
             import sys, pdb
             print "%s:" % sys.exc_info()[0]
