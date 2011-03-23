@@ -15,7 +15,6 @@
 """
 import asyncore
 import ftplib
-import unittest
 import socket
 import sys
 import time
@@ -171,7 +170,6 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
             for command in commands:
                 ftp.send('%s\r\n' %command)
-                time.sleep(.01)
                 result = ftp.recv(10000)
             self.failUnless(result.endswith('\r\n'))
         finally:
@@ -268,9 +266,6 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.ftp.server import status_messages
-        # TODO This test doesn't work.  I think it is because execute()
-        #      doesn't read the whole reply.  The execeute() helper
-        #      function should be fixed, but that's for another day.
         result = status_messages['HELP_START'] + '\r\n'
         result += 'Help goes here somewhen.\r\n'
         result += status_messages['HELP_END'] + '\r\n'

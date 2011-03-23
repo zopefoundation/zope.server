@@ -194,7 +194,7 @@ class FTPServerChannel(LineServerChannel):
 
     def cmd_help(self, args):
         'See IFTPCommandHandler'
-        self.reply('HELP_START')
+        self.reply('HELP_START', flush=0)
         self.write('Help goes here somewhen.\r\n')
         self.reply('HELP_END')
 
