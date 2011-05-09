@@ -76,7 +76,9 @@ class WSGIHTTPServer(HTTPServer):
         """Overrides HTTPServer.executeRequest()."""
         env = self._constructWSGIEnvironment(task)
 
-        def start_response(status, headers):
+        def start_response(status, headers, exc_info=None):
+            if exc_info:
+                raise exc_info[0], exc_info[1], exc_info[2]
             # Prepare the headers for output
             status, reason = re.match('([0-9]*) (.*)', status).groups()
             task.setResponseStatus(status, reason)
@@ -101,7 +103,9 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
         env = self._constructWSGIEnvironment(task)
         env['wsgi.handleErrors'] = False
 
-        def start_response(status, headers):
+        def start_response(status, headers, exc_info=None):
+            if exc_info:
+                raise exc_info[0], exc_info[1], exc_info[2]
             # Prepare the headers for output
             status, reason = re.match('([0-9]*) (.*)', status).groups()
             task.setResponseStatus(status, reason)
