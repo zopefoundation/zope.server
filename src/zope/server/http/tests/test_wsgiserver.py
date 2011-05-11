@@ -320,6 +320,42 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
         self.server.application = orig_app
 
+    def test_exception_handling(self):
+        # some applications/middleware (like repoze.retry) might pass the
+        # exc_info to start_response.
+
+        orig_app = self.server.application
+
+        class DummyException(Exception):
+            value = "Dummy Exception to test start_response"
+            def __str__(self):
+                return repr(self.value)
+
+        def app(environ, start_response):
+            try:
+                start_response(
+                    "500 Error",
+                    [],
+                    (DummyException, DummyException.value, None))
+            except DummyException as e:
+                return e.value.split()
+
+        class FakeTask:
+            response = []
+            getCGIEnvironment = lambda _: {}
+            class request_data:
+                getBodyStream = lambda _: StringIO.StringIO()
+            request_data = request_data()
+            setResponseStatus = appendResponseHeaders = lambda *_: None
+            def write(self, v):
+                self.response.append(v)
+
+        self.server.application = app
+        task = FakeTask()
+        self.server.executeRequest(task)
+
+        self.assertEqual(task.response, DummyException.value.split())
+        self.server.application = orig_app
 
 class PMDBTests(Tests):
 
