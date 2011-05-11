@@ -78,7 +78,10 @@ class WSGIHTTPServer(HTTPServer):
 
         def start_response(status, headers, exc_info=None):
             if exc_info:
-                raise exc_info[0], exc_info[1], exc_info[2]
+                try:
+                    raise exc_info[0], exc_info[1], exc_info[2]
+                finally:
+                    exc_info = None
             # Prepare the headers for output
             status, reason = re.match('([0-9]*) (.*)', status).groups()
             task.setResponseStatus(status, reason)
@@ -105,7 +108,10 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
 
         def start_response(status, headers, exc_info=None):
             if exc_info:
-                raise exc_info[0], exc_info[1], exc_info[2]
+                try:
+                    raise exc_info[0], exc_info[1], exc_info[2]
+                finally:
+                    exc_info = None
             # Prepare the headers for output
             status, reason = re.match('([0-9]*) (.*)', status).groups()
             task.setResponseStatus(status, reason)
