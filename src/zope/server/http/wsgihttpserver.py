@@ -79,7 +79,10 @@ class WSGIHTTPServer(HTTPServer):
         def start_response(status, headers, exc_info=None):
             if exc_info:
                 try:
-                    raise exc_info[0], exc_info[1], exc_info[2]
+                    if task.wroteResponseHeader():
+                        raise exc_info[0], exc_info[1], exc_info[2]
+                    else:
+                        pass
                 finally:
                     exc_info = None
             # Prepare the headers for output
@@ -109,7 +112,10 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
         def start_response(status, headers, exc_info=None):
             if exc_info:
                 try:
-                    raise exc_info[0], exc_info[1], exc_info[2]
+                    if task.wroteResponseHeader():
+                        raise exc_info[0], exc_info[1], exc_info[2]
+                    else:
+                        pass
                 finally:
                     exc_info = None
             # Prepare the headers for output

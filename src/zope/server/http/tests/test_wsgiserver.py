@@ -12,6 +12,7 @@
 """Test Puvlisher-based HTTP Server
 """
 import StringIO
+import sys
 import unittest
 from asyncore import socket_map, poll
 from threading import Thread
@@ -45,6 +46,13 @@ class Conflict(Exception):
     Pseudo ZODB conflict error.
     """
 
+ERROR_RESPONSE = "error occurred"
+RESPONSE = "normal response"
+
+class DummyException(Exception):
+    value = "Dummy Exception to test start_response"
+    def __str__(self):
+        return repr(self.value)
 
 class PublicationWithConflict(DefaultPublication):
 
@@ -320,41 +328,57 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
         self.server.application = orig_app
 
-    def test_exception_handling(self):
-        # some applications/middleware (like repoze.retry) might pass the
-        # exc_info to start_response.
-
-        orig_app = self.server.application
-
-        class DummyException(Exception):
-            value = "Dummy Exception to test start_response"
-            def __str__(self):
-                return repr(self.value)
+    def _getFakeAppAndTask(self):
 
         def app(environ, start_response):
             try:
-                start_response(
-                    "500 Error",
-                    [],
-                    (DummyException, DummyException.value, None))
+                raise DummyException()
             except DummyException as e:
-                return e.value.split()
+                start_response('500 Internal Error', [], sys.exc_info())
+                return ERROR_RESPONSE.split()
+            return RESPONSE.split()
 
         class FakeTask:
+            wrote_header = 0
+            status = None
+            reason = None
             response = []
             getCGIEnvironment = lambda _: {}
             class request_data:
                 getBodyStream = lambda _: StringIO.StringIO()
             request_data = request_data()
-            setResponseStatus = appendResponseHeaders = lambda *_: None
+            appendResponseHeaders = lambda *_: None
+            def setResponseStatus(self, status, reason):
+                self.status = status
+                self.reason = reason
+            def wroteResponseHeader(self):
+                return self.wrote_header
             def write(self, v):
                 self.response.append(v)
 
-        self.server.application = app
-        task = FakeTask()
+        return app, FakeTask()
+
+
+    def test_start_response_with_no_headers_sent(self):
+        # start_response exc_info if no headers have been sent
+        orig_app = self.server.application
+        self.server.application, task = self._getFakeAppAndTask()
+
         self.server.executeRequest(task)
 
-        self.assertEqual(task.response, DummyException.value.split())
+        self.assertEqual(task.status, "500")
+        self.assertEqual(task.response, ERROR_RESPONSE.split())
+
+
+    def test_start_response_with_headers_sent(self):
+        # If headers have been sent it raises the exception
+        orig_app = self.server.application
+        self.server.application, task = self._getFakeAppAndTask()
+
+        # If headers have already been written an exception is raised
+        task.wrote_header = 1
+        self.assertRaises(DummyException, self.server.executeRequest, task)
+
         self.server.application = orig_app
 
 class PMDBTests(Tests):
@@ -374,6 +398,28 @@ class PMDBTests(Tests):
                               'wsgi.errors', 'wsgi.multithread',
                               'wsgi.multiprocess', 'wsgi.handleErrors',
                               'wsgi.run_once']))
+
+    def test_start_response_with_headers_sent(self):
+        # If headers have been sent it raises the exception, which will
+        # be caught by the server and invoke pdb.post_mortem.
+        orig_app = self.server.application
+        self.server.application, task = self._getFakeAppAndTask()
+        task.wrote_header = 1
+
+        # monkey-patch pdb.post_mortem so we don't go into pdb session.
+        pm_traceback = []
+        def fake_post_mortem(tb):
+            import traceback
+            pm_traceback.extend(traceback.format_tb(tb))
+
+        import pdb
+        orig_post_mortem = pdb.post_mortem
+        pdb.post_mortem = fake_post_mortem
+
+        self.assertRaises(DummyException, self.server.executeRequest, task)
+        self.assertTrue("raise DummyException" in pm_traceback[-1])
+        self.server.application = orig_app
+        pdb.post_mortem = orig_post_mortem
 
 
 def test_suite():
