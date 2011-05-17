@@ -9,7 +9,7 @@
 # WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
 # FOR A PARTICULAR PURPOSE.
 ##############################################################################
-"""Test Puvlisher-based HTTP Server
+"""Test Publisher-based HTTP Server
 """
 import StringIO
 import sys
