@@ -34,6 +34,10 @@ def curriedStartResponse(task):
         if exc_info:
             try:
                 if task.wroteResponseHeader():
+                    # higher levels will catch and handle raised exception:
+                    # 1. "service" method in httptask.py
+                    # 2. "service" method in severchannelbase.py
+                    # 3. "handlerThread" method in taskthreads.py
                     raise exc_info[0], exc_info[1], exc_info[2]
                 else:
                     # As per WSGI spec existing headers must be cleared
