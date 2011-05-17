@@ -99,6 +99,7 @@ class WSGIHTTPServer(HTTPServer):
 
         # Call the application to handle the request and write a response
         result = self.application(env, start_response)
+
         # By iterating manually at this point, we execute task.write()
         # multiple times, allowing partial data to be sent.
         for value in result:
@@ -161,5 +162,5 @@ def run_paste(wsgi_app, global_conf, name='zope.server.http',
     task_dispatcher = ThreadedTaskDispatcher()
     task_dispatcher.setThreadCount(threads)
     server = WSGIHTTPServer(wsgi_app, name, host, port,
-                            task_dispatcher=task_dispatcher)    
+                            task_dispatcher=task_dispatcher)
     asyncore.loop()
