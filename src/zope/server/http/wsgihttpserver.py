@@ -77,12 +77,16 @@ class WSGIHTTPServer(HTTPServer):
         env = self._constructWSGIEnvironment(task)
 
         def start_response(status, headers, exc_info=None):
+            if task.wroteResponseHeader() and not exc_info:
+                raise AssertionError("start_response called a second time "
+                                     "without providing exc_info.")
             if exc_info:
                 try:
                     if task.wroteResponseHeader():
                         raise exc_info[0], exc_info[1], exc_info[2]
                     else:
-                        pass
+                        # As per WSGI spec existing headers must be cleared
+                        task.accumulated_headers = None
                 finally:
                     exc_info = None
             # Prepare the headers for output
@@ -110,12 +114,16 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
         env['wsgi.handleErrors'] = False
 
         def start_response(status, headers, exc_info=None):
+            if task.wroteResponseHeader() and not exc_info:
+                raise AssertionError("start_response called a second time "
+                                     "without providing exc_info.")
             if exc_info:
                 try:
                     if task.wroteResponseHeader():
                         raise exc_info[0], exc_info[1], exc_info[2]
                     else:
-                        pass
+                        # As per WSGI spec existing headers must be cleared
+                        task.accumulated_headers = None
                 finally:
                     exc_info = None
             # Prepare the headers for output
