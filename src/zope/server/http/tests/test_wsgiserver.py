@@ -348,7 +348,10 @@ class Tests(PlacelessSetup, unittest.TestCase):
             status = None
             reason = None
             response = []
-            accumulated_headers = []
+            accumulated_headers = None
+            def __init__(self):
+                self.accumulated_headers = []
+                self.response_headers = {}
             getCGIEnvironment = lambda _: {}
             class request_data:
                 getBodyStream = lambda _: StringIO.StringIO()
@@ -374,6 +377,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
         orig_app = self.server.application
         self.server.application, task = self._getFakeAppAndTask()
         task.accumulated_headers = ['header1', 'header2']
+        task.accumulated_headers = {'key1': 'value1', 'key2': 'value2'}
 
         self.server.executeRequest(task)
 
@@ -382,6 +386,9 @@ class Tests(PlacelessSetup, unittest.TestCase):
         # any headers written before are cleared and
         # only the most recent one is added.
         self.assertEqual(task.accumulated_headers, ['Content-type: text/plain'])
+        # response headers are cleared. They'll be rebuilt from
+        # accumulated_headers in the prepareResponseHeaders method
+        self.assertEqual(task.response_headers, {})
 
         self.server.application = orig_app
 
