@@ -34,7 +34,7 @@ tests_require = [
 
 setup(
     name='zope.server',
-    version = '3.8.3dev',
+    version = '3.8.3',
     author='Zope Foundation and Contributors',
     author_email='zope-dev@zope.org',
     description='Zope Server (Web and FTP)',

@@ -8,6 +8,14 @@ Unreleased
 - TBD
 
 
+3.8.3 (2011-05-18)
+------------------
+
+- Made ``start_response`` method of WSGI server implementation more compliant
+  with spec:
+
+    http://www.python.org/dev/peps/pep-0333/#the-start-response-callable
+
 3.8.2 (2010-12-04)
 ------------------
 
