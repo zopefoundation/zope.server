@@ -26,6 +26,35 @@ def fakeWrite(body):
         "Zope 3's HTTP Server does not support the WSGI write() function.")
 
 
+def curriedStartResponse(task):
+    def start_response(status, headers, exc_info=None):
+        if task.wroteResponseHeader() and not exc_info:
+            raise AssertionError("start_response called a second time "
+                                 "without providing exc_info.")
+        if exc_info:
+            try:
+                if task.wroteResponseHeader():
+                    # higher levels will catch and handle raised exception:
+                    # 1. "service" method in httptask.py
+                    # 2. "service" method in severchannelbase.py
+                    # 3. "handlerThread" method in taskthreads.py
+                    raise exc_info[0], exc_info[1], exc_info[2]
+                else:
+                    # As per WSGI spec existing headers must be cleared
+                    task.accumulated_headers = None
+                    task.response_headers = {}
+            finally:
+                exc_info = None
+        # Prepare the headers for output
+        status, reason = re.match('([0-9]*) (.*)', status).groups()
+        task.setResponseStatus(status, reason)
+        task.appendResponseHeaders(['%s: %s' % i for i in headers])
+
+        # Return the write method used to write the response data.
+        return fakeWrite
+    return start_response
+
+
 class WSGIHTTPServer(HTTPServer):
     """Zope Publisher-specific WSGI-compliant HTTP Server"""
 
@@ -76,17 +105,9 @@ class WSGIHTTPServer(HTTPServer):
         """Overrides HTTPServer.executeRequest()."""
         env = self._constructWSGIEnvironment(task)
 
-        def start_response(status, headers):
-            # Prepare the headers for output
-            status, reason = re.match('([0-9]*) (.*)', status).groups()
-            task.setResponseStatus(status, reason)
-            task.appendResponseHeaders(['%s: %s' % i for i in headers])
-
-            # Return the write method used to write the response data.
-            return fakeWrite
-
         # Call the application to handle the request and write a response
-        result = self.application(env, start_response)
+        result = self.application(env, curriedStartResponse(task))
+
         # By iterating manually at this point, we execute task.write()
         # multiple times, allowing partial data to be sent.
         for value in result:
@@ -101,18 +122,9 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
         env = self._constructWSGIEnvironment(task)
         env['wsgi.handleErrors'] = False
 
-        def start_response(status, headers):
-            # Prepare the headers for output
-            status, reason = re.match('([0-9]*) (.*)', status).groups()
-            task.setResponseStatus(status, reason)
-            task.appendResponseHeaders(['%s: %s' % i for i in headers])
-
-            # Return the write method used to write the response data.
-            return fakeWrite
-
         # Call the application to handle the request and write a response
         try:
-            result = self.application(env, start_response)
+            result = self.application(env, curriedStartResponse(task))
             # By iterating manually at this point, we execute task.write()
             # multiple times, allowing partial data to be sent.
             for value in result:
@@ -137,5 +149,5 @@ def run_paste(wsgi_app, global_conf, name='zope.server.http',
     task_dispatcher = ThreadedTaskDispatcher()
     task_dispatcher.setThreadCount(threads)
     server = WSGIHTTPServer(wsgi_app, name, host, port,
-                            task_dispatcher=task_dispatcher)    
+                            task_dispatcher=task_dispatcher)
     asyncore.loop()
