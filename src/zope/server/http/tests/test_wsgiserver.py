@@ -335,7 +335,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
         def app(environ, start_response):
             try:
                 raise DummyException()
-            except DummyException as e:
+            except DummyException:
                 start_response(
                     '500 Internal Error',
                     [('Content-type', 'text/plain')],

@@ -2,10 +2,10 @@
 CHANGES
 =======
 
-Unreleased
------------
+3.8.4 (unreleased)
+------------------
 
-- TBD
+- Fix syntax error in tests on Python < 2.6.
 
 
 3.8.3 (2011-05-18)
