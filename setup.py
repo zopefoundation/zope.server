@@ -24,6 +24,14 @@ from setuptools import setup, find_packages
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
+
+tests_require = [
+    'zope.testing',
+    'zope.i18n',
+    'zope.component',
+    ]
+
+
 setup(
     name='zope.server',
     version = '3.6.3dev',
@@ -51,17 +59,17 @@ setup(
     packages=find_packages('src'),
     package_dir = {'': 'src'},
     namespace_packages=['zope',],
-    tests_require = ['zope.testing',
-                     'zope.i18n',
-                     'zope.component'],
-    install_requires = ['setuptools',
-                        'zope.interface',
-                        'zope.publisher',
-                        'zope.security',
-                        ],
-    include_package_data = True,
-    zip_safe = False,
-    entry_points = """
+    tests_require=tests_require,
+    install_requires=[
+        'setuptools',
+        'zope.interface',
+        'zope.publisher',
+        'zope.security',
+        ],
+    extras_require=dict(test=tests_require),
+    include_package_data=True,
+    zip_safe=False,
+    entry_points="""
     [paste.server_runner]
     main = zope.server.http.wsgihttpserver:run_paste
     """
