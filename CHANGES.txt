@@ -3,7 +3,7 @@ CHANGES
 =======
 
 
-3.6.3 (unreleased)
+3.6.3 (2011-06-07)
 ------------------
 
 - Fixed testHELP that sometimes failed on a busy buildbot.
