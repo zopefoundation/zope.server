@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-3.8.4 (unreleased)
+3.8.4 (2011-06-07)
 ------------------
 
 - Fix syntax error in tests on Python < 2.6.
