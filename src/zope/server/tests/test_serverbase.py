@@ -13,9 +13,8 @@
 ##############################################################################
 """Tests for zope.server.serverbase
 """
+import doctest
 import unittest
-
-from zope.testing import doctest
 
 
 def doctest_ServerBase():

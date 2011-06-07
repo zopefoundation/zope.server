@@ -6,7 +6,10 @@ CHANGES
 3.6.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fixed testHELP that sometimes failed on a busy buildbot.
+
+- Using python's ``doctest`` module instead of deprecated
+  ``zope.testing.doctest``.
 
 
 3.6.2 (2010-06-11)
