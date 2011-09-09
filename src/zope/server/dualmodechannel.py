@@ -73,6 +73,7 @@ class DualModeChannel(asyncore.dispatcher):
                 self.handle_comm_error()
         elif self.will_close:
             self.close()
+        self.last_activity = time()
 
     def readable(self):
         if not self.async_mode:
@@ -87,6 +88,7 @@ class DualModeChannel(asyncore.dispatcher):
         except socket.error:
             self.handle_comm_error()
             return
+        self.last_activity = time()
         self.received(data)
 
     def received(self, data):
