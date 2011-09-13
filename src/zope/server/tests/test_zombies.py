@@ -69,10 +69,10 @@ def zombies_test():
     >>> channel.connected
     True
 
-    >>> channel.last_activity -= int(config.channel_timeout)
+    >>> channel.last_activity -= int(config.channel_timeout) + 1
 
     >>> channel.next_channel_cleanup[0] = channel.creation_time - int(
-    ...     config.cleanup_interval)
+    ...     config.cleanup_interval) - 1
 
     >>> socket2 = FakeSocket(7)
     >>> channel2 = ServerChannelBase(sb, socket2, ('localhost', 7))
@@ -80,18 +80,21 @@ def zombies_test():
     >>> channel.connected
     False
 
+    Write Activity
+    --------------
+
     Now we make sure that if there is activity the channel doesn't get closed
     incorrectly.
 
     >>> channel2.connected
     True
 
-    >>> channel2.last_activity -= int(config.channel_timeout)
+    >>> channel2.last_activity -= int(config.channel_timeout) + 1
 
     >>> channel2.handle_write()
 
     >>> channel2.next_channel_cleanup[0] = channel2.creation_time - int(
-    ...     config.cleanup_interval)
+    ...     config.cleanup_interval) - 1
 
     >>> socket3 = FakeSocket(3)
     >>> channel3 = ServerChannelBase(sb, socket3, ('localhost', 3))
@@ -99,12 +102,15 @@ def zombies_test():
     >>> channel2.connected
     True
 
+    Read Activity
+    --------------
+
     We should test to see that read activity will update a channel as well.
 
     >>> channel3.connected
     True
 
-    >>> channel3.last_activity -= int(config.channel_timeout)
+    >>> channel3.last_activity -= int(config.channel_timeout) + 1
 
     >>> import zope.server.http.httprequestparser
     >>> channel3.parser_class = (
@@ -112,7 +118,7 @@ def zombies_test():
     >>> channel3.handle_read()
 
     >>> channel3.next_channel_cleanup[0] = channel3.creation_time - int(
-    ...     config.cleanup_interval)
+    ...     config.cleanup_interval) - 1
 
     >>> socket4 = FakeSocket(4)
     >>> channel4 = ServerChannelBase(sb, socket4, ('localhost', 4))
