@@ -2,10 +2,16 @@
 CHANGES
 =======
 
-3.8.5 (unreleased)
+3.8.6 (unreleased)
 ------------------
 
 - Nothing changed yet.
+
+
+3.8.5 (2011-09-13)
+------------------
+
+- Fix bug making any channel alive longer than 15 minutes considered a zombie.
 
 
 3.8.4 (2011-06-07)
