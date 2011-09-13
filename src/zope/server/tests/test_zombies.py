@@ -35,6 +35,9 @@ class FakeSocket:
         self.data += data
         return len(data)
 
+    def recv(self, data):
+        return 'data'
+
 
 def zombies_test():
     """Regression test for ServerChannelBase kill_zombies method
@@ -94,6 +97,26 @@ def zombies_test():
     >>> channel3 = ServerChannelBase(sb, socket3, ('localhost', 3))
 
     >>> channel2.connected
+    True
+
+    We should test to see that read activity will update a channel as well.
+
+    >>> channel3.connected
+    True
+
+    >>> channel3.last_activity -= int(config.channel_timeout)
+
+    >>> import zope.server.http.httprequestparser
+    >>> channel3.parser_class = zope.server.http.httprequestparser.HTTPRequestParser
+    >>> channel3.handle_read()
+
+    >>> channel3.next_channel_cleanup[0] = channel3.creation_time - int(
+    ...     config.cleanup_interval)
+
+    >>> socket4 = FakeSocket(4)
+    >>> channel4 = ServerChannelBase(sb, socket4, ('localhost', 4))
+
+    >>> channel3.connected
     True
 
 """
