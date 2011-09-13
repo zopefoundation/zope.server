@@ -126,6 +126,21 @@ def zombies_test():
     >>> channel3.connected
     True
 
+    Main loop window
+    ----------------
+
+    There is also a corner case we'll do a shallow test for where a
+    channel can be closed waiting for the main loop.
+
+    >>> channel4.last_activity -= 1
+
+    >>> last_active = channel4.last_activity
+
+    >>> channel4.set_async()
+
+    >>> channel4.last_activity != last_active
+    True
+
 """
 
 def test_suite():

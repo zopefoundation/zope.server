@@ -146,6 +146,7 @@ class DualModeChannel(asyncore.dispatcher):
         """
         self.async_mode = True
         self.pull_trigger()
+        self.last_activity = time()
 
     #
     # METHODS USED IN BOTH MODES
