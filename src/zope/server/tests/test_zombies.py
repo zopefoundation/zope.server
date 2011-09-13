@@ -107,7 +107,8 @@ def zombies_test():
     >>> channel3.last_activity -= int(config.channel_timeout)
 
     >>> import zope.server.http.httprequestparser
-    >>> channel3.parser_class = zope.server.http.httprequestparser.HTTPRequestParser
+    >>> channel3.parser_class = (
+    ...    zope.server.http.httprequestparser.HTTPRequestParser)
     >>> channel3.handle_read()
 
     >>> channel3.next_channel_cleanup[0] = channel3.creation_time - int(
