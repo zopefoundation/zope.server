@@ -387,9 +387,30 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.failUnlessEqual(response.getheader('connection'), 'close')
 
 
+class TestHTTPServer(unittest.TestCase):
+
+    def setUp(self):
+        # Tests.setUp for the explanation why HTTPServer is not imported
+        # at the top
+        from zope.server.http.httpserver import HTTPServer
+        class MyServer(HTTPServer):
+            def __init__(self):
+                # don't call base class, we don't want real sockets here
+                self.server_name = 'example.com'
+                self.port = 8080
+        self.server = MyServer()
+
+    def test_getExtraLogMessage(self):
+        self.assertEqual(self.server.getExtraLogMessage(),
+                         '\n\tURL: http://example.com:8080/')
+
+
 def test_suite():
     loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(Tests)
+    return unittest.TestSuite([
+        loader.loadTestsFromTestCase(Tests),
+        loader.loadTestsFromTestCase(TestHTTPServer),
+    ])
 
 if __name__=='__main__':
     unittest.TextTestRunner().run(test_suite())

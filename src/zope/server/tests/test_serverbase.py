@@ -36,11 +36,47 @@ def doctest_ServerBase():
 
     """
 
+
+def doctest_ServerBase_startup_logging():
+    r"""Test for ServerBase verbose startup logging
+
+    We will use a subclass of ServerBase so that unit tests do not actually try
+    to bind to ports.
+
+        >>> from zope.server.serverbase import ServerBase
+        >>> class ServerBaseForTest(ServerBase):
+        ...     def bind(self, (ip, port)):
+        ...         self.socket = FakeSocket()
+        ...     def log_info(self, message, level='info'):
+        ...         print message.expandtabs()
+
+        >>> sb = ServerBaseForTest('example.com', 80, start=True, verbose=True)
+        zope.server.serverbase started.
+                Hostname: example.com
+                Port: 80
+
+    Subclasses can add extra information there
+
+        >>> class ServerForTest(ServerBaseForTest):
+        ...     def getExtraLogMessage(self):
+        ...         return '\n\tURL: http://example.com/'
+
+        >>> sb = ServerForTest('example.com', 80, start=True, verbose=True)
+        zope.server.serverbase started.
+                Hostname: example.com
+                Port: 80
+                URL: http://example.com/
+
+    """
+
 class FakeSocket:
     data        = ''
     setblocking = lambda *_: None
     fileno      = lambda *_: 42
     getpeername = lambda *_: ('localhost', 42)
+
+    def listen(self, *args):
+        pass
 
     def send(self, data):
         self.data += data

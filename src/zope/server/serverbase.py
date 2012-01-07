@@ -95,12 +95,20 @@ class ServerBase(asyncore.dispatcher, object):
         self.socket.listen(self.adj.backlog)  # Circumvent asyncore's NT limit
         if self.verbose:
             self.log_info('%s started.\n'
-                          '\tHostname: %s\n\tPort: %d' % (
+                          '\tHostname: %s\n\tPort: %d%s' % (
                 self.SERVER_IDENT,
                 self.server_name,
-                self.port
+                self.port,
+                self.getExtraLogMessage()
                 ))
 
+    def getExtraLogMessage(self):
+        r"""Additional information to be logged on startup.
+
+        If not empty, should start with '\n\t', and every line break should
+        be followed by a '\t'.
+        """
+        return ''
 
     def addTask(self, task):
         """See zope.server.interfaces.ITaskDispatcher"""

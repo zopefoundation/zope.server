@@ -35,6 +35,9 @@ class HTTPServer(ServerBase):
         task.response_headers['Content-Length'] = str(len(body))
         task.write(body)
 
+    def getExtraLogMessage(self):
+        return '\n\tURL: http://%s:%d/' % (self.server_name, self.port)
+
 
 if __name__ == '__main__':
 
