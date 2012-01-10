@@ -70,7 +70,7 @@ CHANGES
   request parser used to throw that information away. Using
   ``urlparse.urlsplit()``, all pieces of the URL are recorded.
 
-- The proxy acheme and netloc/hostname are exposed in the WSGI environment as
+- The proxy scheme and netloc/hostname are exposed in the WSGI environment as
   ``zserver.proxy.scheme`` and ``zserver.proxy.host``.
 
 - Made tests runnable via buildout again.
