@@ -16,13 +16,12 @@
 from types import StringType
 
 from zope.server.interfaces.logger import IMessageLogger
-from zope.interface import implements
+from zope.interface import implementer
 
+@implementer(IMessageLogger)
 class FileLogger(object):
     """Simple File Logger
     """
-
-    implements(IMessageLogger)
 
     def __init__(self, file, flush=1, mode='a'):
         """pass this either a path or a file object."""

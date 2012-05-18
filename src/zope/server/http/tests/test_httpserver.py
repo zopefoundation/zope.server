@@ -22,7 +22,7 @@ from zope.server.taskthreads import ThreadedTaskDispatcher
 from zope.server.adjustments import Adjustments
 from zope.server.interfaces import ITask
 from zope.server.tests.asyncerror import AsyncoreErrorHook
-from zope.interface import implements
+from zope.interface import implementer
 
 from httplib import HTTPConnection
 from httplib import HTTPResponse as ClientHTTPResponse
@@ -43,9 +43,8 @@ my_adj.inbuf_overflow = 10000
 
 
 
+@implementer(ITask)
 class SleepingTask(object):
-
-    implements(ITask)
 
     def service(self):
         sleep(0.2)

@@ -15,7 +15,7 @@ import posixpath
 from zope.security.interfaces import Unauthorized
 from zope.server.interfaces.ftp import IFileSystem
 from zope.server.interfaces.ftp import IFileSystemAccess
-from zope.interface import implements
+from zope.interface import implementer
 
 execute = 1
 read = 2
@@ -66,10 +66,10 @@ class Directory(File):
     def __iter__(self):
         return iter(self.files)
 
+@implementer(IFileSystem)
 class DemoFileSystem(object):
     __doc__ = IFileSystem.__doc__
 
-    implements(IFileSystem)
 
     File = File
     Directory = Directory
@@ -285,10 +285,10 @@ class DemoFileSystem(object):
         f = d[name]
         return f.type == 'f' and f.accessable(self.user, write)
 
+@implementer(IFileSystemAccess)
 class DemoFileSystemAccess(object):
     __doc__ = IFileSystemAccess.__doc__
 
-    implements(IFileSystemAccess)
 
     def __init__(self, files, users):
         self.files = files

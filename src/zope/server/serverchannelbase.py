@@ -21,7 +21,7 @@ import time
 import sys
 import asyncore
 from thread import allocate_lock
-from zope.interface import implements
+from zope.interface import implementer
 
 from zope.server.dualmodechannel import DualModeChannel
 from zope.server.interfaces import IServerChannel, ITask
@@ -30,10 +30,10 @@ from zope.server.interfaces import IServerChannel, ITask
 task_lock = allocate_lock()
 
 
+@implementer(IServerChannel, ITask)
 class ServerChannelBase(DualModeChannel, object):
     """Base class for a high-performance, mixed-mode server-side channel."""
 
-    implements(IServerChannel, ITask)
 
     # See zope.server.interfaces.IServerChannel
     parser_class = None       # Subclasses must provide a parser class

@@ -16,12 +16,11 @@
 import logging
 
 from zope.server.interfaces.logger import IMessageLogger
-from zope.interface import implements
+from zope.interface import implementer
 
+@implementer(IMessageLogger)
 class PythonLogger(object):
     """Proxy for Python's logging module"""
-
-    implements(IMessageLogger)
 
     def __init__(self, name=None, level=logging.INFO):
         self.name = name

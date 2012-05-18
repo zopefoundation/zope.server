@@ -14,12 +14,11 @@
 """Tail Logger
 """
 from zope.server.interfaces.logger import IMessageLogger
-from zope.interface import implements
+from zope.interface import implementer
 
+@implementer(IMessageLogger)
 class TailLogger(object):
     """Keep track of the last <size> log messages"""
-
-    implements(IMessageLogger)
 
     def __init__(self, logger, size=500):
         self.size = size

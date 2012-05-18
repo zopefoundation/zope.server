@@ -24,7 +24,7 @@ from zope.server.fixedstreamreceiver import FixedStreamReceiver
 from zope.server.buffers import OverflowableBuffer
 from zope.server.utilities import find_double_newline
 from zope.server.interfaces import IStreamConsumer
-from zope.interface import implements
+from zope.interface import implementer
 
 try:
     from cStringIO import StringIO
@@ -32,14 +32,13 @@ except ImportError:
     from StringIO import StringIO
 
 
+@implementer(IStreamConsumer)
 class HTTPRequestParser(object):
     """A structure that collects the HTTP request.
 
     Once the stream is completed, the instance is passed to
     a server task constructor.
     """
-
-    implements(IStreamConsumer)
 
     completed = 0  # Set once request is completed.
     empty = 0        # Set if no request was made.

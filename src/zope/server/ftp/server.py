@@ -20,7 +20,7 @@ from datetime import date, timedelta
 from getopt import getopt, GetoptError
 
 from zope.security.interfaces import Unauthorized
-from zope.interface import implements
+from zope.interface import implementer
 from zope.server.buffers import OverflowableBuffer
 from zope.server.interfaces import ITask
 from zope.server.interfaces.ftp import IFileSystemAccess
@@ -82,11 +82,10 @@ status_messages = {
     'ERR_RNFR_SOURCE'  : '560 No source filename specify. Call RNFR first.',
     }
 
+@implementer(IFTPCommandHandler)
 class FTPServerChannel(LineServerChannel):
     """The FTP Server Channel represents a connection to a particular
        client. We can therefore store information here."""
-
-    implements(IFTPCommandHandler)
 
 
     # List of commands that are always available
@@ -835,13 +834,12 @@ class STORChannel(FTPDataChannel):
         # provide a complete reply through finishSTOR().
 
 
+@implementer(ITask)
 class FinishSTORTask(object):
     """Calls control_channel.finishSTOR() in an application thread.
 
     This task executes after the client has finished uploading.
     """
-
-    implements(ITask)
 
     def __init__(self, control_channel, inbuf, finish_args):
         self.control_channel = control_channel

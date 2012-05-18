@@ -22,13 +22,12 @@ import socket
 
 from zope.server.adjustments import default_adj
 from zope.server.interfaces import IServer
-from zope.interface import implements
+from zope.interface import implementer
 
 
+@implementer(IServer)
 class ServerBase(asyncore.dispatcher, object):
     """Async. server base for launching derivatives of ServerChannelBase."""
-
-    implements(IServer)
 
     # See zope.server.interfaces.IServer
     channel_class = None    # Override with a channel class.

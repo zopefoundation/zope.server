@@ -23,7 +23,7 @@ from zope.server.http.http_date import build_http_date
 from zope.publisher.interfaces.http import IHeaderOutput
 from zope.server.interfaces import ITask
 
-from zope.interface import implements
+from zope.interface import implementer
 
 rename_headers = {
     'CONTENT_LENGTH' : 'CONTENT_LENGTH',
@@ -31,13 +31,12 @@ rename_headers = {
     'CONNECTION'     : 'CONNECTION_TYPE',
     }
 
+@implementer(ITask, IHeaderOutput)  #, IOutputStream
 class HTTPTask(object):
     """An HTTP task accepts a request and writes to a channel.
 
        Subclass this and override the execute() method.
     """
-
-    implements(ITask, IHeaderOutput)  #, IOutputStream
 
     instream = None
     close_on_finish = 1

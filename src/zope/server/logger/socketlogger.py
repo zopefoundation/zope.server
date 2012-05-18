@@ -19,12 +19,11 @@ import asynchat
 import socket
 
 from zope.server.interfaces.logger import IMessageLogger
-from zope.interface import implements
+from zope.interface import implementer
 
+@implementer(IMessageLogger)
 class SocketLogger(asynchat.async_chat):
     """Log to a stream socket, asynchronously."""
-
-    implements(IMessageLogger)
 
     def __init__(self, address):
         if type(address) == type(''):

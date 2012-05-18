@@ -14,15 +14,14 @@
 """Resolving Logger
 """
 from zope.server.interfaces.logger import IRequestLogger
-from zope.interface import implements
+from zope.interface import implementer
 
 
+@implementer(IRequestLogger)
 class ResolvingLogger(object):
     """Feed (ip, message) combinations into this logger to get a
     resolved hostname in front of the message.  The message will not
     be logged until the PTR request finishes (or fails)."""
-
-    implements(IRequestLogger)
 
     def __init__(self, resolver, logger):
         self.resolver = resolver

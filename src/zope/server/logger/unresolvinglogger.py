@@ -14,12 +14,11 @@
 """Unresolving Logger
 """
 from zope.server.interfaces.logger import IRequestLogger
-from zope.interface import implements
+from zope.interface import implementer
 
+@implementer(IRequestLogger)
 class UnresolvingLogger(object):
     """Just in case you don't want to resolve"""
-
-    implements(IRequestLogger)
 
     def __init__(self, logger):
         self.logger = logger

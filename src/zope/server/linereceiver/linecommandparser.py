@@ -14,13 +14,12 @@
 """Line Command Parser
 """
 from zope.server.interfaces import IStreamConsumer
-from zope.interface import implements
+from zope.interface import implementer
 
 
+@implementer(IStreamConsumer)
 class LineCommandParser(object):
     """Line Command parser. Arguments are left alone for now."""
-
-    implements(IStreamConsumer)
 
     # See IStreamConsumer
     completed = 0

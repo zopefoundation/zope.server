@@ -16,12 +16,11 @@
 
 from zope.server.utilities import find_double_newline
 from zope.server.interfaces import IStreamConsumer
-from zope.interface import implements
+from zope.interface import implementer
 
 
+@implementer(IStreamConsumer)
 class ChunkedReceiver(object):
-
-    implements(IStreamConsumer)
 
     chunk_remainder = 0
     control_line = ''

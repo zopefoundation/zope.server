@@ -16,14 +16,14 @@
 import socket
 import time
 from zope.server.interfaces import ITask
-from zope.interface import implements
+from zope.interface import implementer
 
 
+@implementer(ITask)
 class LineTask(object):
     """This is a generic task that can be used with command line
        protocols to handle commands in a separate thread.
     """
-    implements(ITask)
 
     def __init__(self, channel, command, m_name):
         self.channel = channel

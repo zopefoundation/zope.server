@@ -20,9 +20,10 @@ import os
 from zope.server.logger import m_syslog
 
 from zope.server.interfaces.logger import IMessageLogger
-from zope.interface import implements
+from zope.interface import implementer
 
 
+@implementer(IMessageLogger)
 class SyslogLogger(m_syslog.syslog_client):
     """syslog is a line-oriented log protocol - this class would be
        appropriate for FTP or HTTP logs, but not for dumping stderr
@@ -34,8 +35,6 @@ class SyslogLogger(m_syslog.syslog_client):
        TODO: async version of syslog_client: now, log entries use
        blocking send()
     """
-
-    implements(IMessageLogger)
 
     svc_name = 'zope'
     pid_str  = str(os.getpid())
