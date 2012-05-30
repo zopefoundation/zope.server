@@ -48,6 +48,8 @@ class ThreadedTaskDispatcher(object):
                     task.service()
                 except:
                     log.exception('Exception during task')
+        except:
+            log.exception('Exception in thread main loop')
         finally:
             mlock = self.thread_mgmt_lock
             mlock.acquire()

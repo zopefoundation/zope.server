@@ -10,6 +10,9 @@ CHANGES
 
 - Dropped support for Python 2.4 and 2.5.
 
+- Exceptions that happen in the handler thread main loop are logged so that
+  the unexpected death of a handler thread does not happen in silence.
+
 
 3.8.6 (2012-01-07)
 ------------------
