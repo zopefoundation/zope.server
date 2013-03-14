@@ -1,0 +1,7 @@
+include *.py
+include *.txt
+include .travis.yml
+include buildout.cfg
+include test.ini
+
+recursive-include src *.txt *.py
