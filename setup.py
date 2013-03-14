@@ -35,7 +35,7 @@ tests_require = [
 
 setup(
     name='zope.server',
-    version='4.0.0dev',
+    version='3.9.0.dev',
     author='Zope Foundation and Contributors',
     author_email='zope-dev@zope.org',
     description='Zope Server (Web and FTP)',
@@ -55,6 +55,7 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: Implementation :: CPython',
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Topic :: Internet :: WWW/HTTP',

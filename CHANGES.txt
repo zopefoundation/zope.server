@@ -2,8 +2,21 @@
 CHANGES
 =======
 
-4.0.0 (unreleased)
+3.9.0 (unreleased)
 ------------------
+
+- Better adherence to WSGI:
+
+  * Call close method if present on iterables returned by 
+    ``start_response``.
+
+  * Don't include non-string values in the CGI environment
+    (``CHANNEL_CREATION_TIME``).
+
+  * Always include ``QUERY_STRING`` to avoid the cgi module falling back 
+    to ``sys.argv``.
+
+  * Add tests based on `paste.lint` middleware.
 
 - Replaced deprecated ``zope.interface.implements`` usage with equivalent
   ``zope.interface.implementer`` decorator.
