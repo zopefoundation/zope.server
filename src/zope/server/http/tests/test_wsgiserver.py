@@ -12,8 +12,11 @@
 """Test Publisher-based HTTP Server
 """
 import StringIO
+import paste.lint
 import sys
 import unittest
+import warnings
+
 from asyncore import socket_map, poll
 from threading import Thread
 from time import sleep
@@ -411,6 +414,59 @@ class Tests(PlacelessSetup, unittest.TestCase):
         self.assertRaises(DummyException, self.server.executeRequest, task)
 
         self.server.application = orig_app
+
+
+    def test_closes_iterator(self):
+        """PEP-0333 specifies that if an iterable returned by
+           a WSGI application has a 'close' method, it must
+           be called.
+
+           paste.lint has this check as well, but it writes a
+           message to stderr instead of raising an error or
+           issuing a warning.
+        """
+        orig_app = self.server.application
+        app, _ = self._getFakeAppAndTask()
+
+        class CloseableIterator(object):
+
+            closed = False
+
+            def __init__(self, value):
+                self._iter = iter(value)
+                self.value = value
+
+            def __iter__(self):
+                return self
+
+            def next(self):
+                return self._iter.next()
+
+            def close(self):
+                self.closed = True
+
+        iterator = CloseableIterator(["Klaatu", "barada", "nikto"])
+        def app(environ, start_response):
+            start_response("200 Ok", [], None)
+            return iterator
+
+        self.server.application = app
+        self.invokeRequest("/")
+        self.assertTrue(iterator.closed,
+            "close method wasn't called on iterable")
+
+        self.server.application = orig_app
+
+    def test_wsgi_compliance(self):
+        orig_app = self.server.application
+        self.server.application = paste.lint.middleware(orig_app)
+
+        with warnings.catch_warnings(record=True) as w:
+            self.invokeRequest("/foo")
+        self.assertTrue(len(w) == 0, w)
+        self.server.application = orig_app
+
+
 
 class PMDBTests(Tests):
 
