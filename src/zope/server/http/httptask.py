@@ -194,12 +194,10 @@ class HTTPTask(object):
         env['SERVER_NAME'] = server.server_name
         env['SERVER_SOFTWARE'] = server.SERVER_IDENT
         env['SERVER_PROTOCOL'] = "HTTP/%s" % self.version
-        env['CHANNEL_CREATION_TIME'] = channel.creation_time
-        env['SCRIPT_NAME']=''
-        env['PATH_INFO']='/' + path
-        query = request_data.query
-        if query:
-            env['QUERY_STRING'] = query
+        env['CHANNEL_CREATION_TIME'] = str(channel.creation_time)
+        env['SCRIPT_NAME']= ''
+        env['PATH_INFO']= '/' + path
+        env['QUERY_STRING'] = request_data.query or ''
         env['GATEWAY_INTERFACE'] = 'CGI/1.1'
         addr = channel.addr[0]
         env['REMOTE_ADDR'] = addr

@@ -29,6 +29,7 @@ tests_require = [
     'zope.testing',
     'zope.i18n',
     'zope.component',
+    'Paste',
     ]
 
 

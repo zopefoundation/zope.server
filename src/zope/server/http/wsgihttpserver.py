@@ -110,8 +110,12 @@ class WSGIHTTPServer(HTTPServer):
 
         # By iterating manually at this point, we execute task.write()
         # multiple times, allowing partial data to be sent.
-        for value in result:
-            task.write(value)
+        try:
+            for value in result:
+                task.write(value)
+        finally:
+            if hasattr(result, "close"):
+                result.close()
 
 
 class PMDBWSGIHTTPServer(WSGIHTTPServer):
@@ -123,6 +127,7 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
         env['wsgi.handleErrors'] = False
 
         # Call the application to handle the request and write a response
+        result = None
         try:
             result = self.application(env, curriedStartResponse(task))
             # By iterating manually at this point, we execute task.write()
@@ -139,6 +144,9 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
                 raise
             finally:
                 zope.security.management.endInteraction()
+        finally:
+            if hasattr(result, "close"):
+                result.close()
 
 
 def run_paste(wsgi_app, global_conf, name='zope.server.http',
