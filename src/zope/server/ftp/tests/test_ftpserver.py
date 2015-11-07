@@ -49,6 +49,9 @@ def retrlines(ftpconn, cmd):
 class Tests(unittest.TestCase, AsyncoreErrorHook):
 
     def setUp(self):
+        # Avoid the tests hanging for a long time if something goes wrong
+        socket.setdefaulttimeout(10)
+
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.ftp.server import FTPServer
