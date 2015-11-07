@@ -4,3 +4,4 @@
 bin/
 parts/
 develop-eggs/
+.tox/
