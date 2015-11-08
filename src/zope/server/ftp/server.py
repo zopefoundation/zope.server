@@ -732,8 +732,8 @@ class PassiveListener(asyncore.dispatcher):
         when it becomes available.
         """
         if self.accepted is not None:
+            cdc.connecting = True
             cdc.set_socket(self.accepted)
-            cdc.connected = True
             # Note that this method will be called twice, once by the
             # control channel, and once by handle_accept, and the two
             # calls may come in either order.  If handle_accept calls
