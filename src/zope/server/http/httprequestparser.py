@@ -17,8 +17,8 @@ This server uses asyncore to accept connections and do initial
 processing but threads to do work.
 """
 import re
-from urllib import unquote
-import urlparse
+
+from six.moves.urllib.parse import unquote, urlsplit
 
 from zope.server.fixedstreamreceiver import FixedStreamReceiver
 from zope.server.buffers import OverflowableBuffer
@@ -188,7 +188,7 @@ class HTTPRequestParser(object):
 
     def split_uri(self):
         (self.proxy_scheme, self.proxy_netloc, path, self.query, self.fragment) = \
-            urlparse.urlsplit(self.uri)
+            urlsplit(self.uri)
         if path and '%' in path:
             path = unquote(path)
         self.path = path
