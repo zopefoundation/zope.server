@@ -71,7 +71,7 @@ def doctest_ServerBase_startup_logging():
     """
 
 class FakeSocket:
-    data        = ''
+    data        = b''
     setblocking = lambda *_: None
     fileno      = lambda *_: 42
     getpeername = lambda *_: ('localhost', 42)
@@ -92,31 +92,31 @@ Channels accept iterables (they special-case strings).
     >>> socket = FakeSocket()
     >>> channel = DualModeChannel(socket, ('localhost', 42))
 
-    >>> channel.write("First")
+    >>> channel.write(b"First")
     5
 
     >>> channel.flush()
-    >>> print(socket.data)
+    >>> print(socket.data.decode())
     First
 
-    >>> channel.write(["\n", "Second", "\n", "Third"])
+    >>> channel.write([b"\n", b"Second", b"\n", b"Third"])
     13
 
     >>> channel.flush()
-    >>> print(socket.data)
+    >>> print(socket.data.decode())
     First
     Second
     Third
 
     >>> def count():
-    ...     yield '\n1\n2\n3\n'
-    ...     yield 'I love to count. Ha ha ha.'
+    ...     yield b'\n1\n2\n3\n'
+    ...     yield b'I love to count. Ha ha ha.'
 
     >>> channel.write(count())
     33
 
     >>> channel.flush()
-    >>> print(socket.data)
+    >>> print(socket.data.decode())
     First
     Second
     Third

@@ -27,9 +27,9 @@ from zope.server.interfaces import IStreamConsumer
 from zope.interface import implementer
 
 try:
-    from cStringIO import StringIO
+    from cStringIO import StringIO as BytesIO
 except ImportError:
-    from io import StringIO
+    from io import BytesIO
 
 
 @implementer(IStreamConsumer)
@@ -42,7 +42,7 @@ class HTTPRequestParser(object):
 
     completed = 0  # Set once request is completed.
     empty = 0        # Set if no request was made.
-    header_plus = ''
+    header_plus = b''
     chunked = 0
     content_length = 0
     body_rcv = None
@@ -100,33 +100,32 @@ class HTTPRequestParser(object):
                 self.completed = 1
             return consumed
 
-
     def parse_header(self, header_plus):
         """
         Parses the header_plus block of text (the headers plus the
         first line of the request).
         """
-        index = header_plus.find('\n')
+        index = header_plus.find(b'\n')
         if index >= 0:
             first_line = header_plus[:index].rstrip()
             header = header_plus[index + 1:]
         else:
             first_line = header_plus.rstrip()
-            header = ''
+            header = b''
         self.first_line = first_line
         self.header = header
 
         lines = self.get_header_lines()
         headers = self.headers
         for line in lines:
-            index = line.find(':')
+            index = line.find(b':')
             if index > 0:
-                key = line[:index]
-                value = line[index + 1:].strip()
+                key = line[:index].decode('latin1')
+                value = line[index + 1:].strip().decode('latin1')
                 key1 = key.upper().replace('-', '_')
                 # If a header already exists, we append subsequent values
                 # seperated by a comma. Applications already need to handle
-                # the comma seperated values, as HTTP front ends might do 
+                # the comma seperated values, as HTTP front ends might do
                 # the concatenation for you (behavior specified in RFC2616).
                 try:
                     headers[key1] += ', %s' % value
@@ -157,38 +156,40 @@ class HTTPRequestParser(object):
                 buf = OverflowableBuffer(self.adj.inbuf_overflow)
                 self.body_rcv = FixedStreamReceiver(cl, buf)
 
-
     def get_header_lines(self):
         """
         Splits the header into lines, putting multi-line headers together.
         """
         r = []
-        lines = self.header.split('\n')
+        lines = self.header.split(b'\n')
         for line in lines:
-            if line and line[0] in ' \t':
+            if line and line[0] in b' \t':
                 r[-1] = r[-1] + line[1:]
             else:
                 r.append(line)
         return r
 
-    first_line_re = re.compile (
-        '([^ ]+) ((?:[^ :?#]+://[^ ?#/]*(?:[0-9]{1,5})?)?[^ ]+)(( HTTP/([0-9.]+))$|$)')
+    first_line_re = re.compile(
+        b'([^ ]+) ((?:[^ :?#]+://[^ ?#/]*(?:[0-9]{1,5})?)?[^ ]+)'
+        b'(( HTTP/([0-9.]+))$|$)')
 
     def crack_first_line(self):
         r = self.first_line
-        m = self.first_line_re.match (r)
+        m = self.first_line_re.match(r)
         if m is not None and m.end() == len(r):
             if m.group(3):
-                version = m.group(5)
+                version = m.group(5).decode('latin1')
             else:
                 version = None
-            return m.group(1).upper(), m.group(2), version
+            method = m.group(1).upper().decode('latin1')
+            uri = m.group(2).decode('latin1')
+            return (method, uri, version)
         else:
             return None, None, None
 
     def split_uri(self):
-        (self.proxy_scheme, self.proxy_netloc, path, self.query, self.fragment) = \
-            urlsplit(self.uri)
+        (self.proxy_scheme, self.proxy_netloc, path, self.query,
+         self.fragment) = urlsplit(self.uri)
         if path and '%' in path:
             path = unquote(path)
         self.path = path
@@ -200,4 +201,4 @@ class HTTPRequestParser(object):
         if body_rcv is not None:
             return body_rcv.getfile()
         else:
-            return StringIO('')
+            return BytesIO(b'')

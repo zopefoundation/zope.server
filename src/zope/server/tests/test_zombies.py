@@ -18,7 +18,7 @@ import unittest
 
 
 class FakeSocket:
-    data        = ''
+    data        = b''
     setblocking = lambda *_: None
     close = lambda *_: None
 
@@ -35,8 +35,8 @@ class FakeSocket:
         self.data += data
         return len(data)
 
-    def recv(self, data):
-        return 'data'
+    def recv(self, buflen):
+        return b'data'
 
 
 def zombies_test():

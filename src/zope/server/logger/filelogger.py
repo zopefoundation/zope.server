@@ -24,7 +24,7 @@ class FileLogger(object):
 
     def __init__(self, file, flush=1, mode='a'):
         """pass this either a path or a file object."""
-        if isinstance(file, str):
+        if not hasattr(file, 'read'):
             if (file == '-'):
                 import sys
                 self.file = sys.stdout

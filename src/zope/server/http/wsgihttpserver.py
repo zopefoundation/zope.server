@@ -69,7 +69,7 @@ class WSGIHTTPServer(HTTPServer):
         self.application = application
 
         if sub_protocol:
-            self.SERVER_IDENT += ' (%s)' %str(sub_protocol)
+            self.SERVER_IDENT += ' (%s)' % str(sub_protocol)
 
         HTTPServer.__init__(self, *args, **kw)
 
@@ -84,7 +84,7 @@ class WSGIHTTPServer(HTTPServer):
             protocol = 'http'
 
         # the following environment variables are required by the WSGI spec
-        env['wsgi.version'] = (1,0)
+        env['wsgi.version'] = (1, 0)
         env['wsgi.url_scheme'] = protocol
         env['wsgi.errors'] = sys.stderr # apps should use the logging module
         env['wsgi.multithread'] = True

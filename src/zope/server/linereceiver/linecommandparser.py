@@ -23,9 +23,9 @@ class LineCommandParser(object):
 
     # See IStreamConsumer
     completed = 0
-    inbuf = ''
-    cmd = ''
-    args = ''
+    inbuf = b''
+    cmd = b''
+    args = b''
     empty = 0
 
     max_line_length = 1024  # Not a hard limit
@@ -42,7 +42,7 @@ class LineCommandParser(object):
         'See IStreamConsumer'
         if self.completed:
             return 0  # Can't consume any more.
-        pos = data.find('\n')
+        pos = data.find(b'\n')
         datalen = len(data)
         if pos < 0:
             self.inbuf = self.inbuf + data
@@ -60,7 +60,7 @@ class LineCommandParser(object):
             return len(s)
 
     def parseLine(self, line):
-        parts = line.split(' ', 1)
+        parts = line.split(b' ', 1)
         if len(parts) == 2:
             self.cmd, self.args = parts
         else:

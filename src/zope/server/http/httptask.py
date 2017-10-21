@@ -195,8 +195,8 @@ class HTTPTask(object):
         env['SERVER_SOFTWARE'] = server.SERVER_IDENT
         env['SERVER_PROTOCOL'] = "HTTP/%s" % self.version
         env['CHANNEL_CREATION_TIME'] = str(channel.creation_time)
-        env['SCRIPT_NAME']= ''
-        env['PATH_INFO']= '/' + path
+        env['SCRIPT_NAME'] = ''
+        env['PATH_INFO'] = '/' + path
         env['QUERY_STRING'] = request_data.query or ''
         env['GATEWAY_INTERFACE'] = 'CGI/1.1'
         addr = channel.addr[0]
@@ -231,7 +231,7 @@ class HTTPTask(object):
 
     def finish(self):
         if not self.wrote_header:
-            self.write('')
+            self.write(b'')
         hit_log = self.channel.server.hit_log
         if hit_log is not None:
             hit_log.log(self)

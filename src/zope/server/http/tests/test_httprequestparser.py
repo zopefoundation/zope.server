@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 # Copyright (c) 2002 Zope Foundation and Contributors.
@@ -20,6 +21,7 @@ from zope.server.adjustments import Adjustments
 
 my_adj = Adjustments()
 
+
 class Tests(unittest.TestCase):
 
     def setUp(self):
@@ -27,7 +29,7 @@ class Tests(unittest.TestCase):
 
     def feed(self, data):
         parser = self.parser
-        for n in xrange(100): # make sure we never loop forever
+        for n in range(100):  # make sure we never loop forever
             consumed = parser.received(data)
             data = data[consumed:]
             if parser.completed:
@@ -35,7 +37,7 @@ class Tests(unittest.TestCase):
         raise ValueError('Looping')
 
     def testSimpleGET(self):
-        data = """\
+        data = b"""\
 GET /foobar HTTP/8.4
 FirstName: mickey
 lastname: Mouse
@@ -58,10 +60,10 @@ Hello.
         self.assertEqual(parser.query, None)
         self.assertEqual(parser.proxy_scheme, '')
         self.assertEqual(parser.proxy_netloc, '')
-        self.assertEqual(parser.getBodyStream().getvalue(), 'Hello.\n')
+        self.assertEqual(parser.getBodyStream().getvalue(), b'Hello.\n')
 
     def testComplexGET(self):
-        data = """\
+        data = b"""\
 GET /foo/a+%2B%2F%C3%A4%3D%26a%3Aint?d=b+%2B%2F%3D%26b%3Aint&c+%2B%2F%3D%26c%3Aint=6 HTTP/8.4
 FirstName: mickey
 lastname: Mouse
@@ -80,13 +82,13 @@ Hello mickey.
                           'CONTENT_LENGTH': '10',
                           })
         # path should be utf-8 encoded
-        self.assertEqual(parser.path, '/foo/a++/\xc3\xa4=&a:int')
+        self.assertEqual(parser.path, '/foo/a++/ä=&a:int')
         self.assertEqual(parser.query,
                          'd=b+%2B%2F%3D%26b%3Aint&c+%2B%2F%3D%26c%3Aint=6')
-        self.assertEqual(parser.getBodyStream().getvalue(), 'Hello mick')
+        self.assertEqual(parser.getBodyStream().getvalue(), b'Hello mick')
 
     def testProxyGET(self):
-        data = """\
+        data = b"""\
 GET https://example.com:8080/foobar HTTP/8.4
 content-length: 7
 
@@ -106,12 +108,12 @@ Hello.
         self.assertEqual(parser.proxy_netloc, 'example.com:8080')
         self.assertEqual(parser.command, 'GET')
         self.assertEqual(parser.query, None)
-        self.assertEqual(parser.getBodyStream().getvalue(), 'Hello.\n')
+        self.assertEqual(parser.getBodyStream().getvalue(), b'Hello.\n')
 
     def testDuplicateHeaders(self):
         # Ensure that headers with the same key get concatenated as per
         # RFC2616.
-        data = """\
+        data = b"""\
 GET /foobar HTTP/8.4
 x-forwarded-for: 10.11.12.13
 x-forwarded-for: unknown,127.0.0.1
