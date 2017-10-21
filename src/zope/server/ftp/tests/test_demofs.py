@@ -13,10 +13,12 @@
 ##############################################################################
 """Test the Demo Filesystem implementation.
 """
-import demofs
 from unittest import TestCase, TestSuite, main, makeSuite
-from fstests import FileSystemTests
 from StringIO import StringIO
+
+from . import demofs
+from .fstests import FileSystemTests
+
 
 class Test(FileSystemTests, TestCase):
 

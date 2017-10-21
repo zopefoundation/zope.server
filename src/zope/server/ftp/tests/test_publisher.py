@@ -13,11 +13,13 @@
 ##############################################################################
 """Test the FTP publisher.
 """
-import demofs
 from unittest import TestCase, TestSuite, main, makeSuite
-from fstests import FileSystemTests
 from StringIO import StringIO
 from zope.publisher.publish import mapply
+
+from . import demofs
+from .fstests import FileSystemTests
+
 
 class DemoFileSystem(demofs.DemoFileSystem):
 
