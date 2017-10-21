@@ -487,8 +487,9 @@ class FTPServerChannel(LineServerChannel):
         self.reply('OPEN_CONN', (self.type_map[self.transfer_mode], path))
 
 
-    def finishSTOR(self, buffer, (path, mode, start)):
+    def finishSTOR(self, buffer, finish_args):
         """Called by STORChannel when the client has sent all data."""
+        (path, mode, start) = finish_args
         assert not self.async_mode
         try:
             infile = buffer.getfile()
