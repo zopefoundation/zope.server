@@ -21,7 +21,6 @@ import time
 import traceback
 import unittest
 
-from types import StringType
 from threading import Thread, Event
 
 try:
@@ -172,7 +171,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         ftp = self.getFTPConnection(login)
 
         try:
-            if type(commands) is StringType:
+            if isinstance(commands, str):
                 commands = (commands,)
 
             for command in commands:
