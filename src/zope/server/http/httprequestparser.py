@@ -118,10 +118,12 @@ class HTTPRequestParser(object):
         lines = self.get_header_lines()
         headers = self.headers
         for line in lines:
-            index = line.find(b':')
+            if not isinstance(line, str):
+                line = line.decode('latin1')
+            index = line.find(':')
             if index > 0:
-                key = line[:index].decode('latin1')
-                value = line[index + 1:].strip().decode('latin1')
+                key = line[:index]
+                value = line[index + 1:].strip()
                 key1 = key.upper().replace('-', '_')
                 # If a header already exists, we append subsequent values
                 # seperated by a comma. Applications already need to handle
@@ -170,19 +172,21 @@ class HTTPRequestParser(object):
         return r
 
     first_line_re = re.compile(
-        b'([^ ]+) ((?:[^ :?#]+://[^ ?#/]*(?:[0-9]{1,5})?)?[^ ]+)'
-        b'(( HTTP/([0-9.]+))$|$)')
+        '([^ ]+) ((?:[^ :?#]+://[^ ?#/]*(?:[0-9]{1,5})?)?[^ ]+)'
+        '(( HTTP/([0-9.]+))$|$)')
 
     def crack_first_line(self):
         r = self.first_line
+        if not isinstance(r, str):
+            r = r.decode('latin1')
         m = self.first_line_re.match(r)
         if m is not None and m.end() == len(r):
             if m.group(3):
-                version = m.group(5).decode('latin1')
+                version = m.group(5)
             else:
                 version = None
-            method = m.group(1).upper().decode('latin1')
-            uri = m.group(2).decode('latin1')
+            method = m.group(1).upper()
+            uri = m.group(2)
             return (method, uri, version)
         else:
             return None, None, None

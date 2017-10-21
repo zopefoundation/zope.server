@@ -60,7 +60,9 @@ class LineCommandParser(object):
             return len(s)
 
     def parseLine(self, line):
-        parts = line.decode('latin-1').split(' ', 1)
+        if not isinstance(line, str):
+            line = line.decode('utf-8')
+        parts = line.split(' ', 1)
         if len(parts) == 2:
             self.cmd, self.args = parts
         else:
