@@ -21,8 +21,10 @@
 import os
 from setuptools import setup, find_packages
 
+
 def read(*rnames):
-    return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
+    with open(os.path.join(os.path.dirname(__file__), *rnames)) as f:
+        return f.read()
 
 
 tests_require = [
@@ -30,7 +32,7 @@ tests_require = [
     'zope.i18n',
     'zope.component',
     'Paste',
-    ]
+]
 
 
 setup(
@@ -46,14 +48,13 @@ setup(
         ),
     license='ZPL 2.1',
     keywords=('zope3 server http ftp'),
-    classifiers = [
+    classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Zope Public License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Natural Language :: English',
@@ -62,8 +63,8 @@ setup(
         'Framework :: Zope3'],
     url='http://pypi.python.org/pypi/zope.server',
     packages=find_packages('src'),
-    package_dir = {'': 'src'},
-    namespace_packages=['zope',],
+    package_dir={'': 'src'},
+    namespace_packages=['zope'],
     tests_require=tests_require,
     install_requires=[
         'setuptools',
@@ -75,7 +76,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     entry_points="""
-    [paste.server_runner]
-    main = zope.server.http.wsgihttpserver:run_paste
-    """
-    )
+        [paste.server_runner]
+        main = zope.server.http.wsgihttpserver:run_paste
+    """,
+)
