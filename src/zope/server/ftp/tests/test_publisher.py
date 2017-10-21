@@ -18,9 +18,9 @@ import six
 from zope.publisher.publish import mapply
 
 try:
-    from cStringIO import StringIO
+    from cStringIO import StringIO as BytesIO
 except ImportError:
-    from io import StringIO
+    from io import BytesIO
 
 from . import demofs
 from .fstests import FileSystemTests
@@ -109,8 +109,8 @@ class TestPublisherFileSystem(FileSystemTests, TestCase):
         root.grant('bob', demofs.write)
         fs = DemoFileSystem(root, 'bob')
         fs.mkdir(self.dir_name)
-        fs.writefile(self.file_name, StringIO(self.file_contents))
-        fs.writefile(self.unwritable_filename, StringIO("save this"))
+        fs.writefile(self.file_name, BytesIO(self.file_contents))
+        fs.writefile(self.unwritable_filename, BytesIO(b"save this"))
         fs.get(self.unwritable_filename).revoke('bob', demofs.write)
 
         # import only now to prevent the testrunner from importing it too early

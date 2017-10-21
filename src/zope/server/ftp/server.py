@@ -194,7 +194,7 @@ class FTPServerChannel(LineServerChannel):
     def cmd_help(self, args):
         'See IFTPCommandHandler'
         self.reply('HELP_START', flush=0)
-        self.write('Help goes here somewhen.\r\n')
+        self.write(b'Help goes here somewhen.\r\n')
         self.reply('HELP_END')
 
 
@@ -229,7 +229,7 @@ class FTPServerChannel(LineServerChannel):
         ok_reply = ('OPEN_DATA_CONN', self.type_map[self.transfer_mode])
         cdc = RETRChannel(self, ok_reply)
         try:
-            cdc.write(s)
+            cdc.write(s.encode('utf-8'))
             cdc.close_when_done()
         except OSError as err:
             self.reply('ERR_NO_LIST', str(err))
@@ -342,7 +342,7 @@ class FTPServerChannel(LineServerChannel):
         assert self.async_mode
         # Kill any existing passive listener first.
         self.abortPassive()
-        local_addr = self.getsockname()[0]
+        local_addr = self.socket.getsockname()[0]
         self.passive_listener = PassiveListener(self, local_addr)
         port = self.passive_listener.port
         self.reply('PASV_MODE_MSG', (','.join(local_addr.split('.')),
@@ -694,7 +694,7 @@ class PassiveListener(asyncore.dispatcher):
         # bind to an address on the interface where the
         # control connection is connected.
         self.bind((local_addr, 0))
-        self.port = self.getsockname()[1]
+        self.port = self.socket.getsockname()[1]
         self.listen(1)
 
     def log (self, *ignore):

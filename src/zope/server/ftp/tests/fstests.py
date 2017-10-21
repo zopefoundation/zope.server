@@ -15,9 +15,9 @@
 """
 
 try:
-    from cStringIO import StringIO
+    from cStringIO import StringIO as BytesIO
 except ImportError:
-    from io import StringIO
+    from io import BytesIO
 
 from zope.interface.verify import verifyObject
 from zope.server.interfaces.ftp import IFileSystem
@@ -31,7 +31,7 @@ class FileSystemTests(object):
     file_name = '/dir/file.txt'
     unwritable_filename = '/dir/protected.txt'
     dir_contents = ['file.txt', 'protected.txt']
-    file_contents = 'Lengthen your stride'
+    file_contents = b'Lengthen your stride'
 
     def test_type(self):
         self.assertEqual(self.filesystem.type(self.dir_name), 'd')
@@ -44,19 +44,19 @@ class FileSystemTests(object):
         self.assertEqual(lst, self.dir_contents)
 
     def test_readfile(self):
-        s = StringIO()
+        s = BytesIO()
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), self.file_contents)
 
 
     def testReadPartOfFile(self):
-        s = StringIO()
+        s = BytesIO()
         self.filesystem.readfile(self.file_name, s, 2)
         self.assertEqual(s.getvalue(), self.file_contents[2:])
 
 
     def testReadPartOfFile2(self):
-        s = StringIO()
+        s = BytesIO()
         self.filesystem.readfile(self.file_name, s, 1, 5)
         self.assertEqual(s.getvalue(), self.file_contents[1:5])
 
@@ -86,68 +86,68 @@ class FileSystemTests(object):
 
 
     def testWriteFile(self):
-        s = StringIO()
+        s = BytesIO()
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), self.file_contents)
 
-        data = 'Always ' + self.file_contents
-        s = StringIO(data)
+        data = b'Always ' + self.file_contents
+        s = BytesIO(data)
         self.filesystem.writefile(self.file_name, s)
 
-        s = StringIO()
+        s = BytesIO()
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), data)
 
 
     def testAppendToFile(self):
-        data = ' again'
-        s = StringIO(data)
+        data = b' again'
+        s = BytesIO(data)
         self.filesystem.writefile(self.file_name, s, append=True)
 
-        s = StringIO()
+        s = BytesIO()
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), self.file_contents + data)
 
     def testWritePartOfFile(self):
-        data = '123'
-        s = StringIO(data)
+        data = b'123'
+        s = BytesIO(data)
         self.filesystem.writefile(self.file_name, s, 3, 6)
 
         expect = self.file_contents[:3] + data + self.file_contents[6:]
 
-        s = StringIO()
+        s = BytesIO()
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), expect)
 
     def testWritePartOfFile_and_truncate(self):
-        data = '123'
-        s = StringIO(data)
+        data = b'123'
+        s = BytesIO(data)
         self.filesystem.writefile(self.file_name, s, 3)
 
         expect = self.file_contents[:3] + data
 
-        s = StringIO()
+        s = BytesIO()
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), expect)
 
     def testWriteBeyondEndOfFile(self):
         partlen = len(self.file_contents) - 6
-        data = 'daylight savings'
-        s = StringIO(data)
+        data = b'daylight savings'
+        s = BytesIO(data)
         self.filesystem.writefile(self.file_name, s, partlen)
 
         expect = self.file_contents[:partlen] + data
 
-        s = StringIO()
+        s = BytesIO()
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), expect)
 
 
     def testWriteNewFile(self):
-        s = StringIO(self.file_contents)
+        s = BytesIO(self.file_contents)
         self.filesystem.writefile(self.file_name + '.new', s)
 
-        s = StringIO()
+        s = BytesIO()
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), self.file_contents)
 

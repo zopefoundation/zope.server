@@ -24,8 +24,8 @@ class LineCommandParser(object):
     # See IStreamConsumer
     completed = 0
     inbuf = b''
-    cmd = b''
-    args = b''
+    cmd = ''
+    args = ''
     empty = 0
 
     max_line_length = 1024  # Not a hard limit
@@ -60,7 +60,7 @@ class LineCommandParser(object):
             return len(s)
 
     def parseLine(self, line):
-        parts = line.split(b' ', 1)
+        parts = line.decode('latin-1').split(' ', 1)
         if len(parts) == 2:
             self.cmd, self.args = parts
         else:
