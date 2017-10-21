@@ -16,6 +16,7 @@
 import asyncore
 import re
 import sys
+import six
 from zope.server.http.httpserver import HTTPServer
 from zope.server.taskthreads import ThreadedTaskDispatcher
 import zope.security.management
@@ -38,7 +39,7 @@ def curriedStartResponse(task):
                     # 1. "service" method in httptask.py
                     # 2. "service" method in severchannelbase.py
                     # 3. "handlerThread" method in taskthreads.py
-                    raise exc_info[0], exc_info[1], exc_info[2]
+                    six.reraise(*exc_info)
                 else:
                     # As per WSGI spec existing headers must be cleared
                     task.accumulated_headers = None

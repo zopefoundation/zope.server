@@ -45,7 +45,7 @@ setup(
         read('README.txt')
         + '\n\n' +
         read('CHANGES.txt')
-        ),
+    ),
     license='ZPL 2.1',
     keywords=('zope3 server http ftp'),
     classifiers=[
@@ -60,7 +60,8 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Topic :: Internet :: WWW/HTTP',
-        'Framework :: Zope3'],
+        'Framework :: Zope3',
+    ],
     url='http://pypi.python.org/pypi/zope.server',
     packages=find_packages('src'),
     package_dir={'': 'src'},
@@ -68,10 +69,11 @@ setup(
     tests_require=tests_require,
     install_requires=[
         'setuptools',
+        'six',
         'zope.interface',
         'zope.publisher',
         'zope.security',
-        ],
+    ],
     extras_require=dict(test=tests_require),
     include_package_data=True,
     zip_safe=False,

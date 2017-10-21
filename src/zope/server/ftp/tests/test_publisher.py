@@ -14,6 +14,7 @@
 """Test the FTP publisher.
 """
 from unittest import TestCase, TestSuite, main, makeSuite
+import six
 from zope.publisher.publish import mapply
 
 try:
@@ -88,7 +89,7 @@ class Response(object):
 
     def getResult(self):
         if self._exc:
-            raise self._exc[0], self._exc[1]
+            six.reraise(*self._exc)
         return self._result
 
 class RequestFactory(object):
