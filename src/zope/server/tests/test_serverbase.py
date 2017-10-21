@@ -29,7 +29,8 @@ def doctest_ServerBase():
 
         >>> from zope.server.serverbase import ServerBase
         >>> class ServerBaseForTest(ServerBase):
-        ...     def bind(self, (ip, port)):
+        ...     def bind(self, addr):
+        ...         ip, port = addr
         ...         print "Listening on %s:%d" % (ip or '*', port)
         >>> sb = ServerBaseForTest('127.0.0.1', 80, start=False, verbose=True)
         Listening on 127.0.0.1:80
@@ -45,7 +46,7 @@ def doctest_ServerBase_startup_logging():
 
         >>> from zope.server.serverbase import ServerBase
         >>> class ServerBaseForTest(ServerBase):
-        ...     def bind(self, (ip, port)):
+        ...     def bind(self, addr):
         ...         self.socket = FakeSocket()
         ...     def log_info(self, message, level='info'):
         ...         print message.expandtabs()
