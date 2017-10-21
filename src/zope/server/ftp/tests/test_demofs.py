@@ -14,7 +14,11 @@
 """Test the Demo Filesystem implementation.
 """
 from unittest import TestCase, TestSuite, main, makeSuite
-from StringIO import StringIO
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 from . import demofs
 from .fstests import FileSystemTests

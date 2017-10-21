@@ -22,8 +22,12 @@ import traceback
 import unittest
 
 from types import StringType
-from StringIO import StringIO
 from threading import Thread, Event
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 from zope.server.adjustments import Adjustments
 from zope.server.ftp.tests import demofs

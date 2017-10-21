@@ -16,7 +16,7 @@
 try:
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 
 # copy_bytes controls the size of temp. strings for shuffling data around.

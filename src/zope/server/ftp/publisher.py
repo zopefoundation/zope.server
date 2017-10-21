@@ -17,7 +17,10 @@ This FTP server uses the Zope 3 Publisher to execute commands.
 """
 import posixpath
 
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 from zope.server.interfaces.ftp import IFileSystem
 from zope.server.interfaces.ftp import IFileSystemAccess

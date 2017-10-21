@@ -11,7 +11,12 @@
 ##############################################################################
 """Test Publisher-based HTTP Server
 """
-import StringIO
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 import paste.lint
 import sys
 import unittest
@@ -319,7 +324,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
             counter = 0
             getCGIEnvironment = lambda _: {}
             class request_data:
-                getBodyStream = lambda _: StringIO.StringIO()
+                getBodyStream = lambda _: StringIO()
             request_data = request_data()
             setResponseStatus = appendResponseHeaders = lambda *_: None
             def wroteResponseHeader(self):
@@ -357,7 +362,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
                 self.response_headers = {}
             getCGIEnvironment = lambda _: {}
             class request_data:
-                getBodyStream = lambda _: StringIO.StringIO()
+                getBodyStream = lambda _: StringIO()
             request_data = request_data()
             def appendResponseHeaders(self, lst):
                 accum = self.accumulated_headers
