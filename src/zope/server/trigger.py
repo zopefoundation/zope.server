@@ -16,7 +16,7 @@ import asyncore
 import os
 import socket
 import struct
-import thread
+from threading import Lock
 import errno
 
 _ADDRESS_MASK = 256 ** struct.calcsize('P')
@@ -72,7 +72,7 @@ class _triggerbase(object):
 
         # `lock` protects the `thunks` list from being traversed and
         # appended to simultaneously.
-        self.lock = thread.allocate_lock()
+        self.lock = Lock()
 
         # List of no-argument callbacks to invoke when the trigger is
         # pulled.  These run in the thread running the asyncore mainloop,
