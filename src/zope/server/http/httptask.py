@@ -212,14 +212,12 @@ class HTTPTask(object):
                 if remote_host is not None:
                     env['REMOTE_HOST'] = remote_host
 
-        env_has = env.has_key
-
         for key, value in request_data.headers.items():
             value = value.strip()
             mykey = rename_headers.get(key, None)
             if mykey is None:
                 mykey = 'HTTP_%s' % key
-            if not env_has(mykey):
+            if mykey not in env:
                 env[mykey] = value
 
         self.cgi_env = env
