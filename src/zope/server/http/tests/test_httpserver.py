@@ -118,7 +118,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.thread_started.set()
         while self.run_loop:
             self.counter = self.counter + 1
-            #print 'loop', self.counter
+            #print('loop %d' % self.counter)
             poll(0.1)
 
     def testEchoResponse(self, h=None, add_headers=None, body=''):
@@ -239,7 +239,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
         conns = []
         for n in range(nconn):
-            #print 'open', n, clock()
+            #print('open %s %s' % (n, clock()))
             h = HTTPConnection(LOCALHOST, self.port)
             #h.debuglevel = 1
             h.request("GET", "/", headers={"Accept": "text/plain"})

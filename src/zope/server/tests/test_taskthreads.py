@@ -56,7 +56,7 @@ def doctest_handlerThread_logs_exceptions_that_happen_during_exception_logging()
     It's important that exceptions in the thread main loop get logged, not just
     exceptions that happen while handling tasks
 
-        >>> print logbuf.getvalue(), # doctest: +ELLIPSIS
+        >>> print(logbuf.getvalue().rstrip()) # doctest: +ELLIPSIS
         Exception during task
         Traceback (most recent call last):
           ...

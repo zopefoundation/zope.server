@@ -43,8 +43,8 @@ class PMDBHTTPServer(wsgihttpserver.WSGIHTTPServer):
                 request = publish(request, handle_errors=False)
             except:
                 import sys, pdb
-                print "%s:" % sys.exc_info()[0]
-                print sys.exc_info()[1]
+                print("%s:" % sys.exc_info()[0])
+                print(sys.exc_info()[1])
                 zope.security.management.restoreInteraction()
                 try:
                     pdb.post_mortem(sys.exc_info()[2])

@@ -128,26 +128,26 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 asyncore.poll(0.1)
                 continue
             except select.error as data:
-                print "EXCEPTION POLLING IN LOOP(): ", data
+                print("EXCEPTION POLLING IN LOOP(): %s" % data)
                 if data[0] == EBADF:
                     for key in asyncore.socket_map.keys():
-                        print
+                        print("")
                         try:
                             select.select([], [], [key], 0.0)
                         except select.error as v:
-                            print "Bad entry in socket map", key, v
-                            print asyncore.socket_map[key]
-                            print asyncore.socket_map[key].__class__
+                            print("Bad entry in socket map %s %s" % (key, v))
+                            print(asyncore.socket_map[key])
+                            print(asyncore.socket_map[key].__class__)
                             del asyncore.socket_map[key]
                         else:
-                            print "OK entry in socket map", key
-                            print asyncore.socket_map[key]
-                            print asyncore.socket_map[key].__class__
-                        print
+                            print("OK entry in socket map %s" % key)
+                            print(asyncore.socket_map[key])
+                            print(asyncore.socket_map[key].__class__)
+                        print("")
             except:
-                print "WEIRD EXCEPTION IN LOOP"
+                print("WEIRD EXCEPTION IN LOOP")
                 traceback.print_exception(*(sys.exc_info()+(100,)))
-            print
+            print("")
 
     def getFTPConnection(self, login=1):
         # import only now to prevent the testrunner from importing it too early

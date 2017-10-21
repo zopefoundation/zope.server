@@ -52,5 +52,5 @@ if __name__ == '__main__':
             asyncore.poll(5)
 
     except KeyboardInterrupt:
-        print 'shutting down...'
+        print('shutting down...')
         td.shutdown()

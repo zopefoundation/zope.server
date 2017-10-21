@@ -56,7 +56,7 @@ def zombies_test():
     >>> class ServerBaseForTest(ServerBase):
     ...     def bind(self, addr):
     ...         ip, port = addr
-    ...         print "Listening on %s:%d" % (ip or '*', port)
+    ...         print("Listening on %s:%d" % (ip or '*', port))
     >>> sb = ServerBaseForTest('127.0.0.1', 80, start=False, verbose=True)
     Listening on 127.0.0.1:80
 

@@ -130,8 +130,8 @@ class _triggerbase(object):
                     thunk()
                 except:
                     nil, t, v, tbinfo = asyncore.compact_traceback()
-                    print ('exception in trigger thunk:'
-                           ' (%s:%s %s)' % (t, v, tbinfo))
+                    print('exception in trigger thunk:'
+                          ' (%s:%s %s)' % (t, v, tbinfo))
             self.thunks = []
         finally:
             self.lock.release()

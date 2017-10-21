@@ -31,7 +31,7 @@ def doctest_ServerBase():
         >>> class ServerBaseForTest(ServerBase):
         ...     def bind(self, addr):
         ...         ip, port = addr
-        ...         print "Listening on %s:%d" % (ip or '*', port)
+        ...         print("Listening on %s:%d" % (ip or '*', port))
         >>> sb = ServerBaseForTest('127.0.0.1', 80, start=False, verbose=True)
         Listening on 127.0.0.1:80
 
@@ -49,7 +49,7 @@ def doctest_ServerBase_startup_logging():
         ...     def bind(self, addr):
         ...         self.socket = FakeSocket()
         ...     def log_info(self, message, level='info'):
-        ...         print message.expandtabs()
+        ...         print(message.expandtabs())
 
         >>> sb = ServerBaseForTest('example.com', 80, start=True, verbose=True)
         zope.server.serverbase started.
@@ -96,14 +96,14 @@ Channels accept iterables (they special-case strings).
     5
 
     >>> channel.flush()
-    >>> print socket.data
+    >>> print(socket.data)
     First
 
     >>> channel.write(["\n", "Second", "\n", "Third"])
     13
 
     >>> channel.flush()
-    >>> print socket.data
+    >>> print(socket.data)
     First
     Second
     Third
@@ -116,7 +116,7 @@ Channels accept iterables (they special-case strings).
     33
 
     >>> channel.flush()
-    >>> print socket.data
+    >>> print(socket.data)
     First
     Second
     Third
