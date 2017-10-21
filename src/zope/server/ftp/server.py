@@ -185,7 +185,7 @@ class FTPServerChannel(LineServerChannel):
 
         try:
             self._getFileSystem().remove(path)
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_DELETE_FILE', str(err))
         else:
             self.reply('SUCCESS_250', 'DELE')
@@ -223,7 +223,7 @@ class FTPServerChannel(LineServerChannel):
                 args, long,
                 directory=bool([opt for opt in opts if opt[0]=='-d'])
                 )
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_NO_LIST', str(err))
             return
         ok_reply = ('OPEN_DATA_CONN', self.type_map[self.transfer_mode])
@@ -231,7 +231,7 @@ class FTPServerChannel(LineServerChannel):
         try:
             cdc.write(s)
             cdc.close_when_done()
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_NO_LIST', str(err))
             cdc.reported = True
             cdc.close_when_done()
@@ -297,7 +297,7 @@ class FTPServerChannel(LineServerChannel):
         path = self._generatePath(args)
         try:
             self._getFileSystem().mkdir(path)
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_CREATE_DIR', str(err))
         else:
             self.reply('SUCCESS_257', 'MKD')
@@ -397,11 +397,11 @@ class FTPServerChannel(LineServerChannel):
         try:
             fs.readfile(path, outstream, start)
             cdc.close_when_done()
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_OPEN_READ', str(err))
             cdc.reported = True
             cdc.close_when_done()
-        except IOError, err:
+        except IOError as err:
             self.reply('ERR_IO', str(err))
             cdc.reported = True
             cdc.close_when_done()
@@ -426,7 +426,7 @@ class FTPServerChannel(LineServerChannel):
         path = self._generatePath(args)
         try:
             self._getFileSystem().rmdir(path)
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_DELETE_DIR', str(err))
         else:
             self.reply('SUCCESS_250', 'RMD')
@@ -449,7 +449,7 @@ class FTPServerChannel(LineServerChannel):
             self.reply('ERR_RENAME')
         try:
             self._getFileSystem().rename(self._rnfr, path)
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_RENAME', (self._rnfr, path, str(err)))
         else:
             self.reply('SUCCESS_250', 'RNTO')
@@ -495,9 +495,9 @@ class FTPServerChannel(LineServerChannel):
             infile.seek(0)
             self._getFileSystem().writefile(path, infile, start,
                                             append=(mode[0]=='a'))
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_OPEN_WRITE', str(err))
-        except IOError, err:
+        except IOError as err:
             self.reply('ERR_IO', str(err))
         except:
             self.exception()

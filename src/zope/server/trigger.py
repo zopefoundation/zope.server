@@ -198,7 +198,7 @@ else:
                try:
                    w.connect(connect_address)
                    break    # success
-               except socket.error, detail:
+               except socket.error as detail:
                    if detail[0] != errno.WSAEADDRINUSE:
                        # "Address already in use" is the only error
                        # I've seen on two WinXP Pro SP2 boxes, under

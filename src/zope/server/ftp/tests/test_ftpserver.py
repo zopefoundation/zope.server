@@ -123,14 +123,14 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             try:
                 asyncore.poll(0.1)
                 continue
-            except select.error, data:
+            except select.error as data:
                 print "EXCEPTION POLLING IN LOOP(): ", data
                 if data[0] == EBADF:
                     for key in asyncore.socket_map.keys():
                         print
                         try:
                             select.select([], [], [key], 0.0)
-                        except select.error, v:
+                        except select.error as v:
                             print "Bad entry in socket map", key, v
                             print asyncore.socket_map[key]
                             print asyncore.socket_map[key].__class__
