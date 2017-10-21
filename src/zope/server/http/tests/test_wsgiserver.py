@@ -25,7 +25,7 @@ import warnings
 from asyncore import socket_map, poll
 from threading import Thread
 from time import sleep
-from httplib import HTTPConnection
+from six.moves.http_client import HTTPConnection
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
 

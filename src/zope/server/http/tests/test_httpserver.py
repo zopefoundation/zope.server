@@ -24,8 +24,8 @@ from zope.server.interfaces import ITask
 from zope.server.tests.asyncerror import AsyncoreErrorHook
 from zope.interface import implementer
 
-from httplib import HTTPConnection
-from httplib import HTTPResponse as ClientHTTPResponse
+from six.moves.http_client import HTTPConnection
+from six.moves.http_client import HTTPResponse as ClientHTTPResponse
 
 from time import sleep, time
 
