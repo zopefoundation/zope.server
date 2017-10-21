@@ -110,7 +110,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 # Clean!
                 break
             if time() >= timeout:
-                self.fail('Leaked a socket: %s' % `socket_map`)
+                self.fail('Leaked a socket: %s' % repr(socket_map))
             poll(0.1)
         self.unhook_asyncore_error()
 
