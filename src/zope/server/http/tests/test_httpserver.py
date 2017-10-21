@@ -91,7 +91,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.run_loop = 1
         self.counter = 0
         self.thread_started = Event()
-        self.thread = Thread(target=self.loop)
+        self.thread = Thread(target=self.loop, name='test_httpserver')
         self.thread.setDaemon(True)
         self.thread.start()
         self.thread_started.wait(10.0)
@@ -120,7 +120,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             #print('loop %d' % self.counter)
             poll(0.1)
 
-    def testEchoResponse(self, h=None, add_headers=None, body=''):
+    def testEchoResponse(self, h=None, add_headers=None, body=b''):
         if h is None:
             h = HTTPConnection(LOCALHOST, self.port)
         headers = {}
@@ -152,7 +152,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         # Tests the use of multiple requests in a single connection.
         h = HTTPConnection(LOCALHOST, self.port)
         for n in range(3):
-            self.testEchoResponse(h, body='Hello, world!')
+            self.testEchoResponse(h, body=b'Hello, world!')
         self.testEchoResponse(h, {'Connection': 'close'})
 
     def testPipelining(self):
@@ -274,7 +274,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         response = h.getresponse()
         self.failUnlessEqual(int(response.status), 200)
         response_body = response.read()
-        self.failUnlessEqual(response_body, '')
+        self.failUnlessEqual(response_body, b'')
 
     def testChunkingRequestWithContent(self):
         control_line = b"20;\r\n"  # 20 hex = 32 dec

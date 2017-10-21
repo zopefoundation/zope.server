@@ -171,7 +171,7 @@ class HTTPTask(object):
         if accum is not None:
             lines.extend(accum)
         res = '%s\r\n\r\n' % '\r\n'.join(lines)
-        return res
+        return res.encode('utf-8')
 
     def getCGIEnvironment(self):
         """Returns a CGI-like environment."""

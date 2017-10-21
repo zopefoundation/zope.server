@@ -77,8 +77,11 @@ class ThreadedTaskDispatcher(object):
                     thread_no = thread_no + 1
                 threads[thread_no] = 1
                 running += 1
-                threading.Thread(target=self.handlerThread,
-                                 args=(thread_no,)).start()
+                t = threading.Thread(target=self.handlerThread,
+                                     args=(thread_no,),
+                                     name='zope.server-%d' % thread_no)
+                t.setDaemon(True)
+                t.start()
                 thread_no = thread_no + 1
             if running > count:
                 # Stop threads.
