@@ -162,7 +162,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              b"Content-Length: %d\r\n"
              b"\r\n"
              b"%s")
-        to_send = b''
+        to_send = []
         count = 25
         for n in range(count):
             body = b"Response #%d\r\n" % (n + 1)
@@ -170,12 +170,12 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 conn = b'keep-alive'
             else:
                 conn = b'close'
-            to_send += s % (conn, len(body), body)
+            to_send.append(s % (conn, len(body), body))
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(to_send)
-        for n in range(count):
+        for n, req in enumerate(to_send):
+            sock.send(req)
             expect_body = b"Response #%d\r\n" % (n + 1)
             response = ClientHTTPResponse(sock)
             response.begin()
