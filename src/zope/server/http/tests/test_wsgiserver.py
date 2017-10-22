@@ -21,7 +21,7 @@ import paste.lint
 import sys
 import unittest
 import warnings
-
+from contextlib import contextmanager
 from asyncore import socket_map, poll
 from threading import Thread
 from time import sleep
@@ -47,6 +47,19 @@ td = ThreadedTaskDispatcher()
 LOCALHOST = '127.0.0.1'
 
 HTTPRequest.STAGGER_RETRIES = 0  # Don't pause.
+
+
+@contextmanager
+def capture_output(stdout=None, stderr=None):
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    sys.stdout = stdout = stdout or StringIO()
+    sys.stderr = stderr = stderr or StringIO()
+    try:
+        yield stdout, stderr
+    finally:
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
 
 
 class Conflict(Exception):
@@ -507,7 +520,8 @@ class PMDBTests(Tests):
         orig_post_mortem = pdb.post_mortem
         pdb.post_mortem = fake_post_mortem
 
-        self.assertRaises(AssertionError, self.server.executeRequest, task)
+        with capture_output():
+            self.assertRaises(AssertionError, self.server.executeRequest, task)
         expected_msg = "start_response called a second time"
         self.assertTrue(expected_msg in pm_traceback[-1])
         pdb.post_mortem = orig_post_mortem
@@ -529,7 +543,8 @@ class PMDBTests(Tests):
         orig_post_mortem = pdb.post_mortem
         pdb.post_mortem = fake_post_mortem
 
-        self.assertRaises(DummyException, self.server.executeRequest, task)
+        with capture_output():
+            self.assertRaises(DummyException, self.server.executeRequest, task)
         self.assertTrue("raise DummyException" in pm_traceback[-1])
 
         self.server.application = orig_app
