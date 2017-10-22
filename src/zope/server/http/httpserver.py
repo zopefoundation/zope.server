@@ -30,7 +30,7 @@ class HTTPServer(ServerBase):
     def executeRequest(self, task):
         """Execute an HTTP request."""
         # This is a default implementation, meant to be overridden.
-        body = "The HTTP server is running!\r\n" * 10
+        body = b"The HTTP server is running!\r\n" * 10
         task.response_headers['Content-Type'] = 'text/plain'
         task.response_headers['Content-Length'] = str(len(body))
         task.write(body)
