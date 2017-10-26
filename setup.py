@@ -65,7 +65,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Framework :: Zope3',
     ],
-    url='http://pypi.python.org/pypi/zope.server',
+    url='https://github.com/zopefoundation/zope.server',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     namespace_packages=['zope'],
