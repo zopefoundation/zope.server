@@ -22,7 +22,7 @@ import errno
 _ADDRESS_MASK = 256 ** struct.calcsize('P')
 def positive_id(obj):
     """Return id(obj) as a non-negative integer."""
-
+    # Note that the output depends on the size of void* on the platform.
     result = id(obj)
     if result < 0:
         result += _ADDRESS_MASK
