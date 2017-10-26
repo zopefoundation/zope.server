@@ -16,7 +16,13 @@
 import unittest
 import logging
 
-from zope.server.http.commonaccesslogger import CommonAccessLogger
+from zope.server.http.commonaccesslogger import CommonAccessLogger as _CommonAccessLogger
+
+class CommonAccessLogger(_CommonAccessLogger):
+    def _localtime(self, when):
+        assert when == 123456789
+        return (1973, 11, 29, 21, 33, 9)
+
 
 class TestCommonAccessLogger(unittest.TestCase):
 
@@ -44,8 +50,22 @@ class TestCommonAccessLogger(unittest.TestCase):
     def test_log_date_string_daylight(self):
         import time
         orig_dl = time.daylight
-        orig_tz = time.timezone
+        orig_az = time.altzone
         time.daylight = True
+        time.altzone = -3600
+        try:
+            s = CommonAccessLogger().log_date_string(123456789)
+        finally:
+            time.daylight = orig_dl
+            time.altzone = orig_az
+
+        self.assertEqual(s, '29/Nov/1973:21:33:09 +0100')
+
+    def test_log_date_string_non_daylight(self):
+        import time
+        orig_dl = time.daylight
+        orig_tz = time.timezone
+        time.daylight = False
         time.timezone = -3600
         try:
             s = CommonAccessLogger().log_date_string(123456789)
@@ -53,21 +73,7 @@ class TestCommonAccessLogger(unittest.TestCase):
             time.daylight = orig_dl
             time.timezone = orig_tz
 
-        self.assertEqual(s, '29/Nov/1973:15:33:09 -0500')
-
-    def test_log_date_string_non_daylight(self):
-        import time
-        orig_dl = time.daylight
-        orig_tz = time.altzone
-        time.daylight = False
-        time.altzone = -3600
-        try:
-            s = CommonAccessLogger().log_date_string(123456789)
-        finally:
-            time.daylight = orig_dl
-            time.altzone = orig_tz
-
-        self.assertEqual(s, '29/Nov/1973:15:33:09 -0600')
+        self.assertEqual(s, '29/Nov/1973:21:33:09 +0100')
 
     def test_log_request(self):
         import time
@@ -94,9 +100,9 @@ class TestCommonAccessLogger(unittest.TestCase):
         def t():
             return 123456789
         orig_dl = time.daylight
-        orig_tz = time.timezone
+        orig_az = time.altzone
         time.daylight = True
-        time.timezone = -3600
+        time.altzone = -3600
         time.time = t
         try:
             output = Output()
@@ -104,9 +110,9 @@ class TestCommonAccessLogger(unittest.TestCase):
             cal.log(Task())
         finally:
             time.daylight = orig_dl
-            time.timezone = orig_tz
+            time.altzone = orig_az
             time.time = orig_t
 
         self.assertEqual(
-            'host - anonymous [29/Nov/1973:15:33:09 -0500] "GET / HTTP/1.0" 200 OK 10 "" ""\n',
+            'host - anonymous [29/Nov/1973:21:33:09 +0100] "GET / HTTP/1.0" 200 OK 10 "" ""\n',
             output.msgs[0])

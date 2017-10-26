@@ -52,8 +52,10 @@ class CommonAccessLogger(object):
     tz_for_log = None
     tz_for_log_alt = None
 
+    _localtime = staticmethod(time.localtime)
+
     def log_date_string(self, when):
-        logtime = time.localtime(when)
+        logtime = self._localtime(when)
         Y, M, D, h, m, s = logtime[:6]
 
         if not time.daylight:
