@@ -153,11 +153,11 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.assertEqual(result, b'220')
         if login:
             ftp.send(b'USER foo\r\n')
-            self.assertEqual(ftp.recv(1024).decode(),
-                             status_messages['PASS_REQUIRED'] +'\r\n')
+            self.assertEqual(ftp.recv(1024).decode('ascii'),
+                             status_messages['PASS_REQUIRED'] + '\r\n')
             ftp.send(b'PASS bar\r\n')
-            self.assertEqual(ftp.recv(1024).decode(),
-                             status_messages['LOGIN_SUCCESS'] +'\r\n')
+            self.assertEqual(ftp.recv(1024).decode('ascii'),
+                             status_messages['LOGIN_SUCCESS'] + '\r\n')
 
         return ftp
 
@@ -170,8 +170,8 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 commands = (commands,)
 
             for command in commands:
-                ftp.send(b'%s\r\n' % command.encode())
-                result = ftp.recv(10000).decode()
+                ftp.send(b'%s\r\n' % command.encode('ascii'))
+                result = ftp.recv(10000).decode('ascii')
             self.failUnless(result.endswith('\r\n'))
         finally:
             ftp.close()

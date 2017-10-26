@@ -240,9 +240,9 @@ class Tests(PlacelessSetup, unittest.TestCase):
     def testDeeperPath(self):
         status, response_body = self.invokeRequest('/folder/item')
         self.assertEqual(status, 200)
-        expect_response = 'URL invoked: http://%s:%d/folder/item' % (
-            LOCALHOST, self.port)
-        self.assertEqual(response_body, expect_response.encode())
+        expect_response = b'URL invoked: http://%s:%d/folder/item' % (
+            LOCALHOST.encode('ascii'), self.port)
+        self.assertEqual(response_body, expect_response)
 
     def testNotFound(self):
         status, response_body = self.invokeRequest('/foo/bar')
@@ -290,7 +290,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
     def testWSGIVariables(self):
         # Assert that the environment contains all required WSGI variables
         status, response_body = self.invokeRequest('/wsgi')
-        wsgi_variables = set(response_body.decode().split())
+        wsgi_variables = set(response_body.decode('ascii').split())
         self.assertEqual(wsgi_variables,
                          set(['wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
                               'wsgi.errors', 'wsgi.multithread',
@@ -499,7 +499,7 @@ class PMDBTests(Tests):
     def testWSGIVariables(self):
         # Assert that the environment contains all required WSGI variables
         status, response_body = self.invokeRequest('/wsgi')
-        wsgi_variables = set(response_body.decode().split())
+        wsgi_variables = set(response_body.decode('ascii').split())
         self.assertEqual(wsgi_variables,
                          set(['wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
                               'wsgi.errors', 'wsgi.multithread',

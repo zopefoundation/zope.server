@@ -96,14 +96,14 @@ Channels accept iterables (they special-case strings).
     5
 
     >>> channel.flush()
-    >>> print(socket.data.decode())
+    >>> print(socket.data.decode('ascii'))
     First
 
     >>> channel.write([b"\n", b"Second", b"\n", b"Third"])
     13
 
     >>> channel.flush()
-    >>> print(socket.data.decode())
+    >>> print(socket.data.decode('ascii'))
     First
     Second
     Third
@@ -116,7 +116,7 @@ Channels accept iterables (they special-case strings).
     33
 
     >>> channel.flush()
-    >>> print(socket.data.decode())
+    >>> print(socket.data.decode('ascii'))
     First
     Second
     Third
@@ -126,6 +126,7 @@ Channels accept iterables (they special-case strings).
     I love to count. Ha ha ha.
 
 """
+
 
 def test_suite():
     return doctest.DocTestSuite()
