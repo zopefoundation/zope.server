@@ -16,22 +16,97 @@
 import unittest
 import logging
 
+from zope.server.http.commonaccesslogger import CommonAccessLogger
 
 class TestCommonAccessLogger(unittest.TestCase):
 
     def test_default_constructor(self):
-        from zope.server.http.commonaccesslogger import CommonAccessLogger
+
         from zope.server.logger.unresolvinglogger import UnresolvingLogger
         from zope.server.logger.pythonlogger import PythonLogger
         logger = CommonAccessLogger()
         # CommonHitLogger is registered as an argumentless factory via
         # ZCML, so the defaults should be sensible
-        self.assert_(isinstance(logger.output, UnresolvingLogger))
-        self.assert_(isinstance(logger.output.logger, PythonLogger))
-        self.assert_(logger.output.logger.name, 'accesslog')
-        self.assert_(logger.output.logger.level, logging.INFO)
+        self.assertIsInstance(logger.output, UnresolvingLogger)
+        self.assertIsInstance(logger.output.logger, PythonLogger)
+        self.assertEqual(logger.output.logger.name, 'accesslog')
+        self.assertEqual(logger.output.logger.level, logging.INFO)
 
-    # TODO: please add unit tests for other methods as well:
-    #       compute_timezone_for_log
-    #       log_date_string
-    #       log
+    def test_compute_timezone_for_log_negative(self):
+        tz = -3600
+        self.assertEqual('+0100', CommonAccessLogger.compute_timezone_for_log(tz))
+
+
+    def test_compute_timezone_for_log_positive(self):
+        tz = 3600
+        self.assertEqual('-0100', CommonAccessLogger.compute_timezone_for_log(tz))
+
+    def test_log_date_string_daylight(self):
+        import time
+        orig_dl = time.daylight
+        orig_tz = time.timezone
+        time.daylight = True
+        time.timezone = -3600
+        try:
+            s = CommonAccessLogger().log_date_string(123456789)
+        finally:
+            time.daylight = orig_dl
+            time.timezone = orig_tz
+
+        self.assertEqual(s, '29/Nov/1973:15:33:09 -0500')
+
+    def test_log_date_string_non_daylight(self):
+        import time
+        orig_dl = time.daylight
+        orig_tz = time.altzone
+        time.daylight = False
+        time.altzone = -3600
+        try:
+            s = CommonAccessLogger().log_date_string(123456789)
+        finally:
+            time.daylight = orig_dl
+            time.altzone = orig_tz
+
+        self.assertEqual(s, '29/Nov/1973:15:33:09 -0600')
+
+    def test_log_request(self):
+        import time
+
+        class Output(object):
+            msgs = ()
+            def logMessage(self, msg):
+                self.msgs += (msg,)
+
+        class Resolver(object):
+            def resolve_ptr(self, ip, then):
+                then('host', None, None)
+
+        class Task(object):
+            channel = request_data = property(lambda s: s)
+            headers = {}
+            auth_user_name = None
+            addr = ('localhost', )
+            first_line = 'GET / HTTP/1.0'
+            status = '200 OK'
+            bytes_written = 10
+
+        orig_t = time.time
+        def t():
+            return 123456789
+        orig_dl = time.daylight
+        orig_tz = time.timezone
+        time.daylight = True
+        time.timezone = -3600
+        time.time = t
+        try:
+            output = Output()
+            cal = CommonAccessLogger(output, Resolver())
+            cal.log(Task())
+        finally:
+            time.daylight = orig_dl
+            time.timezone = orig_tz
+            time.time = orig_t
+
+        self.assertEqual(
+            'host - anonymous [29/Nov/1973:15:33:09 -0500] "GET / HTTP/1.0" 200 OK 10 "" ""\n',
+            output.msgs[0])

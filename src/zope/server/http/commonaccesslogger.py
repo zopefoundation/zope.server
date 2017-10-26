@@ -36,7 +36,8 @@ class CommonAccessLogger(object):
         else:
             self.output = UnresolvingLogger(logger_object)
 
-    def compute_timezone_for_log(self, tz):
+    @classmethod
+    def compute_timezone_for_log(cls, tz):
         if tz > 0:
             neg = 1
         else:
