@@ -26,7 +26,7 @@ from zope.server.buffers import OverflowableBuffer
 the_trigger = trigger.trigger()
 
 
-class DualModeChannel(asyncore.dispatcher):
+class DualModeChannel(asyncore.dispatcher, object):
     """Channel that switches between asynchronous and synchronous mode.
 
     Call set_sync() before using a channel in a thread other than

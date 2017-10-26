@@ -38,7 +38,7 @@ class LineServerChannel(ServerChannelBase):
     parser_class = LineCommandParser
 
     # List of commands that are always available
-    special_commands = ('cmd_quit')
+    special_commands = ('cmd_quit',)
 
     # Commands that are run in a separate thread
     thread_commands = ()
@@ -61,7 +61,7 @@ class LineServerChannel(ServerChannelBase):
         'CMD_UNKNOWN'      : "500 '%s': command not understood.",
         'INTERNAL_ERROR'   : "500 Internal error: %s",
         'LOGIN_REQUIRED'   : '530 Please log in with USER and PASS',
-        }
+    }
 
 
     def handle_request(self, command):
@@ -72,7 +72,7 @@ class LineServerChannel(ServerChannelBase):
         assert isinstance(command, LineCommandParser)
         cmd = command.cmd
         method = 'cmd_' + cmd.lower()
-        if (not self.authenticated and method not in self.special_commands):
+        if not self.authenticated and method not in self.special_commands:
             # The user is not logged in, therefore don't allow anything
             self.reply(self.not_auth_reply)
 
@@ -107,7 +107,7 @@ class LineServerChannel(ServerChannelBase):
 
     def handle_error_no_close(self):
         """See asyncore.dispatcher.handle_error()"""
-        nil, t, v, tbinfo = compact_traceback()
+        _nil, t, v, tbinfo = compact_traceback()
 
         # sometimes a user repr method will crash.
         try:
@@ -127,7 +127,7 @@ class LineServerChannel(ServerChannelBase):
 
 
     def exception(self):
-        if DEBUG:
+        if DEBUG: # pragma: no cover
             import traceback
             traceback.print_exc()
         t, v = sys.exc_info()[:2]

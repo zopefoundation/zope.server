@@ -31,7 +31,7 @@ task_lock = Lock()
 
 
 @implementer(IServerChannel, ITask)
-class ServerChannelBase(DualModeChannel, object):
+class ServerChannelBase(DualModeChannel):
     """Base class for a high-performance, mixed-mode server-side channel."""
 
 
@@ -228,4 +228,3 @@ class ServerChannelBase(DualModeChannel, object):
 
     def defer(self):
         pass
-
