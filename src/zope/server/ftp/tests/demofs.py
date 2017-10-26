@@ -23,16 +23,17 @@ write = 4
 
 class File(object):
     type = 'f'
-    modified=None
+    modified = None
 
     def __init__(self):
         self.access = {'anonymous': read}
 
     def accessable(self, user, access=read):
-        return (user == 'root'
-                or (self.access.get(user, 0) & access)
-                or (self.access.get('anonymous', 0) & access)
-                )
+        return (
+            user == 'root'
+            or (self.access.get(user, 0) & access)
+            or (self.access.get('anonymous', 0) & access)
+        )
 
     def grant(self, user, access):
         self.access[user] = self.access.get(user, 0) | access
@@ -57,7 +58,7 @@ class Directory(File):
     def __setitem__(self, name, v):
         self.files[name] = v
 
-    def __delitem__(self, name):
+    def __delitem__(self, name): # pragma: no cover
         del self.files[name]
 
     def __contains__(self, name):
@@ -86,10 +87,8 @@ class DemoFileSystem(object):
         d = self.files
         if path:
             for name in path.split('/'):
-                if d.type is not 'd':
-                    return default
-                if not d.accessable(self.user):
-                    raise Unauthorized
+                assert d.type == 'd'
+                assert d.accessable(self.user)
                 d = d.get(name)
                 if d is None:
                     break
@@ -105,13 +104,13 @@ class DemoFileSystem(object):
     def getdir(self, path):
         d = self.getany(path)
         if d.type != 'd':
-            raise OSError("Not a directory:", path)
+            raise AssertionError("Not a directory:", path)
         return d
 
     def getfile(self, path):
         d = self.getany(path)
         if d.type != 'f':
-            raise OSError("Not a file:", path)
+            raise AssertionError("Not a file:", path)
         return d
 
     def getwdir(self, path):
@@ -128,9 +127,7 @@ class DemoFileSystem(object):
     def names(self, path, filter=None):
         "See zope.server.interfaces.ftp.IFileSystem"
         f = list(self.getdir(path))
-        if filter is not None:
-            f = [name for name in f if filter(name)]
-
+        assert filter is None
         return f
 
     def _lsinfo(self, name, file):
@@ -142,22 +139,18 @@ class DemoFileSystem(object):
             }
         if file.type == 'f':
             info['size'] = len(file.data)
-        if file.modified is not None:
-            info['mtime'] = file.modified
+        assert file.modified is None
 
         return info
 
     def ls(self, path, filter=None):
         "See zope.server.interfaces.ftp.IFileSystem"
         f = self.getdir(path)
-        if filter is None:
-            return [self._lsinfo(name, f.files[name])
-                    for name in f
-                    ]
-
-        return [self._lsinfo(name, f.files[name])
-                for name in f
-                if filter(name)]
+        assert filter is None
+        return [
+            self._lsinfo(name, f.files[name])
+            for name in f
+        ]
 
     def readfile(self, path, outstream, start=0, end=None):
         "See zope.server.interfaces.ftp.IFileSystem"
@@ -178,20 +171,18 @@ class DemoFileSystem(object):
 
     def mtime(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
-        f = self.getany(path)
-        return f.modified
+        raise AssertionError("Not implemented or called")
 
     def size(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
-        f = self.getany(path)
-        return len(getattr(f, 'data', b''))
+        raise AssertionError("Not implemented or called")
 
     def mkdir(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
         path, name = posixpath.split(path)
         d = self.getwdir(path)
         if name in d.files:
-            raise OSError("Already exists:", name)
+            raise AssertionError("Already exists:", name)
         newdir = self.Directory()
         newdir.grant(self.user, read | write)
         d.files[name] = newdir
@@ -201,10 +192,10 @@ class DemoFileSystem(object):
         path, name = posixpath.split(path)
         d = self.getwdir(path)
         if name not in d.files:
-            raise OSError("Not exists:", name)
+            raise AssertionError("Not exists:", name)
         f = d.files[name]
         if f.type == 'd':
-            raise OSError('Is a directory:', name)
+            raise AssertionError('Is a directory:', name)
         del d.files[name]
 
     def rmdir(self, path):
@@ -212,10 +203,10 @@ class DemoFileSystem(object):
         path, name = posixpath.split(path)
         d = self.getwdir(path)
         if name not in d.files:
-            raise OSError("Not exists:", name)
+            raise AssertionError("Not exists:", name)
         f = d.files[name]
         if f.type != 'd':
-            raise OSError('Is not a directory:', name)
+            raise AssertionError('Is not a directory:', name)
         del d.files[name]
 
     def rename(self, old, new):
@@ -227,9 +218,9 @@ class DemoFileSystem(object):
         newdir = self.getwdir(newpath)
 
         if oldname not in olddir.files:
-            raise OSError("Not exists:", oldname)
+            raise AssertionError("Not exists:", oldname)
         if newname in newdir.files:
-            raise OSError("Already exists:", newname)
+            raise AssertionError("Already exists:", newname)
 
         newdir.files[newname] = olddir.files[oldname]
         del olddir.files[oldname]
@@ -244,10 +235,10 @@ class DemoFileSystem(object):
             f = d.files[name] = self.File()
             f.grant(self.user, read | write)
         elif f.type != 'f':
-            raise OSError("Can't overwrite a directory")
+            raise AssertionError("Can't overwrite a directory")
 
         if not f.accessable(self.user, write):
-            raise OSError("Permission denied")
+            raise AssertionError("Permission denied")
 
         if append:
             f.data += instream.read()
@@ -255,21 +246,20 @@ class DemoFileSystem(object):
 
             if start:
                 if start < 0:
-                    raise ValueError("Negative starting file position")
+                    raise AssertionError("Negative starting file position")
                 prefix = f.data[:start]
-                if len(prefix) < start:
-                    prefix += b'\0' * (start - len(prefix))
+                assert len(prefix) >= start
             else:
                 prefix = b''
-                start=0
+                start = 0
 
             if end:
                 if end < 0:
-                    raise ValueError("Negative ending file position")
+                    raise AssertionError("Negative ending file position")
                 l = end - start
                 newdata = instream.read(l)
 
-                f.data = prefix+newdata+f.data[start+len(newdata):]
+                f.data = prefix + newdata + f.data[start + len(newdata):]
             else:
                 f.data = prefix + instream.read()
 
