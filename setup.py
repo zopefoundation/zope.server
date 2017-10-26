@@ -28,6 +28,7 @@ def read(*rnames):
 
 
 tests_require = [
+    'zope.testrunner',
     'zope.testing',
     'zope.i18n',
     'zope.component',
