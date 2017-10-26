@@ -17,6 +17,7 @@ This server uses asyncore to accept connections and do initial
 processing but threads to do work.
 """
 import re
+import sys
 from io import BytesIO
 
 from six.moves.urllib.parse import unquote, urlsplit
@@ -26,6 +27,8 @@ from zope.server.buffers import OverflowableBuffer
 from zope.server.utilities import find_double_newline
 from zope.server.interfaces import IStreamConsumer
 from zope.interface import implementer
+
+PY3 = sys.version_info >= (3, )
 
 
 @implementer(IStreamConsumer)
@@ -108,14 +111,15 @@ class HTTPRequestParser(object):
         else:
             first_line = header_plus.rstrip()
             header = b''
+        if PY3:
+            first_line = first_line.decode('latin1')
+            header = header.decode('latin1')
         self.first_line = first_line
         self.header = header
 
         lines = self.get_header_lines()
         headers = self.headers
         for line in lines:
-            if not isinstance(line, str):
-                line = line.decode('latin1')
             index = line.find(':')
             if index > 0:
                 key = line[:index]
@@ -159,9 +163,9 @@ class HTTPRequestParser(object):
         Splits the header into lines, putting multi-line headers together.
         """
         r = []
-        lines = self.header.split(b'\n')
+        lines = self.header.split('\n')
         for line in lines:
-            if line and line[0] in b' \t':
+            if line and line[0] in ' \t':
                 r[-1] = r[-1] + line[1:]
             else:
                 r.append(line)
@@ -173,8 +177,6 @@ class HTTPRequestParser(object):
 
     def crack_first_line(self):
         r = self.first_line
-        if not isinstance(r, str):
-            r = r.decode('latin1')
         m = self.first_line_re.match(r)
         if m is not None and m.end() == len(r):
             if m.group(3):
