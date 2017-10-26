@@ -43,9 +43,9 @@ setup(
     author_email='zope-dev@zope.org',
     description='Zope Server (Web and FTP)',
     long_description=(
-        read('README.txt')
+        read('README.rst')
         + '\n\n' +
-        read('CHANGES.txt')
+        read('CHANGES.rst')
     ),
     license='ZPL 2.1',
     keywords=('zope3 server http ftp'),
