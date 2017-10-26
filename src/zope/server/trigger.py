@@ -129,7 +129,7 @@ class _triggerbase(object):
                 try:
                     thunk()
                 except:
-                    nil, t, v, tbinfo = asyncore.compact_traceback()
+                    _nil, t, v, tbinfo = asyncore.compact_traceback()
                     print('exception in trigger thunk:'
                           ' (%s:%s %s)' % (t, v, tbinfo))
             self.thunks = []
@@ -139,90 +139,104 @@ class _triggerbase(object):
     def __repr__(self):
         return '<select-trigger (%s) at %x>' % (self.kind, positive_id(self))
 
-if os.name == 'posix':
 
-    class trigger(_triggerbase, asyncore.file_dispatcher):
-        kind = "pipe"
+class pipetrigger(_triggerbase, asyncore.file_dispatcher):
+    kind = "pipe"
 
-        def __init__(self):
-            _triggerbase.__init__(self)
-            r, self.trigger = self._fds = os.pipe()
-            asyncore.file_dispatcher.__init__(self, r)
+    def __init__(self):
+        _triggerbase.__init__(self)
+        r, self.trigger = self._fds = os.pipe()
+        asyncore.file_dispatcher.__init__(self, r)
 
-        def _close(self):
-            for fd in self._fds:
-                os.close(fd)
-            self._fds = []
+        if self.socket.fd != r:
+            # Starting in Python 2.6, the descriptor passed to
+            # file_dispatcher gets duped and assigned to
+            # self.socket.fd. This breals the instantiation semantics and
+            # is a bug imo.  I dount it will get fixed, but maybe
+            # it will. Who knows. For that reason, we test for the
+            # fd changing rather than just checking the Python version.
+            os.close(r)
 
-        def _physical_pull(self):
-            os.write(self.trigger, b'x')
+    def _close(self):
+        for fd in self._fds:
+            os.close(fd)
+        self._fds = []
 
-else:
+    def _physical_pull(self):
+        os.write(self.trigger, b'x')
+
+class BindError(Exception):
+    pass
+
+class sockettrigger(_triggerbase, asyncore.dispatcher):
     # Windows version; uses just sockets, because a pipe isn't select'able
     # on Windows.
+    kind = "loopback"
 
-    class trigger(_triggerbase, asyncore.dispatcher):
-        kind = "loopback"
+    def __init__(self):
+        _triggerbase.__init__(self)
 
-        def __init__(self):
-            _triggerbase.__init__(self)
+        # Get a pair of connected sockets.  The trigger is the 'w'
+        # end of the pair, which is connected to 'r'.  'r' is put
+        # in the asyncore socket map.  "pulling the trigger" then
+        # means writing something on w, which will wake up r.
 
-            # Get a pair of connected sockets.  The trigger is the 'w'
-            # end of the pair, which is connected to 'r'.  'r' is put
-            # in the asyncore socket map.  "pulling the trigger" then
-            # means writing something on w, which will wake up r.
+        w = socket.socket()
+        # Disable buffering -- pulling the trigger sends 1 byte,
+        # and we want that sent immediately, to wake up asyncore's
+        # select() ASAP.
+        w.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
-            w = socket.socket()
-            # Disable buffering -- pulling the trigger sends 1 byte,
-            # and we want that sent immediately, to wake up asyncore's
-            # select() ASAP.
-            w.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        count = 0
+        while 1:
+            count += 1
+            # Bind to a local port; for efficiency, let the OS pick
+            # a free port for us.
+            # Unfortunately, stress tests showed that we may not
+            # be able to connect to that port ("Address already in
+            # use") despite that the OS picked it.  This appears
+            # to be a race bug in the Windows socket implementation.
+            # So we loop until a connect() succeeds (almost always
+            # on the first try).  See the long thread at
+            # http://mail.zope.org/pipermail/zope/2005-July/160433.html
+            # for hideous details.
+            a = socket.socket()
+            a.bind(("127.0.0.1", 0))
+            connect_address = a.getsockname()  # assigned (host, port) pair
+            a.listen(1)
+            try:
+                w.connect(connect_address)
+                break    # success
+            except socket.error as detail:
+                if detail.args[0] != errno.WSAEADDRINUSE:
+                    # "Address already in use" is the only error
+                    # I've seen on two WinXP Pro SP2 boxes, under
+                    # Pythons 2.3.5 and 2.4.1.
+                    raise
+                # (10048, 'Address already in use')
+                # assert count <= 2 # never triggered in Tim's tests
+                if count >= 10:  # I've never seen it go above 2
+                    a.close()
+                    w.close()
+                    raise BindError("Cannot bind trigger!")
+                # Close `a` and try again.  Note:  I originally put a short
+                # sleep() here, but it didn't appear to help or hurt.
+                a.close()
 
-            count = 0
-            while 1:
-               count += 1
-               # Bind to a local port; for efficiency, let the OS pick
-               # a free port for us.
-               # Unfortunately, stress tests showed that we may not
-               # be able to connect to that port ("Address already in
-               # use") despite that the OS picked it.  This appears
-               # to be a race bug in the Windows socket implementation.
-               # So we loop until a connect() succeeds (almost always
-               # on the first try).  See the long thread at
-               # http://mail.zope.org/pipermail/zope/2005-July/160433.html
-               # for hideous details.
-               a = socket.socket()
-               a.bind(("127.0.0.1", 0))
-               connect_address = a.getsockname()  # assigned (host, port) pair
-               a.listen(1)
-               try:
-                   w.connect(connect_address)
-                   break    # success
-               except socket.error as detail:
-                   if detail[0] != errno.WSAEADDRINUSE:
-                       # "Address already in use" is the only error
-                       # I've seen on two WinXP Pro SP2 boxes, under
-                       # Pythons 2.3.5 and 2.4.1.
-                       raise
-                   # (10048, 'Address already in use')
-                   # assert count <= 2 # never triggered in Tim's tests
-                   if count >= 10:  # I've never seen it go above 2
-                       a.close()
-                       w.close()
-                       raise BindError("Cannot bind trigger!")
-                   # Close `a` and try again.  Note:  I originally put a short
-                   # sleep() here, but it didn't appear to help or hurt.
-                   a.close()
+        r, addr = a.accept()  # r becomes asyncore's (self.)socket
+        a.close()
+        self.trigger = w
+        asyncore.dispatcher.__init__(self, r)
 
-            r, addr = a.accept()  # r becomes asyncore's (self.)socket
-            a.close()
-            self.trigger = w
-            asyncore.dispatcher.__init__(self, r)
+    def _close(self):
+        # self.socket is r, and self.trigger is w, from __init__
+        self.socket.close()
+        self.trigger.close()
 
-        def _close(self):
-            # self.socket is r, and self.trigger is w, from __init__
-            self.socket.close()
-            self.trigger.close()
+    def _physical_pull(self):
+        self.trigger.send('x')
 
-        def _physical_pull(self):
-            self.trigger.send('x')
+if os.name == 'posix':
+    trigger = pipetrigger
+else:
+    trigger = sockettrigger

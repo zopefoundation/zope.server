@@ -15,7 +15,7 @@ class TestFunctions(unittest.TestCase):
         trigger.id = lambda o: -42
         try:
             # This is possibly only correct on 64-bit platforms
-            self.assertEqual(18446744073709551574L,
+            self.assertEqual(18446744073709551574,
                              trigger.positive_id(None))
         finally:
             del trigger.id
