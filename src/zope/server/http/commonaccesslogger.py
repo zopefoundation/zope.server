@@ -42,12 +42,11 @@ class CommonAccessLogger(object):
         else:
             neg = 0
             tz = -tz
-        h, rem = divmod (tz, 3600)
-        m, rem = divmod (rem, 60)
+        h, rem = divmod(tz, 3600)
+        m, rem = divmod(rem, 60)
         if neg:
             return '-%02d%02d' % (h, m)
-        else:
-            return '+%02d%02d' % (h, m)
+        return '+%02d%02d' % (h, m)
 
     tz_for_log = None
     tz_for_log_alt = None
