@@ -12,12 +12,6 @@
 """Test Publisher-based HTTP Server
 """
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-
-import paste.lint
 import sys
 import unittest
 import warnings
@@ -25,6 +19,9 @@ from contextlib import contextmanager
 from asyncore import socket_map, poll
 from threading import Thread
 from time import sleep
+from io import BytesIO, StringIO
+
+import paste.lint
 from six.moves.http_client import HTTPConnection
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
@@ -48,13 +45,17 @@ LOCALHOST = '127.0.0.1'
 
 HTTPRequest.STAGGER_RETRIES = 0  # Don't pause.
 
+# By using io.BytesIO() instead of cStringIO.StringIO() on Python 2 we make
+# sure we're not trying to accidentally print unicode to stdout/stderr.
+NativeStringIO = BytesIO if str is bytes else StringIO
+
 
 @contextmanager
 def capture_output(stdout=None, stderr=None):
     old_stdout = sys.stdout
     old_stderr = sys.stderr
-    sys.stdout = stdout = stdout or StringIO()
-    sys.stderr = stderr = stderr or StringIO()
+    sys.stdout = stdout = stdout or NativeStringIO()
+    sys.stderr = stderr = stderr or NativeStringIO()
     try:
         yield stdout, stderr
     finally:
@@ -337,7 +338,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
             counter = 0
             getCGIEnvironment = lambda _: {}
             class request_data:
-                getBodyStream = lambda _: StringIO()
+                getBodyStream = lambda _: BytesIO()
             request_data = request_data()
             setResponseStatus = appendResponseHeaders = lambda *_: None
             def wroteResponseHeader(self):
@@ -375,7 +376,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
                 self.response_headers = {}
             getCGIEnvironment = lambda _: {}
             class request_data:
-                getBodyStream = lambda _: StringIO()
+                getBodyStream = lambda _: BytesIO()
             request_data = request_data()
             def appendResponseHeaders(self, lst):
                 accum = self.accumulated_headers

@@ -1,12 +1,13 @@
 import doctest
 import logging
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import BytesIO, StringIO
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
+
+
+# By using io.BytesIO() instead of cStringIO.StringIO() on Python 2 we make
+# sure we're not trying to accidentally print unicode to stdout/stderr.
+NativeStringIO = BytesIO if str is bytes else StringIO
 
 
 class CountingDict(dict):
@@ -31,7 +32,7 @@ class TaskStub(object):
 
 def setUp(test):
     test.logger = logging.getLogger('zope.server.taskthreads')
-    test.logbuf = StringIO()
+    test.logbuf = NativeStringIO()
     test.good_handler = logging.StreamHandler(test.logbuf)
     test.logger.addHandler(test.good_handler)
     test.bad_handler = logging.Handler()
