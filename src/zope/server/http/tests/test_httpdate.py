@@ -22,12 +22,4 @@ class Tests(unittest.TestCase):
     def testDateRoundTrip(self):
         from time import time
         t = int(time())
-        self.assertEquals(t, parse_http_date(build_http_date(t)))
-
-
-def test_suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(Tests)
-
-if __name__=='__main__':
-    unittest.TextTestRunner().run(test_suite())
+        self.assertEqual(t, parse_http_date(build_http_date(t)))

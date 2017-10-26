@@ -210,19 +210,12 @@ class Tests(PlacelessSetup, unittest.TestCase):
         while self.run_loop:
             poll(0.1, socket_map)
 
-    def invokeRequest(self, path='/', add_headers=None, request_body=b'',
+    def invokeRequest(self, path='/',
                       return_response=False):
         h = HTTPConnection(LOCALHOST, self.port)
         h.putrequest('GET', path)
         h.putheader('Accept', 'text/plain')
-        if add_headers:
-            for k, v in add_headers.items():
-                h.putheader(k, v)
-        if request_body:
-            h.putheader('Content-Length', str(int(len(request_body))))
         h.endheaders()
-        if request_body:
-            h.send(request_body)
         response = h.getresponse()
         if return_response:
             return response
@@ -245,30 +238,30 @@ class Tests(PlacelessSetup, unittest.TestCase):
         self.assertEqual(response_body, expect_response.encode('ascii'))
 
     def testNotFound(self):
-        status, response_body = self.invokeRequest('/foo/bar')
+        status, _response_body = self.invokeRequest('/foo/bar')
         self.assertEqual(status, 404)
 
     def testUnauthorized(self):
-        status, response_body = self.invokeRequest('/_protected')
+        status, _response_body = self.invokeRequest('/_protected')
         self.assertEqual(status, 401)
 
     def testRedirectMethod(self):
-        status, response_body = self.invokeRequest('/redirect_method')
+        status, _response_body = self.invokeRequest('/redirect_method')
         self.assertEqual(status, 303)
 
     def testRedirectException(self):
-        status, response_body = self.invokeRequest('/redirect_exception')
+        status, _response_body = self.invokeRequest('/redirect_exception')
         self.assertEqual(status, 303)
-        status, response_body = self.invokeRequest('/folder/redirect_exception')
+        status, _response_body = self.invokeRequest('/folder/redirect_exception')
         self.assertEqual(status, 303)
 
     def testConflictRetry(self):
-        status, response_body = self.invokeRequest('/conflict?wait_tries=2')
+        status, _response_body = self.invokeRequest('/conflict?wait_tries=2')
         # Expect the "Accepted" response since the retries will succeed.
         self.assertEqual(status, 202)
 
     def testFailedConflictRetry(self):
-        status, response_body = self.invokeRequest('/conflict?wait_tries=10')
+        status, _response_body = self.invokeRequest('/conflict?wait_tries=10')
         # Expect a "Conflict" response since there will be too many
         # conflicts.
         self.assertEqual(status, 409)
@@ -289,7 +282,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
     def testWSGIVariables(self):
         # Assert that the environment contains all required WSGI variables
-        status, response_body = self.invokeRequest('/wsgi')
+        _status, response_body = self.invokeRequest('/wsgi')
         wsgi_variables = set(response_body.decode('ascii').split())
         self.assertEqual(wsgi_variables,
                          set(['wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
@@ -297,30 +290,30 @@ class Tests(PlacelessSetup, unittest.TestCase):
                               'wsgi.multiprocess', 'wsgi.run_once']))
 
     def testWSGIVersion(self):
-        status, response_body = self.invokeRequest('/wsgi/version')
+        _status, response_body = self.invokeRequest('/wsgi/version')
         self.assertEqual(b"(1, 0)", response_body)
 
     def testWSGIURLScheme(self):
-        status, response_body = self.invokeRequest('/wsgi/url_scheme')
+        _status, response_body = self.invokeRequest('/wsgi/url_scheme')
         self.assertEqual(b'http', response_body)
 
     def testWSGIMultithread(self):
-        status, response_body = self.invokeRequest('/wsgi/multithread')
+        _status, response_body = self.invokeRequest('/wsgi/multithread')
         self.assertEqual(b'True', response_body)
 
     def testWSGIMultiprocess(self):
-        status, response_body = self.invokeRequest('/wsgi/multiprocess')
+        _status, response_body = self.invokeRequest('/wsgi/multiprocess')
         self.assertEqual(b'True', response_body)
 
     def testWSGIRunOnce(self):
-        status, response_body = self.invokeRequest('/wsgi/run_once')
+        _status, response_body = self.invokeRequest('/wsgi/run_once')
         self.assertEqual(b'False', response_body)
 
     def testWSGIProxy(self):
-        status, response_body = self.invokeRequest(
+        _status, response_body = self.invokeRequest(
             'https://zope.org:8080/wsgi/proxy_scheme')
         self.assertEqual(b'https', response_body)
-        status, response_body = self.invokeRequest(
+        _status, response_body = self.invokeRequest(
             'https://zope.org:8080/wsgi/proxy_host')
         self.assertEqual(b'zope.org:8080', response_body)
 
@@ -363,7 +356,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
                     [('Content-type', 'text/plain')],
                     sys.exc_info())
                 return ERROR_RESPONSE.split()
-            return RESPONSE.split()
+            raise AssertionError("Can never get here")
 
         class FakeTask:
             wrote_header = 0
@@ -417,7 +410,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
     def test_multiple_start_response_calls(self):
         # if start_response is called more than once with no exc_info
-        ignore, task = self._getFakeAppAndTask()
+        _ignore, task = self._getFakeAppAndTask()
         task.wrote_header = 1
 
         self.assertRaises(AssertionError, self.server.executeRequest, task)
@@ -473,7 +466,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
         self.server.application = app
         self.invokeRequest("/")
         self.assertTrue(iterator.closed,
-            "close method wasn't called on iterable")
+                        "close method wasn't called on iterable")
 
         self.server.application = orig_app
 
@@ -498,7 +491,7 @@ class PMDBTests(Tests):
 
     def testWSGIVariables(self):
         # Assert that the environment contains all required WSGI variables
-        status, response_body = self.invokeRequest('/wsgi')
+        _status, response_body = self.invokeRequest('/wsgi')
         wsgi_variables = set(response_body.decode('ascii').split())
         self.assertEqual(wsgi_variables,
                          set(['wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
@@ -508,7 +501,7 @@ class PMDBTests(Tests):
 
     def test_multiple_start_response_calls(self):
         # if start_response is called more than once with no exc_info
-        ignore, task = self._getFakeAppAndTask()
+        _ignore, task = self._getFakeAppAndTask()
         task.wrote_header = 1
 
         # monkey-patch pdb.post_mortem so we don't go into pdb session.
@@ -550,13 +543,3 @@ class PMDBTests(Tests):
 
         self.server.application = orig_app
         pdb.post_mortem = orig_post_mortem
-
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(Tests),
-        unittest.makeSuite(PMDBTests),
-        ))
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')

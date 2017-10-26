@@ -29,12 +29,12 @@ class Tests(unittest.TestCase):
 
     def feed(self, data):
         parser = self.parser
-        for n in range(100):  # make sure we never loop forever
+        for _ in range(100):  # make sure we never loop forever
             consumed = parser.received(data)
             data = data[consumed:]
             if parser.completed:
                 return
-        raise ValueError('Looping')
+        raise AssertionError('Looping too far')
 
     def testSimpleGET(self):
         data = b"""\
@@ -47,14 +47,14 @@ Hello.
 """
         parser = self.parser
         self.feed(data)
-        self.failUnless(parser.completed)
+        self.assertTrue(parser.completed)
         self.assertEqual(parser.version, '8.4')
-        self.failIf(parser.empty)
+        self.assertFalse(parser.empty)
         self.assertEqual(parser.headers,
                          {'FIRSTNAME': 'mickey',
                           'LASTNAME': 'Mouse',
                           'CONTENT_LENGTH': '7',
-                          })
+                         })
         self.assertEqual(parser.path, '/foobar')
         self.assertEqual(parser.command, 'GET')
         self.assertEqual(parser.query, None)
@@ -75,12 +75,12 @@ Hello mickey.
         self.feed(data)
         self.assertEqual(parser.command, 'GET')
         self.assertEqual(parser.version, '8.4')
-        self.failIf(parser.empty)
+        self.assertFalse(parser.empty)
         self.assertEqual(parser.headers,
                          {'FIRSTNAME': 'mickey',
                           'LASTNAME': 'Mouse',
                           'CONTENT_LENGTH': '10',
-                          })
+                         })
         # path should be utf-8 encoded
         self.assertEqual(parser.path, '/foo/a++/ä=&a:int')
         self.assertEqual(parser.query,
@@ -96,12 +96,12 @@ Hello.
 """
         parser = self.parser
         self.feed(data)
-        self.failUnless(parser.completed)
+        self.assertTrue(parser.completed)
         self.assertEqual(parser.version, '8.4')
-        self.failIf(parser.empty)
+        self.assertFalse(parser.empty)
         self.assertEqual(parser.headers,
                          {'CONTENT_LENGTH': '7',
-                          })
+                         })
         self.assertEqual(parser.path, '/foobar')
         self.assertEqual(parser.command, 'GET')
         self.assertEqual(parser.proxy_scheme, 'https')
@@ -123,16 +123,9 @@ content-length: 7
 Hello.
 """
         self.feed(data)
-        self.failUnless(self.parser.completed)
+        self.assertTrue(self.parser.completed)
         self.assertEqual(self.parser.headers, {
-                'CONTENT_LENGTH': '7',
-                'X_FORWARDED_FOR':
-                    '10.11.12.13, unknown,127.0.0.1, 255.255.255.255',
-                })
-
-def test_suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(Tests)
-
-if __name__=='__main__':
-    unittest.TextTestRunner().run(test_suite())
+            'CONTENT_LENGTH': '7',
+            'X_FORWARDED_FOR':
+            '10.11.12.13, unknown,127.0.0.1, 255.255.255.255',
+        })

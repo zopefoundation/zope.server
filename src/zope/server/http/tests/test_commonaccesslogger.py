@@ -35,13 +35,3 @@ class TestCommonAccessLogger(unittest.TestCase):
     #       compute_timezone_for_log
     #       log_date_string
     #       log
-
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestCommonAccessLogger))
-    return suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="test_suite")
