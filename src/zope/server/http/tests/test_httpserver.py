@@ -22,6 +22,7 @@ from threading import Thread, Event
 from zope.server.taskthreads import ThreadedTaskDispatcher
 from zope.server.adjustments import Adjustments
 from zope.server.interfaces import ITask
+from zope.server.task import AbstractTask
 from zope.server.tests.asyncerror import AsyncoreErrorHook
 from zope.interface import implementer
 
@@ -42,16 +43,13 @@ my_adj.inbuf_overflow = 10000
 
 
 @implementer(ITask)
-class SleepingTask(object):
+class SleepingTask(AbstractTask):
 
-    def service(self):
+    def __init__(self):
+        AbstractTask.__init__(self, None)
+
+    def _do_service(self):
         sleep(0.2)
-
-    def cancel(self):
-        raise AssertionError("This should never be called")
-
-    def defer(self):
-        pass
 
 class Tests(AsyncoreErrorHook, unittest.TestCase):
 

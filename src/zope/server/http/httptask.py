@@ -21,6 +21,7 @@ import time
 
 from zope.server.http.http_date import build_http_date
 from zope.publisher.interfaces.http import IHeaderOutput
+from zope.server.task import AbstractTask
 from zope.server.interfaces import ITask
 
 from zope.interface import implementer
@@ -32,7 +33,7 @@ rename_headers = {
     }
 
 @implementer(ITask, IHeaderOutput)  #, IOutputStream
-class HTTPTask(object):
+class HTTPTask(AbstractTask):
     """An HTTP task accepts a request and writes to a channel.
 
        Subclass this and override the execute() method.
@@ -49,7 +50,7 @@ class HTTPTask(object):
     cgi_env = None
 
     def __init__(self, channel, request_data):
-        self.channel = channel
+        AbstractTask.__init__(self, channel)
         self.request_data = request_data
         self.response_headers = {}
         version = request_data.version
@@ -58,28 +59,8 @@ class HTTPTask(object):
             version = '1.0'
         self.version = version
 
-    def service(self):
-        """See zope.server.interfaces.ITask"""
-        try:
-            try:
-                self.start()
-                self.channel.server.executeRequest(self)
-                self.finish()
-            except socket.error:
-                self.close_on_finish = 1
-                if self.channel.adj.log_socket_errors:
-                    raise
-        finally:
-            if self.close_on_finish:
-                self.channel.close_when_done()
-
-    def cancel(self):
-        """See zope.server.interfaces.ITask"""
-        self.channel.close_when_done()
-
-    def defer(self):
-        """See zope.server.interfaces.ITask"""
-        pass
+    def _do_service(self):
+        self.channel.server.executeRequest(self)
 
     def setResponseStatus(self, status, reason):
         """See zope.publisher.interfaces.http.IHeaderOutput"""
@@ -223,16 +204,11 @@ class HTTPTask(object):
         self.cgi_env = env
         return env
 
-    def start(self):
-        now = time.time()
-        self.start_time = now
 
     def finish(self):
         if not self.wrote_header:
             self.write(b'')
-        hit_log = self.channel.server.hit_log
-        if hit_log is not None:
-            hit_log.log(self)
+        AbstractTask.finish(self)
 
     def write(self, data):
         channel = self.channel

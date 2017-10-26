@@ -22,6 +22,7 @@ from getopt import getopt, GetoptError
 from zope.security.interfaces import Unauthorized
 from zope.interface import implementer
 from zope.server.buffers import OverflowableBuffer
+from zope.server.task import AbstractTask
 from zope.server.interfaces import ITask
 from zope.server.interfaces.ftp import IFileSystemAccess
 from zope.server.interfaces.ftp import IFTPCommandHandler
@@ -275,7 +276,7 @@ class FTPServerChannel(LineServerChannel):
             self.reply('ERR_ARGS')
             return
         path = self._generatePath(args)
-        
+
         if fs.type(path) != 'f':
             self.reply('ERR_IS_NOT_FILE', path)
         else:
@@ -752,7 +753,7 @@ class FTPDataChannel(DualModeChannel):
 
     Note that data channels are always in async mode.
     """
-    
+
     def __init__ (self, control_channel):
         self.control_channel = control_channel
         self.reported = False
@@ -837,41 +838,22 @@ class STORChannel(FTPDataChannel):
 
 
 @implementer(ITask)
-class FinishSTORTask(object):
+class FinishSTORTask(AbstractTask):
     """Calls control_channel.finishSTOR() in an application thread.
 
     This task executes after the client has finished uploading.
     """
 
     def __init__(self, control_channel, inbuf, finish_args):
-        self.control_channel = control_channel
+        AbstractTask.__init__(self, control_channel)
         self.inbuf = inbuf
         self.finish_args = finish_args
 
-    def service(self):
-        """Called to execute the task.
-        """
-        close_on_finish = 0
-        c = self.control_channel
-        try:
-            try:
-                c.finishSTOR(self.inbuf, self.finish_args)
-            except socket.error:
-                close_on_finish = 1
-                if c.adj.log_socket_errors:
-                    raise
-        finally:
-            if close_on_finish:
-                c.close_when_done()
+    def _do_service(self):
+        self.channel.finishSTOR(self.inbuf, self.finish_args)
 
-    def cancel(self):
-        'See ITask'
-        self.control_channel.close_when_done()
-
-    def defer(self):
-        'See ITask'
-        pass
-
+    def finish(self):
+        "Does nothing"
 
 class RETRChannel(FTPDataChannel):
     """Channel for downloading one file from server to client
