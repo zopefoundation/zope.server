@@ -71,7 +71,7 @@ class FileBasedBuffer(object):
     def skip(self, bytes, allow_prune=0):
         if self.remain < bytes:
             raise ValueError("Can't skip %d bytes in buffer of %d bytes" % (
-                                 bytes, self.remain))
+                bytes, self.remain))
         self.file.seek(bytes, 1)
         self.remain = self.remain - bytes
 
@@ -113,11 +113,7 @@ class TempfileBasedBuffer(FileBasedBuffer):
 class StringIOBasedBuffer(FileBasedBuffer):
 
     def __init__(self, from_buffer=None):
-        if from_buffer is not None:
-            FileBasedBuffer.__init__(self, BytesIO(), from_buffer)
-        else:
-            # Shortcut. :-)
-            self.file = BytesIO()
+        FileBasedBuffer.__init__(self, self.newfile(), from_buffer)
 
     def newfile(self):
         return BytesIO()
@@ -133,6 +129,13 @@ class OverflowableBuffer(object):
     The first two stages are fastest for simple transfers.
     """
 
+    # XXX This is very similar to tempfile.SpooledTemporaryFile
+    # which was added in 2.6.
+
+    # (Individual 'no cover' directives below disable coverage
+    # pending
+    # https://github.com/zopefoundation/zope.server/issues/5)
+
     overflowed = 0
     buf = None
     strbuf = b''  # String-based buffer.
@@ -145,14 +148,13 @@ class OverflowableBuffer(object):
         buf = self.buf
         if buf is not None:
             return len(buf)
-        else:
-            return len(self.strbuf)
+        return len(self.strbuf)
 
     def _create_buffer(self):
         # print('creating buffer')
         strbuf = self.strbuf
         if len(strbuf) >= self.overflow:
-            self._set_large_buffer()
+            self._set_large_buffer() # pragma: no cover
         else:
             self._set_small_buffer()
         buf = self.buf
@@ -189,7 +191,7 @@ class OverflowableBuffer(object):
             strbuf = self.strbuf
             if not skip:
                 return strbuf
-            buf = self._create_buffer()
+            buf = self._create_buffer() # pragma: no cover
         return buf.get(bytes, skip)
 
     def skip(self, bytes, allow_prune=0):
@@ -202,10 +204,10 @@ class OverflowableBuffer(object):
                 # large transfers.
                 self.strbuf = b''
                 return
-            buf = self._create_buffer()
+            buf = self._create_buffer() # pragma: no cover
         buf.skip(bytes, allow_prune)
 
-    def prune(self):
+    def prune(self): # pragma: no cover
         """
         A potentially expensive operation that removes all data
         already retrieved from the buffer.
