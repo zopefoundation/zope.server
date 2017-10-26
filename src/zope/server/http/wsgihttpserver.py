@@ -135,9 +135,10 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
             # multiple times, allowing partial data to be sent.
             for value in result:
                 task.write(value)
-        except Exception as e:
+        except:
             import sys, pdb
-            print("%s: %s" % (e.__class__.__name__, e))
+            print("%s:" % sys.exc_info()[0])
+            print(sys.exc_info()[1])
             zope.security.management.restoreInteraction()
             try:
                 pdb.post_mortem(sys.exc_info()[2])
