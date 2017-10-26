@@ -14,6 +14,7 @@
 """Test HTTP Server
 """
 import unittest
+import gc
 from asyncore import socket_map, poll
 from time import sleep, time
 import socket
@@ -108,6 +109,9 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
             if time() >= timeout: # pragma: no cover
                 self.fail('Leaked a socket: %s' % repr(socket_map))
             poll(0.1) # pragma: no cover
+            # bandage for PyPy: sometimes we were relying on GC to close sockets.
+            # (This sometimes comes up under coverage on Python 2 as well)
+            gc.collect()
         super(Tests, self).tearDown()
 
     def loop(self):

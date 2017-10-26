@@ -2,26 +2,27 @@
 CHANGES
 =======
 
-3.10.0 (unreleased)
+4.0.0 (unreleased)
 -------------------
 
 - Drop Python 2.6 support.
 
 - Add Python 3.4, 3.5, and 3.6 support.
 
+- Add PyPy support.
 
 3.9.0 (2013-03-13)
 ------------------
 
 - Better adherence to WSGI:
 
-  * Call close method if present on iterables returned by 
+  * Call close method if present on iterables returned by
     ``start_response``.
 
   * Don't include non-string values in the CGI environment
     (``CHANNEL_CREATION_TIME``).
 
-  * Always include ``QUERY_STRING`` to avoid the cgi module falling back 
+  * Always include ``QUERY_STRING`` to avoid the cgi module falling back
     to ``sys.argv``.
 
   * Add tests based on `paste.lint` middleware.
