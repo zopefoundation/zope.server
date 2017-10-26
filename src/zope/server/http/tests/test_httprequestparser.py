@@ -33,6 +33,7 @@ class Tests(unittest.TestCase):
             consumed = parser.received(data)
             data = data[consumed:]
             if parser.completed:
+                self.assertEqual(0, parser.received(b'nonsense data'))
                 return
         raise AssertionError('Looping too far')
 
@@ -129,3 +130,30 @@ Hello.
             'X_FORWARDED_FOR':
             '10.11.12.13, unknown,127.0.0.1, 255.255.255.255',
         })
+
+    def testEmpty(self):
+        data = b"""\
+
+
+"""
+        self.feed(data)
+        self.assertTrue(self.parser.empty)
+
+    def testParseHeader_Empty(self):
+        self.parser.parse_header(b'')
+        self.assertEqual({}, self.parser.headers)
+
+    def testParseHeader_InvalidContentLength(self):
+        data = b"""\
+GET /foobar HTTP/1.0
+Content-Length: Nope
+
+        """
+        self.feed(data)
+        self.assertTrue(self.parser.completed)
+        self.assertIsNone(self.parser.body_rcv)
+
+    def test_get_header_lines_joins(self):
+        self.parser.header = "header: abc\n\tdef"
+        lines = self.parser.get_header_lines()
+        self.assertEqual(lines, ['header: abcdef'])

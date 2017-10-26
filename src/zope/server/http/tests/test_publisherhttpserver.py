@@ -35,8 +35,6 @@ class TestPMDBHTTPServer(unittest.TestCase):
         class Request(object):
             def __init__(self, *args):
                 pass
-            def close(self):
-                pass
 
         try:
             app = publisherhttpserver.PMDBHTTPServer._make_application(Request)

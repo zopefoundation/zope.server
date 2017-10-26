@@ -176,18 +176,19 @@ class HTTPRequestParser(object):
         '(( HTTP/([0-9.]+))$|$)')
 
     def crack_first_line(self):
+        method = uri = version = None
+
         r = self.first_line
         m = self.first_line_re.match(r)
+
         if m is not None and m.end() == len(r):
             if m.group(3):
                 version = m.group(5)
-            else:
-                version = None
             method = m.group(1).upper()
             uri = m.group(2)
-            return (method, uri, version)
-        else:
-            return None, None, None
+
+        return (method, uri, version)
+
 
     def split_uri(self):
         (self.proxy_scheme, self.proxy_netloc, path, self.query,
@@ -202,5 +203,4 @@ class HTTPRequestParser(object):
         body_rcv = self.body_rcv
         if body_rcv is not None:
             return body_rcv.getfile()
-        else:
-            return BytesIO(b'')
+        return BytesIO(b'')
