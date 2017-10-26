@@ -47,20 +47,16 @@ class TestPythonLogger(unittest.TestCase):
         verifyObject(IMessageLogger, plogger)
         msg1 = 'test message 1'
         plogger.logMessage(msg1)
-        self.assertEquals(self.handler.last_record.msg, msg1)
-        self.assertEquals(self.handler.last_record.levelno, logging.INFO)
+        self.assertEqual(self.handler.last_record.msg, msg1)
+        self.assertEqual(self.handler.last_record.levelno, logging.INFO)
         msg2 = 'test message 2\r\n'
         plogger.level = logging.ERROR
         plogger.logMessage(msg2)
-        self.assertEquals(self.handler.last_record.msg, msg2.rstrip())
-        self.assertEquals(self.handler.last_record.levelno, logging.ERROR)
+        self.assertEqual(self.handler.last_record.msg, msg2.rstrip())
+        self.assertEqual(self.handler.last_record.levelno, logging.ERROR)
 
+    def test_repr(self):
+        from zope.server.logger.pythonlogger import PythonLogger
+        plogger = PythonLogger(self.name)
 
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestPythonLogger))
-    return suite
-
-
-if __name__ == '__main__':
-    unittest.main()
+        self.assertIn(self.name, repr(plogger))
