@@ -1,5 +1,13 @@
 [run]
 source = zope.server
+# https://github.com/zopefoundation/zope.server/issues/4
+omit =
+    src/zope/server/logger/filelogger.py
+    src/zope/server/logger/m_syslog.py
+    src/zope/server/logger/rotatingfilelogger.py
+    src/zope/server/logger/socketlogger.py
+    src/zope/server/logger/sysloglogger.py
+    src/zope/server/logger/taillogger.py
 
 [report]
 precision = 2
