@@ -35,7 +35,7 @@ class AsyncoreErrorHook(object):
         self.hook_asyncore_error()
 
     def tearDown(self):
-        self.unhook_asycnore_error()
+        self.unhook_asyncore_error()
 
     def hook_asyncore_error(self):
         self._asyncore_traceback = asyncore.compact_traceback

@@ -44,9 +44,10 @@ def retrlines(ftpconn, cmd):
     return ''.join(res)
 
 
-class Tests(unittest.TestCase, AsyncoreErrorHook):
+class Tests(AsyncoreErrorHook, unittest.TestCase):
 
     def setUp(self):
+        super(Tests, self).setUp()
         # Avoid the tests hanging for a long time if something goes wrong
         socket.setdefaulttimeout(10)
 
@@ -59,7 +60,6 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             # TODO tests should be more careful to clear the socket map.
             asyncore.poll(0.1)
         self.orig_map_size = len(asyncore.socket_map)
-        self.hook_asyncore_error()
 
         root_dir = demofs.Directory()
         root_dir['test'] = demofs.Directory()
@@ -90,7 +90,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.thread.setDaemon(True)
         self.thread.start()
         self.thread_started.wait(10.0)
-        self.assert_(self.thread_started.isSet())
+        self.assertTrue(self.thread_started.isSet())
 
     def tearDown(self):
         self.run_loop = 0
@@ -108,7 +108,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 break
             asyncore.poll(0.1)
 
-        self.unhook_asyncore_error()
+        super(Tests, self).tearDown()
 
     def loop(self):
         self.thread_started.set()
@@ -123,8 +123,8 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 continue
             except select.error as data:
                 print("EXCEPTION POLLING IN LOOP(): %s" % data)
-                if data[0] == EBADF:
-                    for key in asyncore.socket_map.keys():
+                if data.args[0] == EBADF:
+                    for key in asyncore.socket_map:
                         print("")
                         try:
                             select.select([], [], [key], 0.0)
@@ -172,7 +172,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             for command in commands:
                 ftp.send(command.encode('ascii') + b'\r\n')
                 result = ftp.recv(10000).decode('ascii')
-            self.failUnless(result.endswith('\r\n'))
+            self.assertTrue(result.endswith('\r\n'))
         finally:
             ftp.close()
         return result
@@ -281,9 +281,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             conn.login('anonymous', 'bar')
             self.assertRaises(ftplib.Error, retrlines, conn, 'LIST /foo')
             listing = retrlines(conn, 'LIST')
-            self.assert_(len(listing) > 0)
+            self.assertGreater(len(listing), 0)
             listing = retrlines(conn, 'LIST -la')
-            self.assert_(len(listing) > 0)
+            self.assertGreater(len(listing), 0)
         finally:
             conn.close()
         # Make sure no garbage was left behind.
@@ -297,7 +297,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             conn.login('foo', 'bar')
             listing = []
             conn.retrlines('LIST /test', listing.append)
-            self.assert_(len(listing) > 2)
+            self.assertGreaterEqual(len(listing), 2)
             listing = []
             conn.retrlines('LIST -lad test/f1', listing.append)
             self.assertEqual(len(listing), 1)
@@ -382,12 +382,3 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                          status_messages['PASS_REQUIRED'])
         self.assertEqual(self.execute('USER', 0).rstrip(),
                          status_messages['ERR_ARGS'])
-
-
-
-def test_suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(Tests)
-
-if __name__=='__main__':
-    unittest.TextTestRunner().run(test_suite())
