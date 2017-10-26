@@ -543,3 +543,10 @@ class PMDBTests(Tests):
 
         self.server.application = orig_app
         pdb.post_mortem = orig_post_mortem
+
+class TestPaste(unittest.TestCase):
+
+    def test_run_paste(self):
+        from zope.server.http.wsgihttpserver import run_paste
+        with self.assertRaises(OverflowError):
+            run_paste(None, {}, threads=0, port=-5)

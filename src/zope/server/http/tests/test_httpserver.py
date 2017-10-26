@@ -54,9 +54,10 @@ class SleepingTask(object):
         pass
 
 
-class Tests(unittest.TestCase, AsyncoreErrorHook):
+class Tests(AsyncoreErrorHook, unittest.TestCase):
 
     def setUp(self):
+        super(Tests, self).setUp()
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.http.httpserver import HTTPServer
@@ -80,7 +81,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             # TODO tests should be more careful to clear the socket map.
             poll(0.1) # pragma: no cover
         self.orig_map_size = len(socket_map)
-        self.hook_asyncore_error()
+
         self.server = EchoHTTPServer(LOCALHOST, SERVER_PORT,
                                      task_dispatcher=td, adj=my_adj)
         if CONNECT_TO_PORT == 0:
@@ -107,10 +108,10 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             if len(socket_map) == self.orig_map_size:
                 # Clean!
                 break
-            if time() >= timeout:
+            if time() >= timeout: # pragma: no cover
                 self.fail('Leaked a socket: %s' % repr(socket_map))
-            poll(0.1)
-        self.unhook_asyncore_error()
+            poll(0.1) # pragma: no cover
+        super(Tests, self).tearDown()
 
     def loop(self):
         self.thread_started.set()
