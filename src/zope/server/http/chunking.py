@@ -68,7 +68,7 @@ class ChunkedReceiver(object):
                         if semi >= 0:
                             # discard extension info.
                             line = line[:semi]
-                        sz = int(line.strip().decode(), 16)  # hexadecimal
+                        sz = int(line.strip(), 16)  # hexadecimal
                         if sz > 0:
                             # Start a new chunk.
                             self.chunk_remainder = sz
