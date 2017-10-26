@@ -479,7 +479,32 @@ class Tests(PlacelessSetup, unittest.TestCase):
         self.assertTrue(len(w) == 0, w)
         self.server.application = orig_app
 
+class TestWSGIHttpServer(unittest.TestCase):
 
+    def test_secure_environment(self):
+        from zope.server.http.wsgihttpserver import WSGIHTTPServer
+
+        class Task(object):
+            def __init__(self, env):
+                self.env = env
+                self.request_data = self
+
+            def getCGIEnvironment(self):
+                return self.env
+
+            def getBodyStream(self):
+                return None
+
+
+        env = WSGIHTTPServer._constructWSGIEnvironment(Task({}))
+        self.assertEqual("http", env['wsgi.url_scheme'])
+
+
+        env = WSGIHTTPServer._constructWSGIEnvironment(Task({'HTTPS': 'on'}))
+        self.assertEqual("https", env['wsgi.url_scheme'])
+
+        env = WSGIHTTPServer._constructWSGIEnvironment(Task({'SERVER_PORT_SECURE': "1"}))
+        self.assertEqual("https", env['wsgi.url_scheme'])
 
 class PMDBTests(Tests):
 
@@ -550,3 +575,29 @@ class TestPaste(unittest.TestCase):
         from zope.server.http.wsgihttpserver import run_paste
         with self.assertRaises(OverflowError):
             run_paste(None, {}, threads=0, port=-5)
+
+    def test_run_paste_loop(self):
+        from zope.server.http import wsgihttpserver
+        class Server(object):
+            def __init__(self, *args, **kwargs):
+                pass
+
+        class asyncore(object):
+            looped = False
+            def loop(self):
+                self.looped = True
+
+        orig_wsgi = wsgihttpserver.WSGIHTTPServer
+        orig_async = wsgihttpserver.asyncore
+
+        wsgihttpserver.WSGIHTTPServer = Server
+        a = wsgihttpserver.asyncore = asyncore()
+
+        try:
+            wsgihttpserver.run_paste(None, None, threads=0)
+        finally:
+            wsgihttpserver.WSGIHTTPServer = orig_wsgi
+            wsgihttpserver.asyncore = orig_async
+
+
+        self.assertTrue(a.looped)

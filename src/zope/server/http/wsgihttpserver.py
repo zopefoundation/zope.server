@@ -63,7 +63,7 @@ class WSGIHTTPServer(HTTPServer):
 
     def __init__(self, application, sub_protocol=None, *args, **kw):
 
-        if sys.platform[:3] == "win" and args[0] == 'localhost':
+        if sys.platform[:3] == "win" and args[0] == 'localhost': # pragma: no cover
             args = ('',) + args[1:]
 
         self.application = application
@@ -73,12 +73,13 @@ class WSGIHTTPServer(HTTPServer):
 
         HTTPServer.__init__(self, *args, **kw)
 
-    def _constructWSGIEnvironment(self, task):
+    @classmethod
+    def _constructWSGIEnvironment(cls, task):
         env = task.getCGIEnvironment()
 
         # deduce the URL scheme (http or https)
         if (env.get('HTTPS', '').lower() == "on" or
-            env.get('SERVER_PORT_SECURE') == "1"):
+                env.get('SERVER_PORT_SECURE') == "1"):
             protocol = 'https'
         else:
             protocol = 'http'
@@ -136,7 +137,7 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
             for value in result:
                 task.write(value)
         except:
-            import sys, pdb
+            import pdb
             print("%s:" % sys.exc_info()[0])
             print(sys.exc_info()[1])
             zope.security.management.restoreInteraction()
