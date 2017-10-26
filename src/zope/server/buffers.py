@@ -13,10 +13,7 @@
 ##############################################################################
 """Buffers
 """
-try:
-    from cStringIO import StringIO as BytesIO
-except ImportError:
-    from io import BytesIO
+from io import BytesIO
 
 
 # copy_bytes controls the size of temp. strings for shuffling data around.

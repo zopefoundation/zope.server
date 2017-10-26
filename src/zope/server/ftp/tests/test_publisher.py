@@ -14,13 +14,10 @@
 """Test the FTP publisher.
 """
 from unittest import TestCase, TestSuite, main, makeSuite
+from io import BytesIO
+
 import six
 from zope.publisher.publish import mapply
-
-try:
-    from cStringIO import StringIO as BytesIO
-except ImportError:
-    from io import BytesIO
 
 from . import demofs
 from .fstests import FileSystemTests

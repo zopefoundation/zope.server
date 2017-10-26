@@ -14,13 +14,11 @@
 """Abstract file-system tests
 """
 
-try:
-    from cStringIO import StringIO as BytesIO
-except ImportError:
-    from io import BytesIO
+from io import BytesIO
 
 from zope.interface.verify import verifyObject
 from zope.server.interfaces.ftp import IFileSystem
+
 
 class FileSystemTests(object):
     """Tests of a readable filesystem

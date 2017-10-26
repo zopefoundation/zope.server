@@ -17,6 +17,7 @@ This server uses asyncore to accept connections and do initial
 processing but threads to do work.
 """
 import re
+from io import BytesIO
 
 from six.moves.urllib.parse import unquote, urlsplit
 
@@ -25,11 +26,6 @@ from zope.server.buffers import OverflowableBuffer
 from zope.server.utilities import find_double_newline
 from zope.server.interfaces import IStreamConsumer
 from zope.interface import implementer
-
-try:
-    from cStringIO import StringIO as BytesIO
-except ImportError:
-    from io import BytesIO
 
 
 @implementer(IStreamConsumer)

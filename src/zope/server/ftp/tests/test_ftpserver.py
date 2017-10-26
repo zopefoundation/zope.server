@@ -20,13 +20,8 @@ import sys
 import time
 import traceback
 import unittest
-
 from threading import Thread, Event
-
-try:
-    from cStringIO import StringIO as BytesIO
-except ImportError:
-    from io import BytesIO
+from io import BytesIO
 
 from zope.server.adjustments import Adjustments
 from zope.server.ftp.tests import demofs
