@@ -13,10 +13,9 @@
 ##############################################################################
 """Test the FTP publisher.
 """
-from unittest import TestCase, TestSuite, main, makeSuite
+import unittest
 from io import BytesIO
 
-import six
 from zope.publisher.publish import mapply
 
 from . import demofs
@@ -47,7 +46,7 @@ class Publication(object):
         command = getattr(ob, request.env['command'])
         if 'name' in request.env:
             request.env['path'] += "/" + request.env['name']
-        return mapply(command, request = request.env)
+        return mapply(command, request=request.env)
 
     def afterCall(self, request, ob):
         pass
@@ -56,10 +55,12 @@ class Publication(object):
         pass
 
     def handleException(self, object, request, info, retry_allowed=True):
-        request.response._exc = info[:2]
+        raise AssertionError("Not expecting an exception")
 
 
 class Request(object):
+
+    publication = None
 
     def __init__(self, input, env):
         self.env = env
@@ -79,14 +80,12 @@ class Request(object):
 
 class Response(object):
 
-    _exc = _body = None
+    _result = None
 
     def setResult(self, result):
         self._result = result
 
     def getResult(self):
-        if self._exc:
-            six.reraise(*self._exc)
         return self._result
 
 class RequestFactory(object):
@@ -99,7 +98,7 @@ class RequestFactory(object):
         r.publication = self.pub
         return r
 
-class TestPublisherFileSystem(FileSystemTests, TestCase):
+class TestPublisherFileSystem(FileSystemTests, unittest.TestCase):
 
     def setUp(self):
         root = demofs.Directory()
@@ -114,11 +113,3 @@ class TestPublisherFileSystem(FileSystemTests, TestCase):
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.ftp.publisher import PublisherFileSystem
         self.filesystem = PublisherFileSystem('bob', RequestFactory(fs))
-
-def test_suite():
-    return TestSuite((
-        makeSuite(TestPublisherFileSystem),
-        ))
-
-if __name__=='__main__':
-    main(defaultTest='test_suite')
