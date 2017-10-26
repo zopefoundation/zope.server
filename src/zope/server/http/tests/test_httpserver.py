@@ -53,7 +53,6 @@ class SleepingTask(object):
     def defer(self):
         pass
 
-
 class Tests(AsyncoreErrorHook, unittest.TestCase):
 
     def setUp(self):
@@ -401,3 +400,14 @@ class TestHTTPServer(unittest.TestCase):
     def test_getExtraLogMessage(self):
         self.assertEqual(self.server.getExtraLogMessage(),
                          '\n\tURL: http://example.com:8080/')
+
+    def test_executeRequest(self):
+        class Task(object):
+            def __init__(self):
+                self.response_headers = {}
+            def write(self, _data):
+                pass
+        task = Task()
+        self.server.executeRequest(task)
+        self.assertIn('Content-Type', task.response_headers)
+        self.assertIn('Content-Length', task.response_headers)
