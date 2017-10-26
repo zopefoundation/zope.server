@@ -87,6 +87,12 @@ class TestLineServerChannel(unittest.TestCase):
     def test_unknown_command(self):
         class Chunnel(Channel):
             authenticated = True
+            # Python 3.4 includes a __getattr__ in asyncore.dispatcher
+            # that does `gettar(self.socket, name)`, but self.socket is only
+            # set by the constructor in certain circumstances---and we don't
+            # call the constructor. This leads to a recursion error unless
+            # we make that attribute available here.
+            socket = None
 
 
         command = LineCommandParser(None)
