@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
-
+from __future__ import print_function
 import asyncore
 import os
 import socket
@@ -159,7 +159,10 @@ class pipetrigger(_triggerbase, asyncore.file_dispatcher):
 
     def _close(self):
         for fd in self._fds:
-            os.close(fd)
+            try:
+                os.close(fd)
+            except OSError:
+                pass
         self._fds = []
 
     def _physical_pull(self):
@@ -172,6 +175,9 @@ class sockettrigger(_triggerbase, asyncore.dispatcher):
     # Windows version; uses just sockets, because a pipe isn't select'able
     # on Windows.
     kind = "loopback"
+
+    ADDR_IN_USE_CODES = (getattr(errno, 'EADDRINUSE', -1),
+                         getattr(errno, 'WSAEADDRINUSE', -1))
 
     def __init__(self):
         _triggerbase.__init__(self)
@@ -205,10 +211,10 @@ class sockettrigger(_triggerbase, asyncore.dispatcher):
             connect_address = a.getsockname()  # assigned (host, port) pair
             a.listen(1)
             try:
-                w.connect(connect_address)
+                self._connect_client(w, connect_address)
                 break    # success
             except socket.error as detail:
-                if detail.args[0] != errno.WSAEADDRINUSE:
+                if detail.args[0] not in self.ADDR_IN_USE_CODES:
                     # "Address already in use" is the only error
                     # I've seen on two WinXP Pro SP2 boxes, under
                     # Pythons 2.3.5 and 2.4.1.
@@ -228,15 +234,18 @@ class sockettrigger(_triggerbase, asyncore.dispatcher):
         self.trigger = w
         asyncore.dispatcher.__init__(self, r)
 
+    def _connect_client(self, w, connect_address):
+        w.connect(connect_address)
+
     def _close(self):
         # self.socket is r, and self.trigger is w, from __init__
         self.socket.close()
         self.trigger.close()
 
     def _physical_pull(self):
-        self.trigger.send('x')
+        self.trigger.send(b'x')
 
 if os.name == 'posix':
     trigger = pipetrigger
-else:
+else: # pragma: no cover
     trigger = sockettrigger
