@@ -13,14 +13,11 @@
 ##############################################################################
 """Threaded Task Dispatcher
 """
-import threading
-try:
-    from Queue import Queue, Empty
-except ImportError:
-    from queue import Queue, Empty
-from time import time, sleep
 import logging
+import threading
+from time import time, sleep
 
+from six.moves.queue import Queue, Empty
 from zope.server.interfaces import ITaskDispatcher
 from zope.interface import implementer
 
