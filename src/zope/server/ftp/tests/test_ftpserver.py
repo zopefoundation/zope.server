@@ -170,7 +170,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 commands = (commands,)
 
             for command in commands:
-                ftp.send(b'%s\r\n' % command.encode('ascii'))
+                ftp.send(command.encode('ascii') + b'\r\n')
                 result = ftp.recv(10000).decode('ascii')
             self.failUnless(result.endswith('\r\n'))
         finally:

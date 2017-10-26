@@ -157,26 +157,26 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
     def testPipelining(self):
         # Tests the use of several requests issued at once.
-        s = (b"GET / HTTP/1.0\r\n"
-             b"Connection: %s\r\n"
-             b"Content-Length: %d\r\n"
-             b"\r\n"
-             b"%s")
+        s = ("GET / HTTP/1.0\r\n"
+             "Connection: %s\r\n"
+             "Content-Length: %d\r\n"
+             "\r\n"
+             "%s")
         to_send = []
         count = 25
         for n in range(count):
-            body = b"Response #%d\r\n" % (n + 1)
+            body = "Response #%d\r\n" % (n + 1)
             if n + 1 < count:
-                conn = b'keep-alive'
+                conn = 'keep-alive'
             else:
-                conn = b'close'
+                conn = 'close'
             to_send.append(s % (conn, len(body), body))
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
         for n, req in enumerate(to_send):
-            sock.send(req)
-            expect_body = b"Response #%d\r\n" % (n + 1)
+            sock.send(req.encode('ascii'))
+            expect_body = ("Response #%d\r\n" % (n + 1)).encode('ascii')
             response = ClientHTTPResponse(sock)
             response.begin()
             self.failUnlessEqual(int(response.status), 200)
@@ -187,23 +187,23 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
     def testWithoutCRLF(self):
         # Tests the use of just newlines rather than CR/LFs.
-        data = b"Echo\nthis\r\nplease"
-        s = (b"GET / HTTP/1.0\n"
-             b"Connection: close\n"
-             b"Content-Length: %d\n"
-             b"\n"
-             b"%s") % (len(data), data)
+        data = "Echo\nthis\r\nplease"
+        s = ("GET / HTTP/1.0\n"
+             "Connection: close\n"
+             "Content-Length: %d\n"
+             "\n"
+             "%s") % (len(data), data)
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)
         length = int(response.getheader('Content-Length', '0'))
         response_body = response.read(length)
         self.failUnlessEqual(length, len(data))
-        self.failUnlessEqual(response_body, data)
+        self.failUnlessEqual(response_body, data.encode('ascii'))
 
     def testLargeBody(self):
         # Tests the use of multiple requests in a single connection.
@@ -295,14 +295,14 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
     def testKeepaliveHttp10(self):
         # Handling of Keep-Alive within HTTP 1.0
-        data = b"Default: Don't keep me alive"
-        s = (b"GET / HTTP/1.0\n"
-             b"Content-Length: %d\n"
-             b"\n"
-             b"%s") % (len(data), data)
+        data = "Default: Don't keep me alive"
+        s = ("GET / HTTP/1.0\n"
+             "Content-Length: %d\n"
+             "\n"
+             "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)
@@ -314,15 +314,15 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         # If header Connection: Keep-Alive is explicitly sent,
         # we want to keept the connection open, we also need to return
         # the corresponding header
-        data = b"Keep me alive"
-        s = (b"GET / HTTP/1.0\n"
-             b"Connection: Keep-Alive\n"
-             b"Content-Length: %d\n"
-             b"\n"
-             b"%s") % (len(data), data)
+        data = "Keep me alive"
+        s = ("GET / HTTP/1.0\n"
+             "Connection: Keep-Alive\n"
+             "Content-Length: %d\n"
+             "\n"
+             "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)
@@ -333,29 +333,29 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         # Handling of Keep-Alive within HTTP 1.1
 
         # All connections are kept alive, unless stated otherwise
-        data = b"Default: Keep me alive"
-        s = (b"GET / HTTP/1.1\n"
-             b"Content-Length: %d\n"
-             b"\n"
-             b"%s") % (len(data), data)
+        data = "Default: Keep me alive"
+        s = ("GET / HTTP/1.1\n"
+             "Content-Length: %d\n"
+             "\n"
+             "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)
         self.failUnless(response.getheader('connection') != 'close')
 
         # Explicitly set keep-alive
-        data = b"Default: Keep me alive"
-        s = (b"GET / HTTP/1.1\n"
-             b"Connection: keep-alive\n"
-             b"Content-Length: %d\n"
-             b"\n"
-             b"%s") % (len(data), data)
+        data = "Default: Keep me alive"
+        s = ("GET / HTTP/1.1\n"
+             "Connection: keep-alive\n"
+             "Content-Length: %d\n"
+             "\n"
+             "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)
@@ -370,15 +370,15 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         # self.failUnless(response.getheader('connection') != 'close')
 
         # specifying Connection: close explicitly
-        data = b"Don't keep me alive"
-        s = (b"GET / HTTP/1.1\n"
-             b"Connection: close\n"
-             b"Content-Length: %d\n"
-             b"\n"
-             b"%s") % (len(data), data)
+        data = "Don't keep me alive"
+        s = ("GET / HTTP/1.1\n"
+             "Connection: close\n"
+             "Content-Length: %d\n"
+             "\n"
+             "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)

@@ -240,9 +240,9 @@ class Tests(PlacelessSetup, unittest.TestCase):
     def testDeeperPath(self):
         status, response_body = self.invokeRequest('/folder/item')
         self.assertEqual(status, 200)
-        expect_response = b'URL invoked: http://%s:%d/folder/item' % (
-            LOCALHOST.encode('ascii'), self.port)
-        self.assertEqual(response_body, expect_response)
+        expect_response = 'URL invoked: http://%s:%d/folder/item' % (
+            LOCALHOST, self.port)
+        self.assertEqual(response_body, expect_response.encode('ascii'))
 
     def testNotFound(self):
         status, response_body = self.invokeRequest('/foo/bar')

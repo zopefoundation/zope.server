@@ -97,7 +97,7 @@ class LineServerChannel(ServerChannelBase):
         except:
             msg = self.reply_error % code
 
-        self.write(b'%s\r\n' % msg.encode('utf-8'))
+        self.write(msg.encode('utf-8') + b'\r\n')
 
         if flush:
             self.flush(0)
