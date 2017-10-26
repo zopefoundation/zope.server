@@ -23,14 +23,13 @@ from zope.interface import implementer
 class ChunkedReceiver(object):
 
     chunk_remainder = 0
-    control_line = ''
+    control_line = b''
     all_chunks_received = 0
-    trailer = ''
+    trailer = b''
     completed = 0
 
     # max_control_line = 1024
     # max_trailer = 65536
-
 
     def __init__(self, buf):
         self.buf = buf
@@ -52,20 +51,20 @@ class ChunkedReceiver(object):
             elif not self.all_chunks_received:
                 # Receive a control line.
                 s = self.control_line + s
-                pos = s.find('\n')
+                pos = s.find(b'\n')
                 if pos < 0:
                     # Control line not finished.
                     self.control_line = s
-                    s = ''
+                    s = b''
                 else:
                     # Control line finished.
                     line = s[:pos]
                     s = s[pos + 1:]
-                    self.control_line = ''
+                    self.control_line = b''
                     line = line.strip()
                     if line:
                         # Begin a new chunk.
-                        semi = line.find(';')
+                        semi = line.find(b';')
                         if semi >= 0:
                             # discard extension info.
                             line = line[:semi]
@@ -80,11 +79,11 @@ class ChunkedReceiver(object):
             else:
                 # Receive the trailer.
                 trailer = self.trailer + s
-                if trailer.startswith('\r\n'):
+                if trailer.startswith(b'\r\n'):
                     # No trailer.
                     self.completed = 1
                     return orig_size - (len(trailer) - 2)
-                elif trailer.startswith('\n'):
+                elif trailer.startswith(b'\n'):
                     # No trailer.
                     self.completed = 1
                     return orig_size - (len(trailer) - 1)
@@ -92,14 +91,13 @@ class ChunkedReceiver(object):
                 if pos < 0:
                     # Trailer not finished.
                     self.trailer = trailer
-                    s = ''
+                    s = b''
                 else:
                     # Finished the trailer.
                     self.completed = 1
                     self.trailer = trailer[:pos]
                     return orig_size - (len(trailer) - pos)
         return orig_size
-
 
     def getfile(self):
         return self.buf.getfile()

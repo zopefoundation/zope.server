@@ -13,11 +13,15 @@
 ##############################################################################
 """Test the FTP publisher.
 """
-import demofs
 from unittest import TestCase, TestSuite, main, makeSuite
-from fstests import FileSystemTests
-from StringIO import StringIO
+from io import BytesIO
+
+import six
 from zope.publisher.publish import mapply
+
+from . import demofs
+from .fstests import FileSystemTests
+
 
 class DemoFileSystem(demofs.DemoFileSystem):
 
@@ -82,7 +86,7 @@ class Response(object):
 
     def getResult(self):
         if self._exc:
-            raise self._exc[0], self._exc[1]
+            six.reraise(*self._exc)
         return self._result
 
 class RequestFactory(object):
@@ -102,8 +106,8 @@ class TestPublisherFileSystem(FileSystemTests, TestCase):
         root.grant('bob', demofs.write)
         fs = DemoFileSystem(root, 'bob')
         fs.mkdir(self.dir_name)
-        fs.writefile(self.file_name, StringIO(self.file_contents))
-        fs.writefile(self.unwritable_filename, StringIO("save this"))
+        fs.writefile(self.file_name, BytesIO(self.file_contents))
+        fs.writefile(self.unwritable_filename, BytesIO(b"save this"))
         fs.get(self.unwritable_filename).revoke('bob', demofs.write)
 
         # import only now to prevent the testrunner from importing it too early

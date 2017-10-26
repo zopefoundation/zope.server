@@ -184,7 +184,7 @@ class DemoFileSystem(object):
     def size(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
         f = self.getany(path)
-        return len(getattr(f, 'data', ''))
+        return len(getattr(f, 'data', b''))
 
     def mkdir(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
@@ -258,9 +258,9 @@ class DemoFileSystem(object):
                     raise ValueError("Negative starting file position")
                 prefix = f.data[:start]
                 if len(prefix) < start:
-                    prefix += '\0' * (start - len(prefix))
+                    prefix += b'\0' * (start - len(prefix))
             else:
-                prefix = ''
+                prefix = b''
                 start=0
 
             if end:

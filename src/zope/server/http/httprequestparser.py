@@ -17,8 +17,10 @@ This server uses asyncore to accept connections and do initial
 processing but threads to do work.
 """
 import re
-from urllib import unquote
-import urlparse
+import sys
+from io import BytesIO
+
+from six.moves.urllib.parse import unquote, urlsplit
 
 from zope.server.fixedstreamreceiver import FixedStreamReceiver
 from zope.server.buffers import OverflowableBuffer
@@ -26,10 +28,7 @@ from zope.server.utilities import find_double_newline
 from zope.server.interfaces import IStreamConsumer
 from zope.interface import implementer
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+PY3 = sys.version_info >= (3, )
 
 
 @implementer(IStreamConsumer)
@@ -42,7 +41,7 @@ class HTTPRequestParser(object):
 
     completed = 0  # Set once request is completed.
     empty = 0        # Set if no request was made.
-    header_plus = ''
+    header_plus = b''
     chunked = 0
     content_length = 0
     body_rcv = None
@@ -100,19 +99,21 @@ class HTTPRequestParser(object):
                 self.completed = 1
             return consumed
 
-
     def parse_header(self, header_plus):
         """
         Parses the header_plus block of text (the headers plus the
         first line of the request).
         """
-        index = header_plus.find('\n')
+        index = header_plus.find(b'\n')
         if index >= 0:
             first_line = header_plus[:index].rstrip()
             header = header_plus[index + 1:]
         else:
             first_line = header_plus.rstrip()
-            header = ''
+            header = b''
+        if PY3:
+            first_line = first_line.decode('latin1')
+            header = header.decode('latin1')
         self.first_line = first_line
         self.header = header
 
@@ -126,7 +127,7 @@ class HTTPRequestParser(object):
                 key1 = key.upper().replace('-', '_')
                 # If a header already exists, we append subsequent values
                 # seperated by a comma. Applications already need to handle
-                # the comma seperated values, as HTTP front ends might do 
+                # the comma seperated values, as HTTP front ends might do
                 # the concatenation for you (behavior specified in RFC2616).
                 try:
                     headers[key1] += ', %s' % value
@@ -157,7 +158,6 @@ class HTTPRequestParser(object):
                 buf = OverflowableBuffer(self.adj.inbuf_overflow)
                 self.body_rcv = FixedStreamReceiver(cl, buf)
 
-
     def get_header_lines(self):
         """
         Splits the header into lines, putting multi-line headers together.
@@ -171,24 +171,27 @@ class HTTPRequestParser(object):
                 r.append(line)
         return r
 
-    first_line_re = re.compile (
-        '([^ ]+) ((?:[^ :?#]+://[^ ?#/]*(?:[0-9]{1,5})?)?[^ ]+)(( HTTP/([0-9.]+))$|$)')
+    first_line_re = re.compile(
+        '([^ ]+) ((?:[^ :?#]+://[^ ?#/]*(?:[0-9]{1,5})?)?[^ ]+)'
+        '(( HTTP/([0-9.]+))$|$)')
 
     def crack_first_line(self):
         r = self.first_line
-        m = self.first_line_re.match (r)
+        m = self.first_line_re.match(r)
         if m is not None and m.end() == len(r):
             if m.group(3):
                 version = m.group(5)
             else:
                 version = None
-            return m.group(1).upper(), m.group(2), version
+            method = m.group(1).upper()
+            uri = m.group(2)
+            return (method, uri, version)
         else:
             return None, None, None
 
     def split_uri(self):
-        (self.proxy_scheme, self.proxy_netloc, path, self.query, self.fragment) = \
-            urlparse.urlsplit(self.uri)
+        (self.proxy_scheme, self.proxy_netloc, path, self.query,
+         self.fragment) = urlsplit(self.uri)
         if path and '%' in path:
             path = unquote(path)
         self.path = path
@@ -200,4 +203,4 @@ class HTTPRequestParser(object):
         if body_rcv is not None:
             return body_rcv.getfile()
         else:
-            return StringIO('')
+            return BytesIO(b'')

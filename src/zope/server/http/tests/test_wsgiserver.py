@@ -11,16 +11,18 @@
 ##############################################################################
 """Test Publisher-based HTTP Server
 """
-import StringIO
-import paste.lint
+
 import sys
 import unittest
 import warnings
-
+from contextlib import contextmanager
 from asyncore import socket_map, poll
 from threading import Thread
 from time import sleep
-from httplib import HTTPConnection
+from io import BytesIO, StringIO
+
+import paste.lint
+from six.moves.http_client import HTTPConnection
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
 
@@ -43,14 +45,31 @@ LOCALHOST = '127.0.0.1'
 
 HTTPRequest.STAGGER_RETRIES = 0  # Don't pause.
 
+# By using io.BytesIO() instead of cStringIO.StringIO() on Python 2 we make
+# sure we're not trying to accidentally print unicode to stdout/stderr.
+NativeStringIO = BytesIO if str is bytes else StringIO
+
+
+@contextmanager
+def capture_output(stdout=None, stderr=None):
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    sys.stdout = stdout = stdout or NativeStringIO()
+    sys.stderr = stderr = stderr or NativeStringIO()
+    try:
+        yield stdout, stderr
+    finally:
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+
 
 class Conflict(Exception):
     """
     Pseudo ZODB conflict error.
     """
 
-ERROR_RESPONSE = "error occurred"
-RESPONSE = "normal response"
+ERROR_RESPONSE = b"error occurred"
+RESPONSE = b"normal response"
 
 class DummyException(Exception):
     value = "Dummy Exception to test start_response"
@@ -176,7 +195,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
         self.port = self.server.socket.getsockname()[1]
         self.run_loop = 1
-        self.thread = Thread(target=self.loop)
+        self.thread = Thread(target=self.loop, name='test_wsgiserver')
         self.thread.start()
         sleep(0.1)  # Give the thread some time to start.
 
@@ -191,7 +210,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
         while self.run_loop:
             poll(0.1, socket_map)
 
-    def invokeRequest(self, path='/', add_headers=None, request_body='',
+    def invokeRequest(self, path='/', add_headers=None, request_body=b'',
                       return_response=False):
         h = HTTPConnection(LOCALHOST, self.port)
         h.putrequest('GET', path)
@@ -211,7 +230,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
         if length:
             response_body = response.read(length)
         else:
-            response_body = ''
+            response_body = b''
 
         self.assertEqual(length, len(response_body))
 
@@ -223,7 +242,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
         self.assertEqual(status, 200)
         expect_response = 'URL invoked: http://%s:%d/folder/item' % (
             LOCALHOST, self.port)
-        self.assertEqual(response_body, expect_response)
+        self.assertEqual(response_body, expect_response.encode('ascii'))
 
     def testNotFound(self):
         status, response_body = self.invokeRequest('/foo/bar')
@@ -266,12 +285,12 @@ class Tests(PlacelessSetup, unittest.TestCase):
         self.assertEqual(
             response.getheader('Via'), 'zope.server.http (Browser)')
         # And the content got here too.
-        self.assertEqual(response.read(), 'Proxied Content')
+        self.assertEqual(response.read(), b'Proxied Content')
 
     def testWSGIVariables(self):
         # Assert that the environment contains all required WSGI variables
         status, response_body = self.invokeRequest('/wsgi')
-        wsgi_variables = set(response_body.split())
+        wsgi_variables = set(response_body.decode('ascii').split())
         self.assertEqual(wsgi_variables,
                          set(['wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
                               'wsgi.errors', 'wsgi.multithread',
@@ -279,31 +298,31 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
     def testWSGIVersion(self):
         status, response_body = self.invokeRequest('/wsgi/version')
-        self.assertEqual("(1, 0)", response_body)
+        self.assertEqual(b"(1, 0)", response_body)
 
     def testWSGIURLScheme(self):
         status, response_body = self.invokeRequest('/wsgi/url_scheme')
-        self.assertEqual('http', response_body)
+        self.assertEqual(b'http', response_body)
 
     def testWSGIMultithread(self):
         status, response_body = self.invokeRequest('/wsgi/multithread')
-        self.assertEqual('True', response_body)
+        self.assertEqual(b'True', response_body)
 
     def testWSGIMultiprocess(self):
         status, response_body = self.invokeRequest('/wsgi/multiprocess')
-        self.assertEqual('True', response_body)
+        self.assertEqual(b'True', response_body)
 
     def testWSGIRunOnce(self):
         status, response_body = self.invokeRequest('/wsgi/run_once')
-        self.assertEqual('False', response_body)
+        self.assertEqual(b'False', response_body)
 
     def testWSGIProxy(self):
         status, response_body = self.invokeRequest(
             'https://zope.org:8080/wsgi/proxy_scheme')
-        self.assertEqual('https', response_body)
+        self.assertEqual(b'https', response_body)
         status, response_body = self.invokeRequest(
             'https://zope.org:8080/wsgi/proxy_host')
-        self.assertEqual('zope.org:8080', response_body)
+        self.assertEqual(b'zope.org:8080', response_body)
 
     def test_ensure_multiple_task_write_calls(self):
         # In order to get data out as fast as possible, the WSGI server needs
@@ -311,7 +330,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
         orig_app = self.server.application
         def app(eviron, start_response):
             start_response('200 Ok', [])
-            return ['This', 'is', 'my', 'response.']
+            return [b'This', b'is', b'my', b'response.']
         self.server.application = app
 
         class FakeTask:
@@ -319,7 +338,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
             counter = 0
             getCGIEnvironment = lambda _: {}
             class request_data:
-                getBodyStream = lambda _: StringIO.StringIO()
+                getBodyStream = lambda _: BytesIO()
             request_data = request_data()
             setResponseStatus = appendResponseHeaders = lambda *_: None
             def wroteResponseHeader(self):
@@ -357,7 +376,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
                 self.response_headers = {}
             getCGIEnvironment = lambda _: {}
             class request_data:
-                getBodyStream = lambda _: StringIO.StringIO()
+                getBodyStream = lambda _: BytesIO()
             request_data = request_data()
             def appendResponseHeaders(self, lst):
                 accum = self.accumulated_headers
@@ -439,13 +458,14 @@ class Tests(PlacelessSetup, unittest.TestCase):
             def __iter__(self):
                 return self
 
-            def next(self):
-                return self._iter.next()
+            def __next__(self):
+                return next(self._iter)
+            next = __next__
 
             def close(self):
                 self.closed = True
 
-        iterator = CloseableIterator(["Klaatu", "barada", "nikto"])
+        iterator = CloseableIterator([b"Klaatu", b"barada", b"nikto"])
         def app(environ, start_response):
             start_response("200 Ok", [], None)
             return iterator
@@ -479,7 +499,7 @@ class PMDBTests(Tests):
     def testWSGIVariables(self):
         # Assert that the environment contains all required WSGI variables
         status, response_body = self.invokeRequest('/wsgi')
-        wsgi_variables = set(response_body.split())
+        wsgi_variables = set(response_body.decode('ascii').split())
         self.assertEqual(wsgi_variables,
                          set(['wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
                               'wsgi.errors', 'wsgi.multithread',
@@ -501,7 +521,8 @@ class PMDBTests(Tests):
         orig_post_mortem = pdb.post_mortem
         pdb.post_mortem = fake_post_mortem
 
-        self.assertRaises(AssertionError, self.server.executeRequest, task)
+        with capture_output():
+            self.assertRaises(AssertionError, self.server.executeRequest, task)
         expected_msg = "start_response called a second time"
         self.assertTrue(expected_msg in pm_traceback[-1])
         pdb.post_mortem = orig_post_mortem
@@ -523,7 +544,8 @@ class PMDBTests(Tests):
         orig_post_mortem = pdb.post_mortem
         pdb.post_mortem = fake_post_mortem
 
-        self.assertRaises(DummyException, self.server.executeRequest, task)
+        with capture_output():
+            self.assertRaises(DummyException, self.server.executeRequest, task)
         self.assertTrue("raise DummyException" in pm_traceback[-1])
 
         self.server.application = orig_app

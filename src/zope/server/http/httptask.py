@@ -171,7 +171,7 @@ class HTTPTask(object):
         if accum is not None:
             lines.extend(accum)
         res = '%s\r\n\r\n' % '\r\n'.join(lines)
-        return res
+        return res.encode('utf-8')
 
     def getCGIEnvironment(self):
         """Returns a CGI-like environment."""
@@ -195,8 +195,8 @@ class HTTPTask(object):
         env['SERVER_SOFTWARE'] = server.SERVER_IDENT
         env['SERVER_PROTOCOL'] = "HTTP/%s" % self.version
         env['CHANNEL_CREATION_TIME'] = str(channel.creation_time)
-        env['SCRIPT_NAME']= ''
-        env['PATH_INFO']= '/' + path
+        env['SCRIPT_NAME'] = ''
+        env['PATH_INFO'] = '/' + path
         env['QUERY_STRING'] = request_data.query or ''
         env['GATEWAY_INTERFACE'] = 'CGI/1.1'
         addr = channel.addr[0]
@@ -212,14 +212,12 @@ class HTTPTask(object):
                 if remote_host is not None:
                     env['REMOTE_HOST'] = remote_host
 
-        env_has = env.has_key
-
         for key, value in request_data.headers.items():
             value = value.strip()
             mykey = rename_headers.get(key, None)
             if mykey is None:
                 mykey = 'HTTP_%s' % key
-            if not env_has(mykey):
+            if mykey not in env:
                 env[mykey] = value
 
         self.cgi_env = env
@@ -231,7 +229,7 @@ class HTTPTask(object):
 
     def finish(self):
         if not self.wrote_header:
-            self.write('')
+            self.write(b'')
         hit_log = self.channel.server.hit_log
         if hit_log is not None:
             hit_log.log(self)

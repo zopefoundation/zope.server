@@ -93,11 +93,11 @@ class LineServerChannel(ServerChannelBase):
     def reply(self, code, args=(), flush=1):
         """ """
         try:
-            msg = self.status_messages[code] %args
+            msg = self.status_messages[code] % args
         except:
-            msg = self.reply_error %code
+            msg = self.reply_error % code
 
-        self.write('%s\r\n' %msg)
+        self.write(msg.encode('utf-8') + b'\r\n')
 
         if flush:
             self.flush(0)

@@ -24,8 +24,8 @@ from zope.server.interfaces import ITask
 from zope.server.tests.asyncerror import AsyncoreErrorHook
 from zope.interface import implementer
 
-from httplib import HTTPConnection
-from httplib import HTTPResponse as ClientHTTPResponse
+from six.moves.http_client import HTTPConnection
+from six.moves.http_client import HTTPResponse as ClientHTTPResponse
 
 from time import sleep, time
 
@@ -40,7 +40,6 @@ my_adj = Adjustments()
 # Reduce overflows to make testing easier.
 my_adj.outbuf_overflow = 10000
 my_adj.inbuf_overflow = 10000
-
 
 
 @implementer(ITask)
@@ -62,8 +61,8 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.http.httpserver import HTTPServer
-        class EchoHTTPServer(HTTPServer):
 
+        class EchoHTTPServer(HTTPServer):
             def executeRequest(self, task):
                 headers = task.request_data.headers
                 if 'CONTENT_LENGTH' in headers:
@@ -92,7 +91,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.run_loop = 1
         self.counter = 0
         self.thread_started = Event()
-        self.thread = Thread(target=self.loop)
+        self.thread = Thread(target=self.loop, name='test_httpserver')
         self.thread.setDaemon(True)
         self.thread.start()
         self.thread_started.wait(10.0)
@@ -110,7 +109,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 # Clean!
                 break
             if time() >= timeout:
-                self.fail('Leaked a socket: %s' % `socket_map`)
+                self.fail('Leaked a socket: %s' % repr(socket_map))
             poll(0.1)
         self.unhook_asyncore_error()
 
@@ -118,10 +117,10 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         self.thread_started.set()
         while self.run_loop:
             self.counter = self.counter + 1
-            #print 'loop', self.counter
+            #print('loop %d' % self.counter)
             poll(0.1)
 
-    def testEchoResponse(self, h=None, add_headers=None, body=''):
+    def testEchoResponse(self, h=None, add_headers=None, body=b''):
         if h is None:
             h = HTTPConnection(LOCALHOST, self.port)
         headers = {}
@@ -153,7 +152,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         # Tests the use of multiple requests in a single connection.
         h = HTTPConnection(LOCALHOST, self.port)
         for n in range(3):
-            self.testEchoResponse(h, body='Hello, world!')
+            self.testEchoResponse(h, body=b'Hello, world!')
         self.testEchoResponse(h, {'Connection': 'close'})
 
     def testPipelining(self):
@@ -163,7 +162,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "Content-Length: %d\r\n"
              "\r\n"
              "%s")
-        to_send = ''
+        to_send = []
         count = 25
         for n in range(count):
             body = "Response #%d\r\n" % (n + 1)
@@ -171,13 +170,13 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 conn = 'keep-alive'
             else:
                 conn = 'close'
-            to_send += s % (conn, len(body), body)
+            to_send.append(s % (conn, len(body), body))
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(to_send)
-        for n in range(count):
-            expect_body = "Response #%d\r\n" % (n + 1)
+        for n, req in enumerate(to_send):
+            sock.send(req.encode('ascii'))
+            expect_body = ("Response #%d\r\n" % (n + 1)).encode('ascii')
             response = ClientHTTPResponse(sock)
             response.begin()
             self.failUnlessEqual(int(response.status), 200)
@@ -197,19 +196,19 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)
         length = int(response.getheader('Content-Length', '0'))
         response_body = response.read(length)
         self.failUnlessEqual(length, len(data))
-        self.failUnlessEqual(response_body, data)
+        self.failUnlessEqual(response_body, data.encode('ascii'))
 
     def testLargeBody(self):
         # Tests the use of multiple requests in a single connection.
         h = HTTPConnection(LOCALHOST, self.port)
-        s = 'This string has 32 characters.\r\n' * 32  # 1024 characters.
+        s = b'This string has 32 characters.\r\n' * 32  # 1024 characters.
         self.testEchoResponse(h, body=(s * 1024))  # 1 MB
         self.testEchoResponse(h, {'Connection': 'close'},
                               body=(s * 100))  # 100 KB
@@ -239,7 +238,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
 
         conns = []
         for n in range(nconn):
-            #print 'open', n, clock()
+            #print('open %s %s' % (n, clock()))
             h = HTTPConnection(LOCALHOST, self.port)
             #h.debuglevel = 1
             h.request("GET", "/", headers={"Accept": "text/plain"})
@@ -271,15 +270,15 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         h = HTTPConnection(LOCALHOST, self.port)
         h.request("GET", "/", headers={"Accept": "text/plain",
                                        "Transfer-Encoding": "chunked"})
-        h.send("0\r\n\r\n")
+        h.send(b"0\r\n\r\n")
         response = h.getresponse()
         self.failUnlessEqual(int(response.status), 200)
         response_body = response.read()
-        self.failUnlessEqual(response_body, '')
+        self.failUnlessEqual(response_body, b'')
 
     def testChunkingRequestWithContent(self):
-        control_line="20;\r\n"  # 20 hex = 32 dec
-        s = 'This string has 32 characters.\r\n'
+        control_line = b"20;\r\n"  # 20 hex = 32 dec
+        s = b'This string has 32 characters.\r\n'
         expect = s * 12
 
         h = HTTPConnection(LOCALHOST, self.port)
@@ -288,7 +287,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         for n in range(12):
             h.send(control_line)
             h.send(s)
-        h.send("0\r\n\r\n")
+        h.send(b"0\r\n\r\n")
         response = h.getresponse()
         self.failUnlessEqual(int(response.status), 200)
         response_body = response.read()
@@ -303,7 +302,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)
@@ -323,7 +322,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)
@@ -341,7 +340,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)
@@ -356,7 +355,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)
@@ -379,7 +378,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((LOCALHOST, self.port))
-        sock.send(s)
+        sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
         self.failUnlessEqual(int(response.status), 200)

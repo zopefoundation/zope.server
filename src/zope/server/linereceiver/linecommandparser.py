@@ -13,8 +13,13 @@
 ##############################################################################
 """Line Command Parser
 """
+
+import sys
+
 from zope.server.interfaces import IStreamConsumer
 from zope.interface import implementer
+
+PY3 = sys.version_info >= (3, )
 
 
 @implementer(IStreamConsumer)
@@ -23,13 +28,12 @@ class LineCommandParser(object):
 
     # See IStreamConsumer
     completed = 0
-    inbuf = ''
+    inbuf = b''
     cmd = ''
     args = ''
     empty = 0
 
     max_line_length = 1024  # Not a hard limit
-
 
     def __init__(self, adj):
         """
@@ -37,12 +41,11 @@ class LineCommandParser(object):
         """
         self.adj = adj
 
-
     def received(self, data):
         'See IStreamConsumer'
         if self.completed:
             return 0  # Can't consume any more.
-        pos = data.find('\n')
+        pos = data.find(b'\n')
         datalen = len(data)
         if pos < 0:
             self.inbuf = self.inbuf + data
@@ -56,6 +59,8 @@ class LineCommandParser(object):
             self.inbuf = self.inbuf + s
             self.completed = 1
             line = self.inbuf.strip()
+            if PY3:
+                line = line.decode('utf-8')
             self.parseLine(line)
             return len(s)
 

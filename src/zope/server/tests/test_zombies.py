@@ -18,7 +18,7 @@ import unittest
 
 
 class FakeSocket:
-    data        = ''
+    data        = b''
     setblocking = lambda *_: None
     close = lambda *_: None
 
@@ -35,8 +35,8 @@ class FakeSocket:
         self.data += data
         return len(data)
 
-    def recv(self, data):
-        return 'data'
+    def recv(self, buflen):
+        return b'data'
 
 
 def zombies_test():
@@ -54,8 +54,9 @@ def zombies_test():
 
     >>> from zope.server.serverbase import ServerBase
     >>> class ServerBaseForTest(ServerBase):
-    ...     def bind(self, (ip, port)):
-    ...         print "Listening on %s:%d" % (ip or '*', port)
+    ...     def bind(self, addr):
+    ...         ip, port = addr
+    ...         print("Listening on %s:%d" % (ip or '*', port))
     >>> sb = ServerBaseForTest('127.0.0.1', 80, start=False, verbose=True)
     Listening on 127.0.0.1:80
 

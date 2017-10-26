@@ -20,10 +20,8 @@ import sys
 import time
 import traceback
 import unittest
-
-from types import StringType
-from StringIO import StringIO
 from threading import Thread, Event
+from io import BytesIO
 
 from zope.server.adjustments import Adjustments
 from zope.server.ftp.tests import demofs
@@ -71,11 +69,11 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         root_dir['private'].access['anonymous'] = 0
 
         fs = demofs.DemoFileSystem(root_dir, 'foo')
-        fs.writefile('/test/existing', StringIO('test initial data'))
-        fs.writefile('/private/existing', StringIO('private initial data'))
+        fs.writefile('/test/existing', BytesIO(b'test initial data'))
+        fs.writefile('/private/existing', BytesIO(b'private initial data'))
 
         self.__fs = fs = demofs.DemoFileSystem(root_dir, 'root')
-        fs.writefile('/existing', StringIO('root initial data'))
+        fs.writefile('/existing', BytesIO(b'root initial data'))
 
         fs_access = demofs.DemoFileSystemAccess(root_dir, {'foo': 'bar'})
 
@@ -106,7 +104,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 # Clean!
                 break
             if time.time() >= timeout:
-                self.fail('Leaked a socket: %s' % `asyncore.socket_map`)
+                self.fail('Leaked a socket: %s' % repr(asyncore.socket_map))
                 break
             asyncore.poll(0.1)
 
@@ -123,27 +121,27 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             try:
                 asyncore.poll(0.1)
                 continue
-            except select.error, data:
-                print "EXCEPTION POLLING IN LOOP(): ", data
+            except select.error as data:
+                print("EXCEPTION POLLING IN LOOP(): %s" % data)
                 if data[0] == EBADF:
                     for key in asyncore.socket_map.keys():
-                        print
+                        print("")
                         try:
                             select.select([], [], [key], 0.0)
-                        except select.error, v:
-                            print "Bad entry in socket map", key, v
-                            print asyncore.socket_map[key]
-                            print asyncore.socket_map[key].__class__
+                        except select.error as v:
+                            print("Bad entry in socket map %s %s" % (key, v))
+                            print(asyncore.socket_map[key])
+                            print(asyncore.socket_map[key].__class__)
                             del asyncore.socket_map[key]
                         else:
-                            print "OK entry in socket map", key
-                            print asyncore.socket_map[key]
-                            print asyncore.socket_map[key].__class__
-                        print
+                            print("OK entry in socket map %s" % key)
+                            print(asyncore.socket_map[key])
+                            print(asyncore.socket_map[key].__class__)
+                        print("")
             except:
-                print "WEIRD EXCEPTION IN LOOP"
+                print("WEIRD EXCEPTION IN LOOP")
                 traceback.print_exception(*(sys.exc_info()+(100,)))
-            print
+            print("")
 
     def getFTPConnection(self, login=1):
         # import only now to prevent the testrunner from importing it too early
@@ -152,14 +150,14 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         ftp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ftp.connect((LOCALHOST, self.port))
         result = ftp.recv(10000).split()[0]
-        self.assertEqual(result, '220')
+        self.assertEqual(result, b'220')
         if login:
-            ftp.send('USER foo\r\n')
-            self.assertEqual(ftp.recv(1024),
-                             status_messages['PASS_REQUIRED'] +'\r\n')
-            ftp.send('PASS bar\r\n')
-            self.assertEqual(ftp.recv(1024),
-                             status_messages['LOGIN_SUCCESS'] +'\r\n')
+            ftp.send(b'USER foo\r\n')
+            self.assertEqual(ftp.recv(1024).decode('ascii'),
+                             status_messages['PASS_REQUIRED'] + '\r\n')
+            ftp.send(b'PASS bar\r\n')
+            self.assertEqual(ftp.recv(1024).decode('ascii'),
+                             status_messages['LOGIN_SUCCESS'] + '\r\n')
 
         return ftp
 
@@ -168,12 +166,12 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         ftp = self.getFTPConnection(login)
 
         try:
-            if type(commands) is StringType:
+            if isinstance(commands, str):
                 commands = (commands,)
 
             for command in commands:
-                ftp.send('%s\r\n' %command)
-                result = ftp.recv(10000)
+                ftp.send(command.encode('ascii') + b'\r\n')
+                result = ftp.recv(10000).decode('ascii')
             self.failUnless(result.endswith('\r\n'))
         finally:
             ftp.close()
@@ -193,11 +191,11 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         try:
             conn.connect(LOCALHOST, self.port)
             conn.login('foo', 'bar')
-            fp = StringIO('Charity never faileth')
+            fp = BytesIO(b'Charity never faileth')
             # Successful write
             conn.storbinary('APPE /test/existing', fp)
             self.assertEqual(self.__fs.files['test']['existing'].data,
-                             'test initial dataCharity never faileth')
+                             b'test initial dataCharity never faileth')
         finally:
             conn.close()
         # Make sure no garbage was left behind.
@@ -209,7 +207,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             conn.connect(LOCALHOST, self.port)
             conn.login('foo', 'bar')
 
-            fp = StringIO('Speak softly')
+            fp = BytesIO(b'Speak softly')
 
             # Can't overwrite directory
             self.assertRaises(
@@ -346,15 +344,15 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         try:
             conn.connect(LOCALHOST, self.port)
             conn.login('foo', 'bar')
-            fp = StringIO('Speak softly')
+            fp = BytesIO(b'Speak softly')
             # Can't overwrite directory
             self.assertRaises(
                 ftplib.error_perm, conn.storbinary, 'STOR /test', fp)
-            fp = StringIO('Charity never faileth')
+            fp = BytesIO(b'Charity never faileth')
             # Successful write
             conn.storbinary('STOR /test/stuff', fp)
             self.assertEqual(self.__fs.files['test']['stuff'].data,
-                             'Charity never faileth')
+                             b'Charity never faileth')
         finally:
             conn.close()
         # Make sure no garbage was left behind.
@@ -366,10 +364,10 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         try:
             conn.connect(LOCALHOST, self.port)
             conn.login('foo', 'bar')
-            fp = StringIO('Charity never faileth')
+            fp = BytesIO(b'Charity never faileth')
             conn.storbinary('STOR /test/existing', fp)
             self.assertEqual(self.__fs.files['test']['existing'].data,
-                             'Charity never faileth')
+                             b'Charity never faileth')
         finally:
             conn.close()
         # Make sure no garbage was left behind.

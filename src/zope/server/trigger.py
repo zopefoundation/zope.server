@@ -16,7 +16,7 @@ import asyncore
 import os
 import socket
 import struct
-import thread
+from threading import Lock
 import errno
 
 _ADDRESS_MASK = 256 ** struct.calcsize('P')
@@ -72,7 +72,7 @@ class _triggerbase(object):
 
         # `lock` protects the `thunks` list from being traversed and
         # appended to simultaneously.
-        self.lock = thread.allocate_lock()
+        self.lock = Lock()
 
         # List of no-argument callbacks to invoke when the trigger is
         # pulled.  These run in the thread running the asyncore mainloop,
@@ -130,8 +130,8 @@ class _triggerbase(object):
                     thunk()
                 except:
                     nil, t, v, tbinfo = asyncore.compact_traceback()
-                    print ('exception in trigger thunk:'
-                           ' (%s:%s %s)' % (t, v, tbinfo))
+                    print('exception in trigger thunk:'
+                          ' (%s:%s %s)' % (t, v, tbinfo))
             self.thunks = []
         finally:
             self.lock.release()
@@ -155,7 +155,7 @@ if os.name == 'posix':
             self._fds = []
 
         def _physical_pull(self):
-            os.write(self.trigger, 'x')
+            os.write(self.trigger, b'x')
 
 else:
     # Windows version; uses just sockets, because a pipe isn't select'able
@@ -198,7 +198,7 @@ else:
                try:
                    w.connect(connect_address)
                    break    # success
-               except socket.error, detail:
+               except socket.error as detail:
                    if detail[0] != errno.WSAEADDRINUSE:
                        # "Address already in use" is the only error
                        # I've seen on two WinXP Pro SP2 boxes, under

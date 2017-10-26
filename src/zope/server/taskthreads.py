@@ -13,11 +13,11 @@
 ##############################################################################
 """Threaded Task Dispatcher
 """
-from Queue import Queue, Empty
-from thread import allocate_lock, start_new_thread
-from time import time, sleep
 import logging
+import threading
+from time import time, sleep
 
+from six.moves.queue import Queue, Empty
 from zope.server.interfaces import ITaskDispatcher
 from zope.interface import implementer
 
@@ -34,7 +34,7 @@ class ThreadedTaskDispatcher(object):
     def __init__(self):
         self.threads = {}  # { thread number -> 1 }
         self.queue = Queue()
-        self.thread_mgmt_lock = allocate_lock()
+        self.thread_mgmt_lock = threading.Lock()
 
     def handlerThread(self, thread_no):
         threads = self.threads
@@ -74,7 +74,11 @@ class ThreadedTaskDispatcher(object):
                     thread_no = thread_no + 1
                 threads[thread_no] = 1
                 running += 1
-                start_new_thread(self.handlerThread, (thread_no,))
+                t = threading.Thread(target=self.handlerThread,
+                                     args=(thread_no,),
+                                     name='zope.server-%d' % thread_no)
+                t.setDaemon(True)
+                t.start()
                 thread_no = thread_no + 1
             if running > count:
                 # Stop threads.

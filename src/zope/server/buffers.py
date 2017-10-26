@@ -13,10 +13,7 @@
 ##############################################################################
 """Buffers
 """
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from io import BytesIO
 
 
 # copy_bytes controls the size of temp. strings for shuffling data around.
@@ -103,7 +100,6 @@ class FileBasedBuffer(object):
         return self.file
 
 
-
 class TempfileBasedBuffer(FileBasedBuffer):
 
     def __init__(self, from_buffer=None):
@@ -114,19 +110,17 @@ class TempfileBasedBuffer(FileBasedBuffer):
         return TemporaryFile('w+b')
 
 
-
 class StringIOBasedBuffer(FileBasedBuffer):
 
     def __init__(self, from_buffer=None):
         if from_buffer is not None:
-            FileBasedBuffer.__init__(self, StringIO(), from_buffer)
+            FileBasedBuffer.__init__(self, BytesIO(), from_buffer)
         else:
             # Shortcut. :-)
-            self.file = StringIO()
+            self.file = BytesIO()
 
     def newfile(self):
-        return StringIO()
-
+        return BytesIO()
 
 
 class OverflowableBuffer(object):
@@ -141,7 +135,7 @@ class OverflowableBuffer(object):
 
     overflowed = 0
     buf = None
-    strbuf = ''  # String-based buffer.
+    strbuf = b''  # String-based buffer.
 
     def __init__(self, overflow):
         # overflow is the maximum to be stored in a StringIO buffer.
@@ -155,7 +149,7 @@ class OverflowableBuffer(object):
             return len(self.strbuf)
 
     def _create_buffer(self):
-        # print 'creating buffer'
+        # print('creating buffer')
         strbuf = self.strbuf
         if len(strbuf) >= self.overflow:
             self._set_large_buffer()
@@ -164,7 +158,7 @@ class OverflowableBuffer(object):
         buf = self.buf
         if strbuf:
             buf.append(self.strbuf)
-            self.strbuf = ''
+            self.strbuf = b''
         return buf
 
     def _set_small_buffer(self):
@@ -206,7 +200,7 @@ class OverflowableBuffer(object):
                 # We could slice instead of converting to
                 # a buffer, but that would eat up memory in
                 # large transfers.
-                self.strbuf = ''
+                self.strbuf = b''
                 return
             buf = self._create_buffer()
         buf.skip(bytes, allow_prune)
@@ -218,7 +212,7 @@ class OverflowableBuffer(object):
         """
         buf = self.buf
         if buf is None:
-            self.strbuf = ''
+            self.strbuf = b''
             return
         buf.prune()
         if self.overflowed:

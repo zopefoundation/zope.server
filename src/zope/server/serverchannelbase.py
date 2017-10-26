@@ -20,14 +20,14 @@ import os
 import time
 import sys
 import asyncore
-from thread import allocate_lock
+from threading import Lock
 from zope.interface import implementer
 
 from zope.server.dualmodechannel import DualModeChannel
 from zope.server.interfaces import IServerChannel, ITask
 
 # task_lock is useful for synchronizing access to task-related attributes.
-task_lock = allocate_lock()
+task_lock = Lock()
 
 
 @implementer(IServerChannel, ITask)

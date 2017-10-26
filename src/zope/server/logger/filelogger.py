@@ -13,7 +13,6 @@
 ##############################################################################
 """File Logger
 """
-from types import StringType
 
 from zope.server.interfaces.logger import IMessageLogger
 from zope.interface import implementer
@@ -25,7 +24,7 @@ class FileLogger(object):
 
     def __init__(self, file, flush=1, mode='a'):
         """pass this either a path or a file object."""
-        if type(file) is StringType:
+        if not hasattr(file, 'read'):
             if (file == '-'):
                 import sys
                 self.file = sys.stdout

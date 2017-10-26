@@ -1,8 +1,13 @@
 import doctest
 import logging
-from cStringIO import StringIO
+from io import BytesIO, StringIO
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
+
+
+# By using io.BytesIO() instead of cStringIO.StringIO() on Python 2 we make
+# sure we're not trying to accidentally print unicode to stdout/stderr.
+NativeStringIO = BytesIO if str is bytes else StringIO
 
 
 class CountingDict(dict):
@@ -27,7 +32,7 @@ class TaskStub(object):
 
 def setUp(test):
     test.logger = logging.getLogger('zope.server.taskthreads')
-    test.logbuf = StringIO()
+    test.logbuf = NativeStringIO()
     test.good_handler = logging.StreamHandler(test.logbuf)
     test.logger.addHandler(test.good_handler)
     test.bad_handler = logging.Handler()
@@ -52,7 +57,7 @@ def doctest_handlerThread_logs_exceptions_that_happen_during_exception_logging()
     It's important that exceptions in the thread main loop get logged, not just
     exceptions that happen while handling tasks
 
-        >>> print logbuf.getvalue(), # doctest: +ELLIPSIS
+        >>> print(logbuf.getvalue().rstrip()) # doctest: +ELLIPSIS
         Exception during task
         Traceback (most recent call last):
           ...

@@ -16,8 +16,7 @@
 This FTP server uses the Zope 3 Publisher to execute commands.
 """
 import posixpath
-
-from cStringIO import StringIO
+from io import BytesIO
 
 from zope.server.interfaces.ftp import IFileSystem
 from zope.server.interfaces.ftp import IFileSystemAccess
@@ -27,11 +26,12 @@ from zope.publisher.publish import publish
 
 from zope.interface import implementer
 
+
 @implementer(IFileSystem)
 class PublisherFileSystem(object):
     """Generic Publisher FileSystem implementation."""
 
-    def __init__ (self, credentials, request_factory):
+    def __init__(self, credentials, request_factory):
         self.credentials = credentials
         self.request_factory = request_factory
 
@@ -101,7 +101,7 @@ class PublisherFileSystem(object):
             env['path'] = path
 
         env['credentials'] = self.credentials
-        request = self.request_factory(StringIO(''), env)
+        request = self.request_factory(BytesIO(b''), env)
 
         # Note that publish() calls close() on request, which deletes the
         # response from the request, so that we need to keep track of it.
@@ -112,7 +112,7 @@ class PublisherFileSystem(object):
         request = publish(request)
         return request.response.getResult()
 
-    def _translate (self, path):
+    def _translate(self, path):
         # Normalize
         path = posixpath.normpath(path)
         if path.startswith('..'):
@@ -129,6 +129,7 @@ class PublisherFTPServer(FTPServer):
         fs_access = PublisherFileSystemAccess(request_factory)
         super(PublisherFTPServer, self).__init__(ip, port, fs_access,
                                                  *args, **kw)
+
 
 @implementer(IFileSystemAccess)
 class PublisherFileSystemAccess(object):

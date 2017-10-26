@@ -16,6 +16,7 @@
 import asyncore
 import re
 import sys
+import six
 from zope.server.http.httpserver import HTTPServer
 from zope.server.taskthreads import ThreadedTaskDispatcher
 import zope.security.management
@@ -38,7 +39,7 @@ def curriedStartResponse(task):
                     # 1. "service" method in httptask.py
                     # 2. "service" method in severchannelbase.py
                     # 3. "handlerThread" method in taskthreads.py
-                    raise exc_info[0], exc_info[1], exc_info[2]
+                    six.reraise(*exc_info)
                 else:
                     # As per WSGI spec existing headers must be cleared
                     task.accumulated_headers = None
@@ -68,7 +69,7 @@ class WSGIHTTPServer(HTTPServer):
         self.application = application
 
         if sub_protocol:
-            self.SERVER_IDENT += ' (%s)' %str(sub_protocol)
+            self.SERVER_IDENT += ' (%s)' % str(sub_protocol)
 
         HTTPServer.__init__(self, *args, **kw)
 
@@ -83,7 +84,7 @@ class WSGIHTTPServer(HTTPServer):
             protocol = 'http'
 
         # the following environment variables are required by the WSGI spec
-        env['wsgi.version'] = (1,0)
+        env['wsgi.version'] = (1, 0)
         env['wsgi.url_scheme'] = protocol
         env['wsgi.errors'] = sys.stderr # apps should use the logging module
         env['wsgi.multithread'] = True
@@ -136,8 +137,8 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
                 task.write(value)
         except:
             import sys, pdb
-            print "%s:" % sys.exc_info()[0]
-            print sys.exc_info()[1]
+            print("%s:" % sys.exc_info()[0])
+            print(sys.exc_info()[1])
             zope.security.management.restoreInteraction()
             try:
                 pdb.post_mortem(sys.exc_info()[2])

@@ -154,7 +154,7 @@ class DualModeChannel(asyncore.dispatcher):
 
     def write(self, data):
         wrote = 0
-        if isinstance(data, str):
+        if isinstance(data, bytes):
             if data:
                 self.outbuf.append(data)
                 wrote = len(data)

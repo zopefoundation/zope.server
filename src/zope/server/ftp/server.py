@@ -185,7 +185,7 @@ class FTPServerChannel(LineServerChannel):
 
         try:
             self._getFileSystem().remove(path)
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_DELETE_FILE', str(err))
         else:
             self.reply('SUCCESS_250', 'DELE')
@@ -194,7 +194,7 @@ class FTPServerChannel(LineServerChannel):
     def cmd_help(self, args):
         'See IFTPCommandHandler'
         self.reply('HELP_START', flush=0)
-        self.write('Help goes here somewhen.\r\n')
+        self.write(b'Help goes here somewhen.\r\n')
         self.reply('HELP_END')
 
 
@@ -223,15 +223,15 @@ class FTPServerChannel(LineServerChannel):
                 args, long,
                 directory=bool([opt for opt in opts if opt[0]=='-d'])
                 )
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_NO_LIST', str(err))
             return
         ok_reply = ('OPEN_DATA_CONN', self.type_map[self.transfer_mode])
         cdc = RETRChannel(self, ok_reply)
         try:
-            cdc.write(s)
+            cdc.write(s.encode('utf-8'))
             cdc.close_when_done()
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_NO_LIST', str(err))
             cdc.reported = True
             cdc.close_when_done()
@@ -297,7 +297,7 @@ class FTPServerChannel(LineServerChannel):
         path = self._generatePath(args)
         try:
             self._getFileSystem().mkdir(path)
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_CREATE_DIR', str(err))
         else:
             self.reply('SUCCESS_257', 'MKD')
@@ -342,7 +342,7 @@ class FTPServerChannel(LineServerChannel):
         assert self.async_mode
         # Kill any existing passive listener first.
         self.abortPassive()
-        local_addr = self.getsockname()[0]
+        local_addr = self.socket.getsockname()[0]
         self.passive_listener = PassiveListener(self, local_addr)
         port = self.passive_listener.port
         self.reply('PASV_MODE_MSG', (','.join(local_addr.split('.')),
@@ -397,11 +397,11 @@ class FTPServerChannel(LineServerChannel):
         try:
             fs.readfile(path, outstream, start)
             cdc.close_when_done()
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_OPEN_READ', str(err))
             cdc.reported = True
             cdc.close_when_done()
-        except IOError, err:
+        except IOError as err:
             self.reply('ERR_IO', str(err))
             cdc.reported = True
             cdc.close_when_done()
@@ -426,7 +426,7 @@ class FTPServerChannel(LineServerChannel):
         path = self._generatePath(args)
         try:
             self._getFileSystem().rmdir(path)
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_DELETE_DIR', str(err))
         else:
             self.reply('SUCCESS_250', 'RMD')
@@ -449,7 +449,7 @@ class FTPServerChannel(LineServerChannel):
             self.reply('ERR_RENAME')
         try:
             self._getFileSystem().rename(self._rnfr, path)
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_RENAME', (self._rnfr, path, str(err)))
         else:
             self.reply('SUCCESS_250', 'RNTO')
@@ -487,17 +487,18 @@ class FTPServerChannel(LineServerChannel):
         self.reply('OPEN_CONN', (self.type_map[self.transfer_mode], path))
 
 
-    def finishSTOR(self, buffer, (path, mode, start)):
+    def finishSTOR(self, buffer, finish_args):
         """Called by STORChannel when the client has sent all data."""
+        (path, mode, start) = finish_args
         assert not self.async_mode
         try:
             infile = buffer.getfile()
             infile.seek(0)
             self._getFileSystem().writefile(path, infile, start,
                                             append=(mode[0]=='a'))
-        except OSError, err:
+        except OSError as err:
             self.reply('ERR_OPEN_WRITE', str(err))
-        except IOError, err:
+        except IOError as err:
             self.reply('ERR_IO', str(err))
         except:
             self.exception()
@@ -693,7 +694,7 @@ class PassiveListener(asyncore.dispatcher):
         # bind to an address on the interface where the
         # control connection is connected.
         self.bind((local_addr, 0))
-        self.port = self.getsockname()[1]
+        self.port = self.socket.getsockname()[1]
         self.listen(1)
 
     def log (self, *ignore):

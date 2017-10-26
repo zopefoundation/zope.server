@@ -2,10 +2,12 @@
 CHANGES
 =======
 
-3.9.1 (unreleased)
-------------------
+3.10.0 (unreleased)
+-------------------
 
-- Nothing changed yet.
+- Drop Python 2.6 support.
+
+- Add Python 3.4, 3.5, and 3.6 support.
 
 
 3.9.0 (2013-03-13)
