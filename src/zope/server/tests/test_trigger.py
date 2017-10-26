@@ -19,3 +19,18 @@ class TestFunctions(unittest.TestCase):
                              trigger.positive_id(None))
         finally:
             del trigger.id
+
+class TestPipeTrigger(unittest.TestCase):
+
+    def _getFUT(self):
+        return trigger.pipetrigger
+
+    def _makeOne(self):
+        t = self._getFUT()()
+        self.addCleanup(t.close)
+        return t
+
+class TestSocketTrigger(unittest.TestCase):
+
+    def _getFUT(self):
+        return trigger.sockettrigger
