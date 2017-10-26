@@ -16,7 +16,6 @@
 This module provides a base implementation for the server channel. It can only
 be used as a mix-in to actual server channel implementations.
 """
-import os
 import time
 import sys
 import asyncore
@@ -105,7 +104,7 @@ class ServerChannelBase(DualModeChannel):
         cutoff = now - self.adj.channel_timeout
         for channel in self.active_channels.values():
             if (channel is not self and not channel.running_tasks and
-                channel.last_activity < cutoff):
+                    channel.last_activity < cutoff):
                 channel.close()
 
     def received(self, data):
@@ -168,16 +167,14 @@ class ServerChannelBase(DualModeChannel):
     def queue_task(self, task):
         """Queue a channel-related task to be executed in another thread."""
         start = False
-        task_lock.acquire()
-        try:
+        with task_lock:
             if self.tasks is None:
                 self.tasks = []
             self.tasks.append(task)
             if not self.running_tasks:
                 self.running_tasks = True
                 start = True
-        finally:
-            task_lock.release()
+
         if start:
             self.set_sync()
             self.server.addTask(self)
@@ -190,8 +187,7 @@ class ServerChannelBase(DualModeChannel):
         """Execute all pending tasks"""
         while True:
             task = None
-            task_lock.acquire()
-            try:
+            with task_lock:
                 if self.tasks:
                     task = self.tasks.pop(0)
                 else:
@@ -199,8 +195,7 @@ class ServerChannelBase(DualModeChannel):
                     self.running_tasks = False
                     self.set_async()
                     break
-            finally:
-                task_lock.release()
+
             try:
                 task.service()
             except:
@@ -210,16 +205,14 @@ class ServerChannelBase(DualModeChannel):
 
     def cancel(self):
         """Cancels all pending tasks"""
-        task_lock.acquire()
-        try:
+        with task_lock:
             if self.tasks:
                 old = self.tasks[:]
             else:
                 old = []
             self.tasks = []
             self.running_tasks = False
-        finally:
-            task_lock.release()
+
         try:
             for task in old:
                 task.cancel()

@@ -106,11 +106,8 @@ class _triggerbase(object):
 
     def pull_trigger(self, thunk=None):
         if thunk:
-            self.lock.acquire()
-            try:
+            with self.lock:
                 self.thunks.append(thunk)
-            finally:
-                self.lock.release()
         self._physical_pull()
 
     # Subclass must supply _physical_pull, which does whatever the OS
@@ -123,8 +120,7 @@ class _triggerbase(object):
             self.recv(8192)
         except socket.error:
             return
-        self.lock.acquire()
-        try:
+        with self.lock:
             for thunk in self.thunks:
                 try:
                     thunk()
@@ -133,8 +129,6 @@ class _triggerbase(object):
                     print('exception in trigger thunk:'
                           ' (%s:%s %s)' % (t, v, tbinfo))
             self.thunks = []
-        finally:
-            self.lock.release()
 
     def __repr__(self):
         return '<select-trigger (%s) at %x>' % (self.kind, positive_id(self))
