@@ -42,6 +42,8 @@ class DualModeChannel(asyncore.dispatcher, object):
     # boolean: async or sync mode
     async_mode = True
 
+    last_activity = 0
+
     def __init__(self, conn, addr, adj=None):
         self.addr = addr
         if adj is None:
@@ -95,7 +97,7 @@ class DualModeChannel(asyncore.dispatcher, object):
         """
         Override to receive data in async mode.
         """
-        pass
+
 
     def handle_comm_error(self):
         """
