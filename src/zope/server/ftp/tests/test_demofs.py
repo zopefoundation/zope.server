@@ -13,14 +13,14 @@
 ##############################################################################
 """Test the Demo Filesystem implementation.
 """
-from unittest import TestCase, TestSuite, main, makeSuite
+import unittest
 from io import BytesIO
 
 from . import demofs
 from .fstests import FileSystemTests
 
 
-class Test(FileSystemTests, TestCase):
+class Test(FileSystemTests, unittest.TestCase):
 
     def setUp(self):
         root = demofs.Directory()
@@ -30,12 +30,3 @@ class Test(FileSystemTests, TestCase):
         fs.writefile(self.file_name, BytesIO(self.file_contents))
         fs.writefile(self.unwritable_filename, BytesIO(b"save this"))
         fs.get(self.unwritable_filename).revoke('bob', demofs.write)
-
-
-def test_suite():
-    return TestSuite((
-        makeSuite(Test),
-        ))
-
-if __name__=='__main__':
-    main(defaultTest='test_suite')

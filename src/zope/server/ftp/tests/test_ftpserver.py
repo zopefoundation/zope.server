@@ -58,7 +58,7 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
         if len(asyncore.socket_map) != 1:
             # Let sockets die off.
             # TODO tests should be more careful to clear the socket map.
-            asyncore.poll(0.1)
+            asyncore.poll(0.1)  # pragma: no cover
         self.orig_map_size = len(asyncore.socket_map)
 
         root_dir = demofs.Directory()
@@ -81,7 +81,7 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
                                 task_dispatcher=td, adj=my_adj)
         if CONNECT_TO_PORT == 0:
             self.port = self.server.socket.getsockname()[1]
-        else:
+        else: # pragma: no cover
             self.port = CONNECT_TO_PORT
         self.run_loop = 1
         self.counter = 0
@@ -103,10 +103,10 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
             if len(asyncore.socket_map) == self.orig_map_size:
                 # Clean!
                 break
-            if time.time() >= timeout:
+            if time.time() >= timeout: # pragma: no cover
                 self.fail('Leaked a socket: %s' % repr(asyncore.socket_map))
                 break
-            asyncore.poll(0.1)
+            asyncore.poll(0.1) # pragma: no cover
 
         super(Tests, self).tearDown()
 
@@ -121,7 +121,7 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
             try:
                 asyncore.poll(0.1)
                 continue
-            except select.error as data:
+            except select.error as data: # pragma: no cover
                 print("EXCEPTION POLLING IN LOOP(): %s" % data)
                 if data.args[0] == EBADF:
                     for key in asyncore.socket_map:
@@ -138,10 +138,10 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
                             print(asyncore.socket_map[key])
                             print(asyncore.socket_map[key].__class__)
                         print("")
-            except:
+            except: # pragma: no cover pylint:disable=bare-except
                 print("WEIRD EXCEPTION IN LOOP")
                 traceback.print_exception(*(sys.exc_info()+(100,)))
-            print("")
+            print("")  # pragma: no cover
 
     def getFTPConnection(self, login=1):
         # import only now to prevent the testrunner from importing it too early
