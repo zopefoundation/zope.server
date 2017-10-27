@@ -54,8 +54,10 @@ class ThreadedTaskDispatcher(object):
             mlock = self.thread_mgmt_lock
             with mlock:
                 self.stop_count -= 1
-                try: del threads[thread_no]
-                except KeyError: pass
+                try:
+                    del threads[thread_no]
+                except KeyError:
+                    pass
 
     def setThreadCount(self, count):
         """See zope.server.interfaces.ITaskDispatcher"""
@@ -80,7 +82,7 @@ class ThreadedTaskDispatcher(object):
                 # Stop threads.
                 to_stop = running - count
                 self.stop_count += to_stop
-                for n in range(to_stop):
+                for _n in range(to_stop):
                     self.queue.put(None)
                     running -= 1
 
@@ -104,7 +106,7 @@ class ThreadedTaskDispatcher(object):
         expiration = time() + timeout
         while threads:
             if time() >= expiration:
-                log.error("%d thread(s) still running" % len(threads))
+                log.error("%d thread(s) still running", len(threads))
                 break
             sleep(0.1)
         if cancel_pending:
