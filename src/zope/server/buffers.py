@@ -14,6 +14,7 @@
 """Buffers
 """
 from io import BytesIO
+import tempfile
 
 
 # copy_bytes controls the size of temp. strings for shuffling data around.
@@ -30,6 +31,9 @@ class FileBasedBuffer(object):
     def __init__(self, file, from_buffer=None):
         self.file = file
         if from_buffer is not None:
+            # This code base no longer uses this
+            # function except tests that are designed
+            # just to test it.
             from_file = from_buffer.getfile()
             read_pos = from_file.tell()
             from_file.seek(0)
@@ -106,8 +110,8 @@ class TempfileBasedBuffer(FileBasedBuffer):
         FileBasedBuffer.__init__(self, self.newfile(), from_buffer)
 
     def newfile(self):
-        from tempfile import TemporaryFile
-        return TemporaryFile('w+b')
+        return tempfile.TemporaryFile(mode='w+b',
+                                      suffix='zope_server_buffer.tmp')
 
 
 class StringIOBasedBuffer(FileBasedBuffer):
@@ -119,112 +123,33 @@ class StringIOBasedBuffer(FileBasedBuffer):
         return BytesIO()
 
 
-class OverflowableBuffer(object):
+class OverflowableBuffer(TempfileBasedBuffer):
     """
-    This buffer implementation has four stages:
-    - No data
-    - String-based buffer
-    - StringIO-based buffer
-    - Temporary file storage
-    The first two stages are fastest for simple transfers.
+    A buffer based on a :class:`tempfile.SpooledTemporaryFile`,
+    buffering up to *overflow* (plus some extra) in memory, and
+    automatically spooling that to disk when exceeded.
+
+    .. versionchanged:: 4.0.0
+       Re-implement in terms of ``SpooledTemporaryFile``.
+       Internal attributes of this object such as ``overflowed`` and
+       ``strbuf`` no longer exist.
     """
-
-    # XXX This is very similar to tempfile.SpooledTemporaryFile
-    # which was added in 2.6.
-
-    # (Individual 'no cover' directives below disable coverage
-    # pending
-    # https://github.com/zopefoundation/zope.server/issues/5)
-
-    overflowed = 0
-    buf = None
-    strbuf = b''  # String-based buffer.
 
     def __init__(self, overflow):
-        # overflow is the maximum to be stored in a StringIO buffer.
-        self.overflow = overflow
+        # overflow is the maximum to be stored in a SpooledTemporaryFile
+        self.overflow = overflow + STRBUF_LIMIT
+        TempfileBasedBuffer.__init__(self)
 
-    def __len__(self):
-        buf = self.buf
-        if buf is not None:
-            return len(buf)
-        return len(self.strbuf)
-
-    def _create_buffer(self):
-        # print('creating buffer')
-        strbuf = self.strbuf
-        if len(strbuf) >= self.overflow:
-            self._set_large_buffer() # pragma: no cover
-        else:
-            self._set_small_buffer()
-        buf = self.buf
-        if strbuf:
-            buf.append(self.strbuf)
-            self.strbuf = b''
-        return buf
-
-    def _set_small_buffer(self):
-        self.buf = StringIOBasedBuffer(self.buf)
-        self.overflowed = 0
-
-    def _set_large_buffer(self):
-        self.buf = TempfileBasedBuffer(self.buf)
-        self.overflowed = 1
-
-    def append(self, s):
-        buf = self.buf
-        if buf is None:
-            strbuf = self.strbuf
-            if len(strbuf) + len(s) < STRBUF_LIMIT:
-                self.strbuf = strbuf + s
-                return
-            buf = self._create_buffer()
-        buf.append(s)
-        sz = len(buf)
-        if not self.overflowed:
-            if sz >= self.overflow:
-                self._set_large_buffer()
-
-    def get(self, bytes=-1, skip=0):
-        buf = self.buf
-        if buf is None:
-            strbuf = self.strbuf
-            if not skip:
-                return strbuf
-            buf = self._create_buffer() # pragma: no cover
-        return buf.get(bytes, skip)
-
-    def skip(self, bytes, allow_prune=0):
-        buf = self.buf
-        if buf is None:
-            strbuf = self.strbuf
-            if allow_prune and bytes == len(strbuf):
-                # We could slice instead of converting to
-                # a buffer, but that would eat up memory in
-                # large transfers.
-                self.strbuf = b''
-                return
-            buf = self._create_buffer() # pragma: no cover
-        buf.skip(bytes, allow_prune)
-
-    def prune(self): # pragma: no cover
-        """
-        A potentially expensive operation that removes all data
-        already retrieved from the buffer.
-        """
-        buf = self.buf
-        if buf is None:
-            self.strbuf = b''
-            return
-        buf.prune()
-        if self.overflowed:
-            sz = len(buf)
-            if sz < self.overflow:
-                # Revert to a faster buffer.
-                self._set_small_buffer()
+    def newfile(self):
+        return tempfile.SpooledTemporaryFile(max_size=self.overflow,
+                                             mode='w+b',
+                                             suffix='zope_server_buffer.tmp')
 
     def getfile(self):
-        buf = self.buf
-        if buf is None:
-            buf = self._create_buffer()
-        return buf.getfile()
+        # Return the underlying file object, not the spooled file
+        # (despite the _ prefix, this is a documented attribute).
+        # If we haven't rolled to disk, this will be the StringIO object.
+        # This improves backwards compatibility for code that assumes
+        # it can do getfile().getvalue() (which before would work for
+        # small values)
+        return self.file._file

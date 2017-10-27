@@ -43,6 +43,14 @@ class TestStringBuffer(unittest.TestCase):
         self.assertEqual(b'data', data)
         self.assertEqual(4, buf.remain)
 
+    def test_construct_from_buffer(self):
+        buf1 = self._makeOne()
+        buf1.append(b'data')
+
+        buf2 = self._getFUT()(buf1)
+
+        self.assertEqual(buf2.get(), b'data')
+
 class TestTempfileBasedBuffer(TestStringBuffer):
 
     def _getFUT(self):
