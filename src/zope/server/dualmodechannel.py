@@ -26,7 +26,7 @@ from zope.server.buffers import OverflowableBuffer
 the_trigger = trigger.trigger()
 
 
-class DualModeChannel(asyncore.dispatcher):
+class DualModeChannel(asyncore.dispatcher, object):
     """Channel that switches between asynchronous and synchronous mode.
 
     Call set_sync() before using a channel in a thread other than
@@ -41,6 +41,8 @@ class DualModeChannel(asyncore.dispatcher):
 
     # boolean: async or sync mode
     async_mode = True
+
+    last_activity = 0
 
     def __init__(self, conn, addr, adj=None):
         self.addr = addr
@@ -95,7 +97,7 @@ class DualModeChannel(asyncore.dispatcher):
         """
         Override to receive data in async mode.
         """
-        pass
+
 
     def handle_comm_error(self):
         """
@@ -208,4 +210,11 @@ class DualModeChannel(asyncore.dispatcher):
         # descriptor.
         assert self.async_mode
         self.connected = False
-        asyncore.dispatcher.close(self)
+        try:
+            asyncore.dispatcher.close(self)
+        except AttributeError: # pragma: no cover (tox coverage environment is python 3)
+            # On Python 2.7, this is not idempotent. If we were
+            # already closed (or never fully opened) it will
+            # raise a AttributeError because it tries to call close()
+            # on self.socket, which is None
+            pass

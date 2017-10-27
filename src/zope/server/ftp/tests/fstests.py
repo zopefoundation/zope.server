@@ -19,13 +19,12 @@ from io import BytesIO
 from zope.interface.verify import verifyObject
 from zope.server.interfaces.ftp import IFileSystem
 
-
 class FileSystemTests(object):
     """Tests of a readable filesystem
     """
 
     filesystem = None
-    dir_name  = '/dir'
+    dir_name = '/dir'
     file_name = '/dir/file.txt'
     unwritable_filename = '/dir/protected.txt'
     dir_contents = ['file.txt', 'protected.txt']
@@ -33,6 +32,7 @@ class FileSystemTests(object):
 
     def test_type(self):
         self.assertEqual(self.filesystem.type(self.dir_name), 'd')
+        self.assertEqual(self.filesystem.type('/'), 'd')
         self.assertEqual(self.filesystem.type(self.file_name), 'f')
 
 
@@ -63,8 +63,7 @@ class FileSystemTests(object):
 
     def testRemove(self):
         self.filesystem.remove(self.file_name)
-        self.failIf(self.filesystem.type(self.file_name))
-
+        self.assertFalse(self.filesystem.type(self.file_name))
 
     def testMkdir(self):
         path = self.dir_name + '/x'
@@ -74,7 +73,7 @@ class FileSystemTests(object):
     def testRmdir(self):
         self.filesystem.remove(self.file_name)
         self.filesystem.rmdir(self.dir_name)
-        self.failIf(self.filesystem.type(self.dir_name))
+        self.assertFalse(self.filesystem.type(self.dir_name))
 
 
     def testRename(self):
@@ -151,7 +150,7 @@ class FileSystemTests(object):
 
 
     def test_writable(self):
-        self.failIf(self.filesystem.writable(self.dir_name))
-        self.failIf(self.filesystem.writable(self.unwritable_filename))
-        self.failUnless(self.filesystem.writable(self.file_name))
-        self.failUnless(self.filesystem.writable(self.file_name+'1'))
+        self.assertFalse(self.filesystem.writable(self.dir_name))
+        self.assertFalse(self.filesystem.writable(self.unwritable_filename))
+        self.assertTrue(self.filesystem.writable(self.file_name))
+        self.assertTrue(self.filesystem.writable(self.file_name+'1'))

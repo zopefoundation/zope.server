@@ -1,4 +1,4 @@
-import doctest
+import unittest
 import logging
 from io import BytesIO, StringIO
 
@@ -30,46 +30,121 @@ class TaskStub(object):
         raise Exception('testing exception handling')
 
 
-def setUp(test):
-    test.logger = logging.getLogger('zope.server.taskthreads')
-    test.logbuf = NativeStringIO()
-    test.good_handler = logging.StreamHandler(test.logbuf)
-    test.logger.addHandler(test.good_handler)
-    test.bad_handler = logging.Handler()
-    # test.bad_handler.emit() raises, which is what we want
-    test.logger.addHandler(test.bad_handler)
-    test.globs['logbuf'] = test.logbuf
+class TestExceptionLogging(unittest.TestCase):
 
-def tearDown(test):
-    test.logger.removeHandler(test.bad_handler)
-    test.logger.removeHandler(test.good_handler)
+    def setUp(self):
+        self.logger = logging.getLogger('zope.server.taskthreads')
+        self.logbuf = NativeStringIO()
+        self.good_handler = logging.StreamHandler(self.logbuf)
+        self.logger.addHandler(self.good_handler)
+        self.bad_handler = logging.Handler()
+        # test.bad_handler.emit() raises, which is what we want
+        self.logger.addHandler(self.bad_handler)
 
-
-def doctest_handlerThread_logs_exceptions_that_happen_during_exception_logging():
-    """Test that ThreadedTaskDispatcher.handlerThread doesn't terminate silently
-
-        >>> dispatcher = ThreadedTaskDispatcher()
-        >>> dispatcher.threads = CountingDict({42: 1})
-        >>> dispatcher.queue = QueueStub([TaskStub()])
-        >>> try: dispatcher.handlerThread(42)
-        ... except: pass
-
-    It's important that exceptions in the thread main loop get logged, not just
-    exceptions that happen while handling tasks
-
-        >>> print(logbuf.getvalue().rstrip()) # doctest: +ELLIPSIS
-        Exception during task
-        Traceback (most recent call last):
-          ...
-        Exception: testing exception handling
-        Exception in thread main loop
-        Traceback (most recent call last):
-          ...
-        NotImplementedError: emit must be implemented by Handler subclasses
-
-    """
+    def tearDown(self):
+        self.logger.removeHandler(self.bad_handler)
+        self.logger.removeHandler(self.good_handler)
 
 
-def test_suite():
-    return doctest.DocTestSuite(setUp=setUp, tearDown=tearDown)
+    def test_handlerThread_logs_exceptions_that_happen_during_exception_logging(self):
+        # Test that ThreadedTaskDispatcher.handlerThread doesn't terminate silently
 
+        dispatcher = ThreadedTaskDispatcher()
+        dispatcher.threads = CountingDict({42: 1})
+        dispatcher.queue = QueueStub([TaskStub()])
+
+        with self.assertRaises(NotImplementedError):
+            dispatcher.handlerThread(42)
+
+        # It's important that exceptions in the thread main loop get
+        # logged, not just exceptions that happen while handling tasks
+
+        logged = self.logbuf.getvalue().rstrip()
+        self.assertIn("Exception during task\nTraceback", logged)
+
+        self.assertIn("Exception: testing exception handling", logged)
+        self.assertIn("Exception in thread main loop\nTraceback", logged)
+        self.assertIn(
+            "NotImplementedError: emit must be implemented by Handler subclasses",
+            logged)
+
+class TestThreadedDispatcher(unittest.TestCase):
+
+    def test_handlerThread_exits_while_running(self):
+
+        dispatcher = ThreadedTaskDispatcher()
+
+        class Task(object):
+
+            def service(self):
+                del dispatcher.threads[42]
+
+        dispatcher.threads[42] = True
+        dispatcher.queue.put(Task())
+        dispatcher.handlerThread(42)
+
+        self.assertEqual({}, dispatcher.threads)
+
+    def test_addTask_None(self):
+        with self.assertRaises(ValueError):
+            ThreadedTaskDispatcher().addTask(None)
+
+    def test_addTask_no_defer(self):
+        class Task(object):
+
+            cancel_called = False
+
+            def cancel(self):
+                self.cancel_called = True
+
+        task = Task()
+
+        with self.assertRaises(AttributeError):
+            ThreadedTaskDispatcher().addTask(task)
+
+        self.assertTrue(task.cancel_called)
+
+    def test_shutdown_with_threads_still_running(self):
+
+        from zope.testing.loggingsupport import InstalledHandler
+        handler = InstalledHandler('zope.server.taskthreads')
+
+        dispatcher = ThreadedTaskDispatcher()
+        dispatcher.threads[42] = 1
+
+        dispatcher.shutdown(timeout=-1)
+
+        self.assertIn("1 thread(s) still running", str(handler))
+
+    def test_shutdown_cancel_pending(self):
+
+        dispatcher = ThreadedTaskDispatcher()
+
+        class Task(object):
+
+            canceled = False
+
+            def cancel(self):
+                self.canceled = True
+                from six.moves.queue import Empty
+                # We cheat to be able to catch the exception handler
+                raise Empty()
+
+        task = Task()
+        dispatcher.queue.put(task)
+        self.assertEqual(1, dispatcher.getPendingTasksEstimate())
+        dispatcher.shutdown()
+
+        self.assertTrue(task.canceled)
+        self.assertEqual(0, dispatcher.getPendingTasksEstimate())
+
+    def test_setThreadCount_adjust_twice(self):
+        dispatcher = ThreadedTaskDispatcher()
+
+        dispatcher.setThreadCount(1)
+        self.assertEqual(1, len(dispatcher.threads))
+
+        dispatcher.setThreadCount(2)
+        self.assertEqual(2, len(dispatcher.threads))
+
+        dispatcher.shutdown()

@@ -39,17 +39,31 @@ class HTTPRequestParser(object):
     a server task constructor.
     """
 
+    # Parsing status
     completed = 0  # Set once request is completed.
     empty = 0        # Set if no request was made.
+    in_header = False
+
     header_plus = b''
     chunked = 0
     content_length = 0
     body_rcv = None
-    # Other attributes: first_line, header, headers, command, uri, version,
-    # path, query, fragment
 
-    # headers is a mapping containing keys translated to uppercase
-    # with dashes turned into underscores.
+    # Data from parsing. native strings.
+    first_line = ''
+    header = ''
+    command = ''
+    uri = ''
+    version = ''
+    proxy_scheme = None
+    proxy_netloc = None
+    path = None
+    fragment = None
+    query = None
+
+    # headers is a mapping containing native string keys translated to
+    # uppercase with dashes turned into underscores. The values
+    # are also native strings.
 
     def __init__(self, adj):
         """
@@ -135,9 +149,10 @@ class HTTPRequestParser(object):
                     headers[key1] = value
             # else there's garbage in the headers?
 
+        assert isinstance(self.first_line, str)
         command, uri, version = self.crack_first_line()
-        self.command = str(command)
-        self.uri = str(uri)
+        self.command = command or ''
+        self.uri = uri or ''
         self.version = version
         self.split_uri()
 
@@ -176,18 +191,19 @@ class HTTPRequestParser(object):
         '(( HTTP/([0-9.]+))$|$)')
 
     def crack_first_line(self):
+        method = uri = version = None
+
         r = self.first_line
         m = self.first_line_re.match(r)
+
         if m is not None and m.end() == len(r):
             if m.group(3):
                 version = m.group(5)
-            else:
-                version = None
             method = m.group(1).upper()
             uri = m.group(2)
-            return (method, uri, version)
-        else:
-            return None, None, None
+
+        return (method, uri, version)
+
 
     def split_uri(self):
         (self.proxy_scheme, self.proxy_netloc, path, self.query,
@@ -202,5 +218,4 @@ class HTTPRequestParser(object):
         body_rcv = self.body_rcv
         if body_rcv is not None:
             return body_rcv.getfile()
-        else:
-            return BytesIO(b'')
+        return BytesIO(b'')

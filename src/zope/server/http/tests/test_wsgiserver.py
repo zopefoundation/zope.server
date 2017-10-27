@@ -16,15 +16,13 @@ import sys
 import unittest
 import warnings
 from contextlib import contextmanager
-from asyncore import socket_map, poll
-from threading import Thread
-from time import sleep
 from io import BytesIO, StringIO
 
 import paste.lint
 from six.moves.http_client import HTTPConnection
 
-from zope.server.taskthreads import ThreadedTaskDispatcher
+from zope.server.tests import LoopTestMixin
+from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
 
 from zope.component.testing import PlacelessSetup
 import zope.component
@@ -39,9 +37,6 @@ from zope.publisher.base import DefaultPublication
 from zope.publisher.interfaces import Redirect, Retry
 from zope.publisher.http import HTTPRequest
 
-td = ThreadedTaskDispatcher()
-
-LOCALHOST = '127.0.0.1'
 
 HTTPRequest.STAGGER_RETRIES = 0  # Don't pause.
 
@@ -159,7 +154,12 @@ class WSGIInfo(object):
         """Return the proxy host."""
         return REQUEST['zserver.proxy.host']
 
-class Tests(PlacelessSetup, unittest.TestCase):
+class Tests(LoopTestMixin,
+            AsyncoreErrorHookMixin,
+            PlacelessSetup,
+            unittest.TestCase):
+
+    thread_name = 'test_wsgiserver'
 
     def _getServerClass(self):
         # import only now to prevent the testrunner from importing it too early
@@ -171,6 +171,8 @@ class Tests(PlacelessSetup, unittest.TestCase):
         super(Tests, self).setUp()
         zope.component.provideAdapter(HTTPCharsets, [IHTTPRequest],
                                       IUserPreferredCharsets, '')
+
+    def _makeServer(self):
         obj = tested_object()
         obj.folder = tested_object()
         obj.folder.item = tested_object()
@@ -187,42 +189,18 @@ class Tests(PlacelessSetup, unittest.TestCase):
             start_response(response.getStatusString(), response.getHeaders())
             return response.consumeBodyIter()
 
-        td.setThreadCount(4)
-        # Bind to any port on localhost.
+
         ServerClass = self._getServerClass()
         self.server = ServerClass(application, 'Browser',
-                                  LOCALHOST, 0, task_dispatcher=td)
+                                  self.LOCALHOST, self.CONNECT_TO_PORT, task_dispatcher=self.td)
+        return self.server
 
-        self.port = self.server.socket.getsockname()[1]
-        self.run_loop = 1
-        self.thread = Thread(target=self.loop, name='test_wsgiserver')
-        self.thread.start()
-        sleep(0.1)  # Give the thread some time to start.
-
-    def tearDown(self):
-        self.run_loop = 0
-        self.thread.join()
-        td.shutdown()
-        self.server.close()
-        super(Tests, self).tearDown()
-
-    def loop(self):
-        while self.run_loop:
-            poll(0.1, socket_map)
-
-    def invokeRequest(self, path='/', add_headers=None, request_body=b'',
+    def invokeRequest(self, path='/',
                       return_response=False):
-        h = HTTPConnection(LOCALHOST, self.port)
+        h = HTTPConnection(self.LOCALHOST, self.port)
         h.putrequest('GET', path)
         h.putheader('Accept', 'text/plain')
-        if add_headers:
-            for k, v in add_headers.items():
-                h.putheader(k, v)
-        if request_body:
-            h.putheader('Content-Length', str(int(len(request_body))))
         h.endheaders()
-        if request_body:
-            h.send(request_body)
         response = h.getresponse()
         if return_response:
             return response
@@ -241,34 +219,34 @@ class Tests(PlacelessSetup, unittest.TestCase):
         status, response_body = self.invokeRequest('/folder/item')
         self.assertEqual(status, 200)
         expect_response = 'URL invoked: http://%s:%d/folder/item' % (
-            LOCALHOST, self.port)
+            self.LOCALHOST, self.port)
         self.assertEqual(response_body, expect_response.encode('ascii'))
 
     def testNotFound(self):
-        status, response_body = self.invokeRequest('/foo/bar')
+        status, _response_body = self.invokeRequest('/foo/bar')
         self.assertEqual(status, 404)
 
     def testUnauthorized(self):
-        status, response_body = self.invokeRequest('/_protected')
+        status, _response_body = self.invokeRequest('/_protected')
         self.assertEqual(status, 401)
 
     def testRedirectMethod(self):
-        status, response_body = self.invokeRequest('/redirect_method')
+        status, _response_body = self.invokeRequest('/redirect_method')
         self.assertEqual(status, 303)
 
     def testRedirectException(self):
-        status, response_body = self.invokeRequest('/redirect_exception')
+        status, _response_body = self.invokeRequest('/redirect_exception')
         self.assertEqual(status, 303)
-        status, response_body = self.invokeRequest('/folder/redirect_exception')
+        status, _response_body = self.invokeRequest('/folder/redirect_exception')
         self.assertEqual(status, 303)
 
     def testConflictRetry(self):
-        status, response_body = self.invokeRequest('/conflict?wait_tries=2')
+        status, _response_body = self.invokeRequest('/conflict?wait_tries=2')
         # Expect the "Accepted" response since the retries will succeed.
         self.assertEqual(status, 202)
 
     def testFailedConflictRetry(self):
-        status, response_body = self.invokeRequest('/conflict?wait_tries=10')
+        status, _response_body = self.invokeRequest('/conflict?wait_tries=10')
         # Expect a "Conflict" response since there will be too many
         # conflicts.
         self.assertEqual(status, 409)
@@ -289,7 +267,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
     def testWSGIVariables(self):
         # Assert that the environment contains all required WSGI variables
-        status, response_body = self.invokeRequest('/wsgi')
+        _status, response_body = self.invokeRequest('/wsgi')
         wsgi_variables = set(response_body.decode('ascii').split())
         self.assertEqual(wsgi_variables,
                          set(['wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
@@ -297,30 +275,30 @@ class Tests(PlacelessSetup, unittest.TestCase):
                               'wsgi.multiprocess', 'wsgi.run_once']))
 
     def testWSGIVersion(self):
-        status, response_body = self.invokeRequest('/wsgi/version')
+        _status, response_body = self.invokeRequest('/wsgi/version')
         self.assertEqual(b"(1, 0)", response_body)
 
     def testWSGIURLScheme(self):
-        status, response_body = self.invokeRequest('/wsgi/url_scheme')
+        _status, response_body = self.invokeRequest('/wsgi/url_scheme')
         self.assertEqual(b'http', response_body)
 
     def testWSGIMultithread(self):
-        status, response_body = self.invokeRequest('/wsgi/multithread')
+        _status, response_body = self.invokeRequest('/wsgi/multithread')
         self.assertEqual(b'True', response_body)
 
     def testWSGIMultiprocess(self):
-        status, response_body = self.invokeRequest('/wsgi/multiprocess')
+        _status, response_body = self.invokeRequest('/wsgi/multiprocess')
         self.assertEqual(b'True', response_body)
 
     def testWSGIRunOnce(self):
-        status, response_body = self.invokeRequest('/wsgi/run_once')
+        _status, response_body = self.invokeRequest('/wsgi/run_once')
         self.assertEqual(b'False', response_body)
 
     def testWSGIProxy(self):
-        status, response_body = self.invokeRequest(
+        _status, response_body = self.invokeRequest(
             'https://zope.org:8080/wsgi/proxy_scheme')
         self.assertEqual(b'https', response_body)
-        status, response_body = self.invokeRequest(
+        _status, response_body = self.invokeRequest(
             'https://zope.org:8080/wsgi/proxy_host')
         self.assertEqual(b'zope.org:8080', response_body)
 
@@ -363,7 +341,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
                     [('Content-type', 'text/plain')],
                     sys.exc_info())
                 return ERROR_RESPONSE.split()
-            return RESPONSE.split()
+            raise AssertionError("Can never get here")
 
         class FakeTask:
             wrote_header = 0
@@ -417,7 +395,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
 
     def test_multiple_start_response_calls(self):
         # if start_response is called more than once with no exc_info
-        ignore, task = self._getFakeAppAndTask()
+        _ignore, task = self._getFakeAppAndTask()
         task.wrote_header = 1
 
         self.assertRaises(AssertionError, self.server.executeRequest, task)
@@ -473,7 +451,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
         self.server.application = app
         self.invokeRequest("/")
         self.assertTrue(iterator.closed,
-            "close method wasn't called on iterable")
+                        "close method wasn't called on iterable")
 
         self.server.application = orig_app
 
@@ -486,7 +464,32 @@ class Tests(PlacelessSetup, unittest.TestCase):
         self.assertTrue(len(w) == 0, w)
         self.server.application = orig_app
 
+class TestWSGIHttpServer(unittest.TestCase):
 
+    def test_secure_environment(self):
+        from zope.server.http.wsgihttpserver import WSGIHTTPServer
+
+        class Task(object):
+            def __init__(self, env):
+                self.env = env
+                self.request_data = self
+
+            def getCGIEnvironment(self):
+                return self.env
+
+            def getBodyStream(self):
+                return None
+
+
+        env = WSGIHTTPServer._constructWSGIEnvironment(Task({}))
+        self.assertEqual("http", env['wsgi.url_scheme'])
+
+
+        env = WSGIHTTPServer._constructWSGIEnvironment(Task({'HTTPS': 'on'}))
+        self.assertEqual("https", env['wsgi.url_scheme'])
+
+        env = WSGIHTTPServer._constructWSGIEnvironment(Task({'SERVER_PORT_SECURE': "1"}))
+        self.assertEqual("https", env['wsgi.url_scheme'])
 
 class PMDBTests(Tests):
 
@@ -498,7 +501,7 @@ class PMDBTests(Tests):
 
     def testWSGIVariables(self):
         # Assert that the environment contains all required WSGI variables
-        status, response_body = self.invokeRequest('/wsgi')
+        _status, response_body = self.invokeRequest('/wsgi')
         wsgi_variables = set(response_body.decode('ascii').split())
         self.assertEqual(wsgi_variables,
                          set(['wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
@@ -508,7 +511,7 @@ class PMDBTests(Tests):
 
     def test_multiple_start_response_calls(self):
         # if start_response is called more than once with no exc_info
-        ignore, task = self._getFakeAppAndTask()
+        _ignore, task = self._getFakeAppAndTask()
         task.wrote_header = 1
 
         # monkey-patch pdb.post_mortem so we don't go into pdb session.
@@ -551,12 +554,35 @@ class PMDBTests(Tests):
         self.server.application = orig_app
         pdb.post_mortem = orig_post_mortem
 
+class TestPaste(unittest.TestCase):
 
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(Tests),
-        unittest.makeSuite(PMDBTests),
-        ))
+    def test_run_paste(self):
+        from zope.server.http.wsgihttpserver import run_paste
+        with self.assertRaises(OverflowError):
+            run_paste(None, {}, threads=0, port=-5)
 
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')
+    def test_run_paste_loop(self):
+        from zope.server.http import wsgihttpserver
+        class Server(object):
+            def __init__(self, *args, **kwargs):
+                pass
+
+        class asyncore(object):
+            looped = False
+            def loop(self):
+                self.looped = True
+
+        orig_wsgi = wsgihttpserver.WSGIHTTPServer
+        orig_async = wsgihttpserver.asyncore
+
+        wsgihttpserver.WSGIHTTPServer = Server
+        a = wsgihttpserver.asyncore = asyncore()
+
+        try:
+            wsgihttpserver.run_paste(None, None, threads=0)
+        finally:
+            wsgihttpserver.WSGIHTTPServer = orig_wsgi
+            wsgihttpserver.asyncore = orig_async
+
+
+        self.assertTrue(a.looped)

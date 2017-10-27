@@ -16,11 +16,10 @@
 An HTTP task that can execute an HTTP request with the help of the channel and
 the server it belongs to.
 """
-import socket
-import time
 
 from zope.server.http.http_date import build_http_date
 from zope.publisher.interfaces.http import IHeaderOutput
+from zope.server.task import AbstractTask
 from zope.server.interfaces import ITask
 
 from zope.interface import implementer
@@ -32,7 +31,7 @@ rename_headers = {
     }
 
 @implementer(ITask, IHeaderOutput)  #, IOutputStream
-class HTTPTask(object):
+class HTTPTask(AbstractTask):
     """An HTTP task accepts a request and writes to a channel.
 
        Subclass this and override the execute() method.
@@ -49,7 +48,8 @@ class HTTPTask(object):
     cgi_env = None
 
     def __init__(self, channel, request_data):
-        self.channel = channel
+        # request_data is a httprequestparser.HTTPRequestParser
+        AbstractTask.__init__(self, channel)
         self.request_data = request_data
         self.response_headers = {}
         version = request_data.version
@@ -58,28 +58,8 @@ class HTTPTask(object):
             version = '1.0'
         self.version = version
 
-    def service(self):
-        """See zope.server.interfaces.ITask"""
-        try:
-            try:
-                self.start()
-                self.channel.server.executeRequest(self)
-                self.finish()
-            except socket.error:
-                self.close_on_finish = 1
-                if self.channel.adj.log_socket_errors:
-                    raise
-        finally:
-            if self.close_on_finish:
-                self.channel.close_when_done()
-
-    def cancel(self):
-        """See zope.server.interfaces.ITask"""
-        self.channel.close_when_done()
-
-    def defer(self):
-        """See zope.server.interfaces.ITask"""
-        pass
+    def _do_service(self):
+        self.channel.server.executeRequest(self)
 
     def setResponseStatus(self, status, reason):
         """See zope.publisher.interfaces.http.IHeaderOutput"""
@@ -117,7 +97,7 @@ class HTTPTask(object):
 
         if version == '1.0':
             if connection == 'keep-alive':
-                if not ('Content-Length' in response_headers):
+                if 'Content-Length' not in response_headers:
                     close_it = 1
                 else:
                     response_headers['Connection'] = 'Keep-Alive'
@@ -125,21 +105,21 @@ class HTTPTask(object):
                 close_it = 1
         elif version == '1.1':
             if 'connection: close' in (header.lower() for header in
-                accumulated_headers):
+                                       accumulated_headers):
                 close_it = 1
             if connection == 'close':
                 close_it = 1
             elif 'Transfer-Encoding' in response_headers:
-                if not response_headers['Transfer-Encoding'] == 'chunked':
+                if response_headers['Transfer-Encoding'] != 'chunked':
                     close_it = 1
             elif self.status == '304':
                 # Replying with headers only.
                 pass
-            elif not ('Content-Length' in response_headers):
+            elif 'Content-Length' not in response_headers:
                 # accumulated_headers is a simple list, we need to cut off
                 # the value of content-length manually
                 if 'content-length' not in (header[:14].lower() for header in
-                    accumulated_headers):
+                                            accumulated_headers):
                     close_it = 1
             # under HTTP 1.1 keep-alive is default, no need to set the header
         else:
@@ -158,7 +138,7 @@ class HTTPTask(object):
         else:
             self.response_headers['Via'] = self.channel.server.SERVER_IDENT
         if 'date' not in (header[:4].lower() for header in
-                            accumulated_headers):
+                          accumulated_headers):
             self.response_headers['Date'] = build_http_date(self.start_time)
 
 
@@ -223,16 +203,11 @@ class HTTPTask(object):
         self.cgi_env = env
         return env
 
-    def start(self):
-        now = time.time()
-        self.start_time = now
 
     def finish(self):
         if not self.wrote_header:
             self.write(b'')
-        hit_log = self.channel.server.hit_log
-        if hit_log is not None:
-            hit_log.log(self)
+        AbstractTask.finish(self)
 
     def write(self, data):
         channel = self.channel

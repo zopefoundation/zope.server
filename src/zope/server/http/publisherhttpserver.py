@@ -13,48 +13,40 @@
 ##############################################################################
 """HTTP Server that uses the Zope Publisher for executing a task.
 """
-from zope.server.http import wsgihttpserver
-from zope.publisher.publish import publish
-import zope.security.management
+import sys
 
+from zope.server.http import wsgihttpserver
+from zope.publisher.publish import publish as _publish
+
+def _make_application(request_factory, publish):
+    def application(environ, start_response):
+        request = request_factory(environ['wsgi.input'], environ)
+        request = publish(request)
+        response = request.response
+        start_response(response.getStatusString(), response.getHeaders())
+        return response.consumeBody()
+    return application
 
 class PublisherHTTPServer(wsgihttpserver.WSGIHTTPServer):
 
     def __init__(self, request_factory, sub_protocol=None, *args, **kw):
 
-        def application(environ, start_response):
-            request = request_factory(environ['wsgi.input'], environ)
-            request = publish(request)
-            response = request.response
-            start_response(response.getStatusString(), response.getHeaders())
-            return response.consumeBody()
+        super(PublisherHTTPServer, self).__init__(
+            self._make_application(request_factory), sub_protocol, *args, **kw)
 
-        return super(PublisherHTTPServer, self).__init__(
-            application, sub_protocol, *args, **kw)
+    @classmethod
+    def _make_application(cls, request_factory, publish=_publish):
+        return _make_application(request_factory, publish)
+
+def _pmdb_publish(request):
+    try:
+        return _publish(request, handle_errors=False)
+    except: # pylint:disable=bare-except
+        wsgihttpserver.PMDBWSGIHTTPServer.post_mortem(sys.exc_info())
 
 
-class PMDBHTTPServer(wsgihttpserver.WSGIHTTPServer):
+class PMDBHTTPServer(PublisherHTTPServer):
 
-    def __init__(self, request_factory, sub_protocol=None, *args, **kw):
-
-        def application(environ, start_response):
-            request = request_factory(environ['wsgi.input'], environ)
-            try:
-                request = publish(request, handle_errors=False)
-            except:
-                import sys, pdb
-                print("%s:" % sys.exc_info()[0])
-                print(sys.exc_info()[1])
-                zope.security.management.restoreInteraction()
-                try:
-                    pdb.post_mortem(sys.exc_info()[2])
-                    raise
-                finally:
-                    zope.security.management.endInteraction()
-
-            response = request.response
-            start_response(response.getStatusString(), response.getHeaders())
-            return response.consumeBody()
-
-        return super(PublisherHTTPServer, self).__init__(
-            application, sub_protocol, *args, **kw)
+    @classmethod
+    def _make_application(cls, request_factory, publish=_pmdb_publish):
+        return super(PMDBHTTPServer, cls)._make_application(request_factory, publish)

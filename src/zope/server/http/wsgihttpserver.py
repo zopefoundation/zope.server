@@ -63,7 +63,7 @@ class WSGIHTTPServer(HTTPServer):
 
     def __init__(self, application, sub_protocol=None, *args, **kw):
 
-        if sys.platform[:3] == "win" and args[0] == 'localhost':
+        if sys.platform[:3] == "win" and args[0] == 'localhost': # pragma: no cover
             args = ('',) + args[1:]
 
         self.application = application
@@ -73,12 +73,13 @@ class WSGIHTTPServer(HTTPServer):
 
         HTTPServer.__init__(self, *args, **kw)
 
-    def _constructWSGIEnvironment(self, task):
+    @classmethod
+    def _constructWSGIEnvironment(cls, task):
         env = task.getCGIEnvironment()
 
         # deduce the URL scheme (http or https)
         if (env.get('HTTPS', '').lower() == "on" or
-            env.get('SERVER_PORT_SECURE') == "1"):
+                env.get('SERVER_PORT_SECURE') == "1"):
             protocol = 'https'
         else:
             protocol = 'http'
@@ -136,18 +137,23 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
             for value in result:
                 task.write(value)
         except:
-            import sys, pdb
-            print("%s:" % sys.exc_info()[0])
-            print(sys.exc_info()[1])
-            zope.security.management.restoreInteraction()
-            try:
-                pdb.post_mortem(sys.exc_info()[2])
-                raise
-            finally:
-                zope.security.management.endInteraction()
+            self.post_mortem(sys.exc_info())
         finally:
             if hasattr(result, "close"):
                 result.close()
+
+    @classmethod
+    def post_mortem(cls, exc_info):
+        import pdb
+        print("%s:" % exc_info[0])
+        print(exc_info[1])
+        zope.security.management.restoreInteraction()
+        try:
+            pdb.post_mortem(exc_info[2])
+            six.reraise(*exc_info)
+        finally:
+            del exc_info
+            zope.security.management.endInteraction()
 
 
 def run_paste(wsgi_app, global_conf, name='zope.server.http',

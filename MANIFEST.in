@@ -1,7 +1,10 @@
 include *.py
 include *.txt
+include *.rst
 include .travis.yml
+include tox.ini
+include .coveragerc
 include buildout.cfg
 include test.ini
 
-recursive-include src *.txt *.py
+recursive-include src *.txt *.py *.rst

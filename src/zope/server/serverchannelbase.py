@@ -16,11 +16,13 @@
 This module provides a base implementation for the server channel. It can only
 be used as a mix-in to actual server channel implementations.
 """
-import os
 import time
 import sys
 import asyncore
 from threading import Lock
+
+from six import reraise
+
 from zope.interface import implementer
 
 from zope.server.dualmodechannel import DualModeChannel
@@ -31,7 +33,7 @@ task_lock = Lock()
 
 
 @implementer(IServerChannel, ITask)
-class ServerChannelBase(DualModeChannel, object):
+class ServerChannelBase(DualModeChannel):
     """Base class for a high-performance, mixed-mode server-side channel."""
 
 
@@ -103,9 +105,11 @@ class ServerChannelBase(DualModeChannel, object):
         """
         now = time.time()
         cutoff = now - self.adj.channel_timeout
-        for channel in self.active_channels.values():
+        # channel.close calls channel.del_channel, which can change
+        # the size of the map.
+        for channel in list(self.active_channels.values()):
             if (channel is not self and not channel.running_tasks and
-                channel.last_activity < cutoff):
+                    channel.last_activity < cutoff):
                 channel.close()
 
     def received(self, data):
@@ -146,8 +150,8 @@ class ServerChannelBase(DualModeChannel, object):
         Handles program errors (not communication errors)
         """
         t, v = sys.exc_info()[:2]
-        if t is SystemExit or t is KeyboardInterrupt:
-            raise t(v)
+        if issubclass(t, (SystemExit, KeyboardInterrupt)):
+            reraise(*sys.exc_info())
         asyncore.dispatcher.handle_error(self)
 
     def handle_comm_error(self):
@@ -168,16 +172,14 @@ class ServerChannelBase(DualModeChannel, object):
     def queue_task(self, task):
         """Queue a channel-related task to be executed in another thread."""
         start = False
-        task_lock.acquire()
-        try:
+        with task_lock:
             if self.tasks is None:
                 self.tasks = []
             self.tasks.append(task)
             if not self.running_tasks:
                 self.running_tasks = True
                 start = True
-        finally:
-            task_lock.release()
+
         if start:
             self.set_sync()
             self.server.addTask(self)
@@ -190,8 +192,7 @@ class ServerChannelBase(DualModeChannel, object):
         """Execute all pending tasks"""
         while True:
             task = None
-            task_lock.acquire()
-            try:
+            with task_lock:
                 if self.tasks:
                     task = self.tasks.pop(0)
                 else:
@@ -199,8 +200,7 @@ class ServerChannelBase(DualModeChannel, object):
                     self.running_tasks = False
                     self.set_async()
                     break
-            finally:
-                task_lock.release()
+
             try:
                 task.service()
             except:
@@ -210,16 +210,11 @@ class ServerChannelBase(DualModeChannel, object):
 
     def cancel(self):
         """Cancels all pending tasks"""
-        task_lock.acquire()
-        try:
-            if self.tasks:
-                old = self.tasks[:]
-            else:
-                old = []
+        with task_lock:
+            old = () if not self.tasks else list(self.tasks)
             self.tasks = []
             self.running_tasks = False
-        finally:
-            task_lock.release()
+
         try:
             for task in old:
                 task.cancel()
@@ -229,3 +224,19 @@ class ServerChannelBase(DualModeChannel, object):
     def defer(self):
         pass
 
+try:
+    from zope.testing.cleanup import addCleanUp
+except ImportError: # pragma: no cover
+    pass
+else:
+    # Tests are very bad about actually closing
+    # all the channels that they create. This leads to
+    # an ever growing active_channels map.
+    def _clean_active_channels():
+        for c in list(ServerChannelBase.active_channels.values()):
+            try:
+                c.close()
+            except BaseException: # pragma: no cover
+                pass
+        ServerChannelBase.active_channels.clear()
+    addCleanUp(_clean_active_channels)

@@ -16,7 +16,7 @@
 As a side effect of importing this module, asyncore's logging will be
 redirected to the logging module.
 """
-
+import asyncore
 import logging
 
 logger = logging.getLogger("zope.server")
@@ -30,5 +30,17 @@ severity = {
 def log_info(self, message, type='info'):
     logger.log(severity.get(type, logging.INFO), message)
 
-import asyncore
-asyncore.dispatcher.log_info = log_info
+
+_orig_log_info = asyncore.dispatcher.log_info
+
+def setUp():
+    asyncore.dispatcher.log_info = log_info
+
+setUp()
+
+try:
+    from zope.testing.cleanup import addCleanUp
+except ImportError: # pragma: no cover
+    pass
+else:
+    addCleanUp(setUp)

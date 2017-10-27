@@ -14,7 +14,7 @@
 """Test HTTP date converters
 """
 import unittest
-from zope.server.http.http_date import build_http_date, parse_http_date
+from zope.server.http import http_date
 
 class Tests(unittest.TestCase):
 
@@ -22,12 +22,7 @@ class Tests(unittest.TestCase):
     def testDateRoundTrip(self):
         from time import time
         t = int(time())
-        self.assertEquals(t, parse_http_date(build_http_date(t)))
+        self.assertEqual(t, http_date.parse_http_date(http_date.build_http_date(t)))
 
-
-def test_suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(Tests)
-
-if __name__=='__main__':
-    unittest.TextTestRunner().run(test_suite())
+    def test_cannot_parse(self):
+        self.assertEqual(0, http_date.parse_http_date("Not Valid"))

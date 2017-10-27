@@ -14,11 +14,9 @@
 """Tests for zope.server.serverchannelbase zombie logic
 """
 import doctest
-import unittest
 
-
-class FakeSocket:
-    data        = b''
+class FakeSocket(object):
+    data = b''
     setblocking = lambda *_: None
     close = lambda *_: None
 
@@ -32,8 +30,7 @@ class FakeSocket:
         return ('localhost', self.no)
 
     def send(self, data):
-        self.data += data
-        return len(data)
+        raise AssertionError("Never called")
 
     def recv(self, buflen):
         return b'data'
@@ -146,7 +143,3 @@ def zombies_test():
 
 def test_suite():
     return doctest.DocTestSuite()
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')

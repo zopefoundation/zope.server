@@ -14,27 +14,22 @@
 """Test HTTP Server
 """
 import unittest
-from asyncore import socket_map, poll
+
+
+from time import sleep
 import socket
 
-from threading import Thread, Event
-from zope.server.taskthreads import ThreadedTaskDispatcher
 from zope.server.adjustments import Adjustments
 from zope.server.interfaces import ITask
-from zope.server.tests.asyncerror import AsyncoreErrorHook
+from zope.server.task import AbstractTask
+from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
+from zope.server.tests import LoopTestMixin
 from zope.interface import implementer
+from zope.testing.cleanup import CleanUp
+
 
 from six.moves.http_client import HTTPConnection
 from six.moves.http_client import HTTPResponse as ClientHTTPResponse
-
-from time import sleep, time
-
-td = ThreadedTaskDispatcher()
-
-LOCALHOST = '127.0.0.1'
-SERVER_PORT = 0      # Set these port numbers to 0 to auto-bind, or
-CONNECT_TO_PORT = 0  # use specific numbers to inspect using TCPWatch.
-
 
 my_adj = Adjustments()
 # Reduce overflows to make testing easier.
@@ -43,22 +38,23 @@ my_adj.inbuf_overflow = 10000
 
 
 @implementer(ITask)
-class SleepingTask(object):
+class SleepingTask(AbstractTask):
 
-    def service(self):
+    def __init__(self):
+        AbstractTask.__init__(self, None)
+
+    def _do_service(self):
         sleep(0.2)
 
-    def cancel(self):
-        pass
+class Tests(LoopTestMixin,
+            AsyncoreErrorHookMixin,
+            CleanUp,
+            unittest.TestCase):
 
-    def defer(self):
-        pass
+    thread_name = 'test_httpserver'
 
-
-class Tests(unittest.TestCase, AsyncoreErrorHook):
-
-    def setUp(self):
-        # import only now to prevent the testrunner from importing it too early
+    def _makeServer(self):
+                # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.http.httpserver import HTTPServer
 
@@ -75,54 +71,12 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                         break
                     task.write(data)
 
-        td.setThreadCount(4)
-        if len(socket_map) != 1:
-            # Let sockets die off.
-            # TODO tests should be more careful to clear the socket map.
-            poll(0.1)
-        self.orig_map_size = len(socket_map)
-        self.hook_asyncore_error()
-        self.server = EchoHTTPServer(LOCALHOST, SERVER_PORT,
-                                     task_dispatcher=td, adj=my_adj)
-        if CONNECT_TO_PORT == 0:
-            self.port = self.server.socket.getsockname()[1]
-        else:
-            self.port = CONNECT_TO_PORT
-        self.run_loop = 1
-        self.counter = 0
-        self.thread_started = Event()
-        self.thread = Thread(target=self.loop, name='test_httpserver')
-        self.thread.setDaemon(True)
-        self.thread.start()
-        self.thread_started.wait(10.0)
-        self.assert_(self.thread_started.isSet())
-
-    def tearDown(self):
-        self.run_loop = 0
-        self.thread.join()
-        td.shutdown()
-        self.server.close()
-        # Make sure all sockets get closed by asyncore normally.
-        timeout = time() + 5
-        while 1:
-            if len(socket_map) == self.orig_map_size:
-                # Clean!
-                break
-            if time() >= timeout:
-                self.fail('Leaked a socket: %s' % repr(socket_map))
-            poll(0.1)
-        self.unhook_asyncore_error()
-
-    def loop(self):
-        self.thread_started.set()
-        while self.run_loop:
-            self.counter = self.counter + 1
-            #print('loop %d' % self.counter)
-            poll(0.1)
+        return EchoHTTPServer(self.LOCALHOST, self.SERVER_PORT,
+                              task_dispatcher=self.td, adj=my_adj)
 
     def testEchoResponse(self, h=None, add_headers=None, body=b''):
         if h is None:
-            h = HTTPConnection(LOCALHOST, self.port)
+            h = HTTPConnection(self.LOCALHOST, self.port)
         headers = {}
         if add_headers:
             headers.update(add_headers)
@@ -132,26 +86,26 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         #    headers["Content-Length"] = str(int(len(body)))
         h.request("GET", "/", body, headers)
         response = h.getresponse()
-        self.failUnlessEqual(int(response.status), 200)
+        self.assertEqual(int(response.status), 200)
         length = int(response.getheader('Content-Length', '0'))
         response_body = response.read()
-        self.failUnlessEqual(length, len(response_body))
-        self.failUnlessEqual(response_body, body)
+        self.assertEqual(length, len(response_body))
+        self.assertEqual(response_body, body)
         # HTTP 1.1 requires the server and date header.
         self.assertEqual(response.getheader('server'), 'zope.server.http')
-        self.assert_(response.getheader('date') is not None)
+        self.assertIsNotNone(response.getheader('date'))
 
     def testMultipleRequestsWithoutBody(self):
         # Tests the use of multiple requests in a single connection.
-        h = HTTPConnection(LOCALHOST, self.port)
-        for n in range(3):
+        h = HTTPConnection(self.LOCALHOST, self.port)
+        for _n in range(3):
             self.testEchoResponse(h)
         self.testEchoResponse(h, {'Connection': 'close'})
 
     def testMultipleRequestsWithBody(self):
         # Tests the use of multiple requests in a single connection.
-        h = HTTPConnection(LOCALHOST, self.port)
-        for n in range(3):
+        h = HTTPConnection(self.LOCALHOST, self.port)
+        for _n in range(3):
             self.testEchoResponse(h, body=b'Hello, world!')
         self.testEchoResponse(h, {'Connection': 'close'})
 
@@ -173,17 +127,17 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
             to_send.append(s % (conn, len(body), body))
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((LOCALHOST, self.port))
+        sock.connect((self.LOCALHOST, self.port))
         for n, req in enumerate(to_send):
             sock.send(req.encode('ascii'))
             expect_body = ("Response #%d\r\n" % (n + 1)).encode('ascii')
             response = ClientHTTPResponse(sock)
             response.begin()
-            self.failUnlessEqual(int(response.status), 200)
+            self.assertEqual(int(response.status), 200)
             length = int(response.getheader('Content-Length', '0'))
             response_body = response.read(length)
-            self.failUnlessEqual(length, len(response_body))
-            self.failUnlessEqual(response_body, expect_body)
+            self.assertEqual(length, len(response_body))
+            self.assertEqual(response_body, expect_body)
 
     def testWithoutCRLF(self):
         # Tests the use of just newlines rather than CR/LFs.
@@ -195,19 +149,19 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "%s") % (len(data), data)
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((LOCALHOST, self.port))
+        sock.connect((self.LOCALHOST, self.port))
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
-        self.failUnlessEqual(int(response.status), 200)
+        self.assertEqual(int(response.status), 200)
         length = int(response.getheader('Content-Length', '0'))
         response_body = response.read(length)
-        self.failUnlessEqual(length, len(data))
-        self.failUnlessEqual(response_body, data.encode('ascii'))
+        self.assertEqual(length, len(data))
+        self.assertEqual(response_body, data.encode("ascii"))
 
     def testLargeBody(self):
         # Tests the use of multiple requests in a single connection.
-        h = HTTPConnection(LOCALHOST, self.port)
+        h = HTTPConnection(self.LOCALHOST, self.port)
         s = b'This string has 32 characters.\r\n' * 32  # 1024 characters.
         self.testEchoResponse(h, body=(s * 1024))  # 1 MB
         self.testEchoResponse(h, {'Connection': 'close'},
@@ -224,7 +178,7 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         #          raise socket.error, msg
         #      error: (10055, 'No buffer space available')
         nconn = 50
-        if sys.platform == 'win32':
+        if sys.platform == 'win32': # pragma: no cover
             platform = sys.getwindowsversion()[3]
             if platform < 2:
                 # 0 is Win32s on Windows 3.1
@@ -237,9 +191,9 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
                 nconn = 20
 
         conns = []
-        for n in range(nconn):
+        for _n in range(nconn):
             #print('open %s %s' % (n, clock()))
-            h = HTTPConnection(LOCALHOST, self.port)
+            h = HTTPConnection(self.LOCALHOST, self.port)
             #h.debuglevel = 1
             h.request("GET", "/", headers={"Accept": "text/plain"})
             conns.append(h)
@@ -250,48 +204,49 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
         responses = []
         for h in conns:
             response = h.getresponse()
-            self.failUnlessEqual(response.status, 200)
+            self.assertEqual(response.status, 200)
             responses.append(response)
         for response in responses:
             response.read()
 
     def testThreading(self):
         # Ensures the correct number of threads keep running.
-        for n in range(4):
+        td = self.td
+        for _n in range(4):
             td.addTask(SleepingTask())
         # Try to confuse the task manager.
         td.setThreadCount(2)
         td.setThreadCount(1)
         sleep(0.5)
         # There should be 1 still running.
-        self.failUnlessEqual(len(td.threads), 1)
+        self.assertEqual(len(td.threads), 1)
 
     def testChunkingRequestWithoutContent(self):
-        h = HTTPConnection(LOCALHOST, self.port)
+        h = HTTPConnection(self.LOCALHOST, self.port)
         h.request("GET", "/", headers={"Accept": "text/plain",
                                        "Transfer-Encoding": "chunked"})
         h.send(b"0\r\n\r\n")
         response = h.getresponse()
-        self.failUnlessEqual(int(response.status), 200)
+        self.assertEqual(int(response.status), 200)
         response_body = response.read()
-        self.failUnlessEqual(response_body, b'')
+        self.assertEqual(response_body, b'')
 
     def testChunkingRequestWithContent(self):
         control_line = b"20;\r\n"  # 20 hex = 32 dec
         s = b'This string has 32 characters.\r\n'
         expect = s * 12
 
-        h = HTTPConnection(LOCALHOST, self.port)
+        h = HTTPConnection(self.LOCALHOST, self.port)
         h.request("GET", "/", headers={"Accept": "text/plain",
                                        "Transfer-Encoding": "chunked"})
-        for n in range(12):
+        for _n in range(12):
             h.send(control_line)
             h.send(s)
         h.send(b"0\r\n\r\n")
         response = h.getresponse()
-        self.failUnlessEqual(int(response.status), 200)
+        self.assertEqual(int(response.status), 200)
         response_body = response.read()
-        self.failUnlessEqual(response_body, expect)
+        self.assertEqual(response_body, expect)
 
     def testKeepaliveHttp10(self):
         # Handling of Keep-Alive within HTTP 1.0
@@ -301,15 +256,15 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "\n"
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((LOCALHOST, self.port))
+        sock.connect((self.LOCALHOST, self.port))
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
-        self.failUnlessEqual(int(response.status), 200)
+        self.assertEqual(int(response.status), 200)
         connection = response.getheader('Connection', '')
         # We sent no Connection: Keep-Alive header
         # Connection: close (or no header) is default.
-        self.failUnless(connection != 'Keep-Alive')
+        self.assertNotEqual(connection, 'Keep-Alive')
 
         # If header Connection: Keep-Alive is explicitly sent,
         # we want to keept the connection open, we also need to return
@@ -321,13 +276,13 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "\n"
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((LOCALHOST, self.port))
+        sock.connect((self.LOCALHOST, self.port))
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
-        self.failUnlessEqual(int(response.status), 200)
+        self.assertEqual(int(response.status), 200)
         connection = response.getheader('Connection', '')
-        self.failUnlessEqual(connection, 'Keep-Alive')
+        self.assertEqual(connection, 'Keep-Alive')
 
     def testKeepaliveHttp11(self):
         # Handling of Keep-Alive within HTTP 1.1
@@ -339,12 +294,12 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "\n"
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((LOCALHOST, self.port))
+        sock.connect((self.LOCALHOST, self.port))
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
-        self.failUnlessEqual(int(response.status), 200)
-        self.failUnless(response.getheader('connection') != 'close')
+        self.assertEqual(int(response.status), 200)
+        self.assertNotEqual(response.getheader('connection'), 'close')
 
         # Explicitly set keep-alive
         data = "Default: Keep me alive"
@@ -354,19 +309,19 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "\n"
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((LOCALHOST, self.port))
+        sock.connect((self.LOCALHOST, self.port))
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
-        self.failUnlessEqual(int(response.status), 200)
-        self.failUnless(response.getheader('connection') != 'close')
+        self.assertEqual(int(response.status), 200)
+        self.assertNotEqual(response.getheader('connection'), 'close')
 
         # no idea why the test publisher handles this request incorrectly
         # it would be less typing in the test :)
-        # h = HTTPConnection(LOCALHOST, self.port)
+        # h = HTTPConnection(self.LOCALHOST, self.port)
         # h.request("GET", "/")
         # response = h.getresponse()
-        # self.failUnlessEqual(int(response.status), 200)
+        # self.assertEqual(int(response.status), 200)
         # self.failUnless(response.getheader('connection') != 'close')
 
         # specifying Connection: close explicitly
@@ -377,12 +332,12 @@ class Tests(unittest.TestCase, AsyncoreErrorHook):
              "\n"
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((LOCALHOST, self.port))
+        sock.connect((self.LOCALHOST, self.port))
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
-        self.failUnlessEqual(int(response.status), 200)
-        self.failUnlessEqual(response.getheader('connection'), 'close')
+        self.assertEqual(int(response.status), 200)
+        self.assertEqual(response.getheader('connection'), 'close')
 
 
 class TestHTTPServer(unittest.TestCase):
@@ -402,13 +357,13 @@ class TestHTTPServer(unittest.TestCase):
         self.assertEqual(self.server.getExtraLogMessage(),
                          '\n\tURL: http://example.com:8080/')
 
-
-def test_suite():
-    loader = unittest.TestLoader()
-    return unittest.TestSuite([
-        loader.loadTestsFromTestCase(Tests),
-        loader.loadTestsFromTestCase(TestHTTPServer),
-    ])
-
-if __name__=='__main__':
-    unittest.TextTestRunner().run(test_suite())
+    def test_executeRequest(self):
+        class Task(object):
+            def __init__(self):
+                self.response_headers = {}
+            def write(self, _data):
+                pass
+        task = Task()
+        self.server.executeRequest(task)
+        self.assertIn('Content-Type', task.response_headers)
+        self.assertIn('Content-Length', task.response_headers)

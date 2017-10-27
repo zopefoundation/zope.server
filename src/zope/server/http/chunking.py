@@ -22,6 +22,20 @@ from zope.interface import implementer
 @implementer(IStreamConsumer)
 class ChunkedReceiver(object):
 
+    # Here's the production for a chunk:
+    # (http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html)
+    #   chunk          = chunk-size [ chunk-extension ] CRLF
+    #                    chunk-data CRLF
+    #   chunk-size     = 1*HEX
+    #   chunk-extension= *( ";" chunk-ext-name [ "=" chunk-ext-val ] )
+    #   chunk-ext-name = token
+    #   chunk-ext-val  = token | quoted-string
+
+    # This implementation is quite lax on what it will accept, and is
+    # probably even vulnerable to malicious input (denial of service due to
+    # space exhaustion) on carefully crafted badly formed chunk
+    # control lines.
+
     chunk_remainder = 0
     control_line = b''
     all_chunks_received = 0
@@ -83,7 +97,7 @@ class ChunkedReceiver(object):
                     # No trailer.
                     self.completed = 1
                     return orig_size - (len(trailer) - 2)
-                elif trailer.startswith(b'\n'):
+                if trailer.startswith(b'\n'):
                     # No trailer.
                     self.completed = 1
                     return orig_size - (len(trailer) - 1)

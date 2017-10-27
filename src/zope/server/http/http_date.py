@@ -14,7 +14,7 @@
 """HTTP Server Date/Time utilities
 """
 import re
-import string
+
 import time
 import calendar
 
@@ -27,9 +27,9 @@ def join(seq, field=' '):
 def group(s):
     return '(' + s + ')'
 
-short_days = ['sun','mon','tue','wed','thu','fri','sat']
-long_days = ['sunday','monday','tuesday','wednesday',
-             'thursday','friday','saturday']
+short_days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+long_days = ['sunday', 'monday', 'tuesday', 'wednesday',
+             'thursday', 'friday', 'saturday']
 
 short_day_reg = group(join(short_days, '|'))
 long_day_reg = group(join(long_days, '|'))
@@ -41,8 +41,8 @@ for i in range(7):
 
 hms_reg = join(3 * [group('[0-9][0-9]')], ':')
 
-months = ['jan','feb','mar','apr','may','jun','jul',
-          'aug','sep','oct','nov','dec']
+months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul',
+          'aug', 'sep', 'oct', 'nov', 'dec']
 
 monmap = {}
 for i in range(12):
@@ -57,15 +57,15 @@ months_reg = group(join(months, '|'))
 
 # rfc822 format
 rfc822_date = join(
-        [concat (short_day_reg,','),            # day
-         group('[0-9][0-9]?'),                  # date
-         months_reg,                            # month
-         group('[0-9]+'),                       # year
-         hms_reg,                               # hour minute second
-         'gmt'
-         ],
-        ' '
-        )
+    [concat(short_day_reg, ','),            # day
+     group('[0-9][0-9]?'),                  # date
+     months_reg,                            # month
+     group('[0-9]+'),                       # year
+     hms_reg,                               # hour minute second
+     'gmt'
+    ],
+    ' '
+)
 
 rfc822_reg = re.compile(rfc822_date)
 
@@ -73,49 +73,36 @@ def unpack_rfc822(m):
     g = m.group
     a = int
     return (
-            a(g(4)),             # year
-            monmap[g(3)],        # month
-            a(g(2)),             # day
-            a(g(5)),             # hour
-            a(g(6)),             # minute
-            a(g(7)),             # second
-            0,
-            0,
-            0
-            )
+        a(g(4)),             # year
+        monmap[g(3)],        # month
+        a(g(2)),             # day
+        a(g(5)),             # hour
+        a(g(6)),             # minute
+        a(g(7)),             # second
+        0,
+        0,
+        0
+    )
 
     # rfc850 format
 rfc850_date = join(
-        [concat(long_day_reg,','),
-         join(
-                 [group ('[0-9][0-9]?'),
-                  months_reg,
-                  group ('[0-9]+')
-                  ],
-                 '-'
-                 ),
-         hms_reg,
-         'gmt'
+    [concat(long_day_reg, ','),
+     join(
+         [group('[0-9][0-9]?'),
+          months_reg,
+          group('[0-9]+')
          ],
-        ' '
-        )
+         '-'
+     ),
+     hms_reg,
+     'gmt'
+    ],
+    ' '
+)
 
 rfc850_reg = re.compile(rfc850_date)
 # they actually unpack the same way
-def unpack_rfc850(m):
-    g = m.group
-    a = int
-    return (
-            a(g(4)),           # year
-            monmap[g(3)],      # month
-            a(g(2)),           # day
-            a(g(5)),           # hour
-            a(g(6)),           # minute
-            a(g(7)),           # second
-            0,
-            0,
-            0
-            )
+unpack_rfc850 = unpack_rfc822
 
     # parsdate.parsedate        - ~700/sec.
     # parse_http_date            - ~1333/sec.
@@ -125,21 +112,22 @@ monthname = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 def build_http_date(when):
-    year, month, day, hh, mm, ss, wd, y, z = time.gmtime(when)
+    year, month, day, hh, mm, ss, wd, _y, _z = time.gmtime(when)
     return "%s, %02d %3s %4d %02d:%02d:%02d GMT" % (
-            weekdayname[wd],
-            day, monthname[month], year,
-            hh, mm, ss)
+        weekdayname[wd],
+        day, monthname[month], year,
+        hh, mm, ss
+    )
+
 
 def parse_http_date(d):
     d = d.lower()
     m = rfc850_reg.match(d)
-    if m and m.end() == len(d):
-        retval = int(calendar.timegm(unpack_rfc850(m)))
-    else:
+    if not m or m.end() != len(d):
         m = rfc822_reg.match(d)
-        if m and m.end() == len(d):
-            retval = int(calendar.timegm(unpack_rfc822(m)))
-        else:
-            return 0
-    return retval
+    if m and m.end() == len(d):
+        # They both unpack the same way, it doesn't matter which
+        # function we use.
+        return int(calendar.timegm(unpack_rfc850(m)))
+
+    return 0

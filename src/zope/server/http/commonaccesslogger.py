@@ -36,24 +36,26 @@ class CommonAccessLogger(object):
         else:
             self.output = UnresolvingLogger(logger_object)
 
-    def compute_timezone_for_log(self, tz):
+    @classmethod
+    def compute_timezone_for_log(cls, tz):
         if tz > 0:
             neg = 1
         else:
             neg = 0
             tz = -tz
-        h, rem = divmod (tz, 3600)
-        m, rem = divmod (rem, 60)
+        h, rem = divmod(tz, 3600)
+        m, rem = divmod(rem, 60)
         if neg:
             return '-%02d%02d' % (h, m)
-        else:
-            return '+%02d%02d' % (h, m)
+        return '+%02d%02d' % (h, m)
 
     tz_for_log = None
     tz_for_log_alt = None
 
+    _localtime = staticmethod(time.localtime)
+
     def log_date_string(self, when):
-        logtime = time.localtime(when)
+        logtime = self._localtime(when)
         Y, M, D, h, m, s = logtime[:6]
 
         if not time.daylight:

@@ -1,27 +1,34 @@
-=======
-CHANGES
-=======
+=========
+ CHANGES
+=========
 
-3.10.0 (unreleased)
--------------------
+4.0.0 (unreleased)
+==================
 
 - Drop Python 2.6 support.
 
 - Add Python 3.4, 3.5, and 3.6 support.
 
+- Add PyPy support.
+
+- Made the HTTPTask not have ``command`` or ``uri`` values of
+  ``"None"`` when the first request line cannot be parsed. Now they
+  are empty strings.
+
+- Achieve and maintain 100% test coverage.
 
 3.9.0 (2013-03-13)
-------------------
+==================
 
 - Better adherence to WSGI:
 
-  * Call close method if present on iterables returned by 
+  * Call close method if present on iterables returned by
     ``start_response``.
 
   * Don't include non-string values in the CGI environment
     (``CHANNEL_CREATION_TIME``).
 
-  * Always include ``QUERY_STRING`` to avoid the cgi module falling back 
+  * Always include ``QUERY_STRING`` to avoid the cgi module falling back
     to ``sys.argv``.
 
   * Add tests based on `paste.lint` middleware.
@@ -36,25 +43,25 @@ CHANGES
 
 
 3.8.6 (2012-01-07)
-------------------
+==================
 
 - On startup, HTTPServer prints a clickable URL after the hostname/port.
 
 
 3.8.5 (2011-09-13)
-------------------
+==================
 
 - fixed bug: requests lasting over 15 minutes were sometimes closed
   prematurely.
 
 3.8.4 (2011-06-07)
-------------------
+==================
 
 - Fix syntax error in tests on Python < 2.6.
 
 
 3.8.3 (2011-05-18)
-------------------
+==================
 
 - Made ``start_response`` method of WSGI server implementation more compliant
   with spec:
@@ -62,12 +69,12 @@ CHANGES
     http://www.python.org/dev/peps/pep-0333/#the-start-response-callable
 
 3.8.2 (2010-12-04)
-------------------
+==================
 
 - Corrected license version in ``zope/server/http/tests/test_wsgiserver.py``.
 
 3.8.1 (2010-08-24)
-------------------
+==================
 
 - When the result of a WSGI application was received, ``task.write()`` was
   only called once to transmit the data. This prohibited the transmission of
@@ -82,7 +89,7 @@ CHANGES
   ``zope.testing.doctest``.
 
 3.8.0 (2010-08-05)
-------------------
+==================
 
 - Implemented correct server proxy behavior. The HTTP server would always add
   a "Server" and "Date" response header to the list of response headers
@@ -91,7 +98,7 @@ CHANGES
   "Via" header instead.
 
 3.7.0 (2010-08-01)
-------------------
+==================
 
 - Implemented proxy support. Proxy requests contain a full URIs and the
   request parser used to throw that information away. Using
@@ -103,21 +110,21 @@ CHANGES
 - Made tests runnable via buildout again.
 
 3.6.2 (2010-06-11)
-------------------
+==================
 
 - The log message "Exception during task" is no longer logged to the root
   logger but to zope.server.taskthreads.
 
 
 3.6.1 (2009-10-07)
-------------------
+==================
 
 - Made tests pass with current zope.publisher which restricts redirects to the
   current host by default.
 
 
 3.6.0 (2009-05-27)
-------------------
+==================
 
 - Moved some imports from test modules to their setUp to prevent
   failures when ZEO tests are run by the same testrunner
@@ -128,7 +135,7 @@ CHANGES
 
 
 3.5.0 (2008-03-01)
-------------------
+==================
 
 - Improve package meta-data.
 
@@ -139,47 +146,47 @@ CHANGES
 
 
 3.5.0a2 (2007-06-02)
---------------------
+====================
 
 - Made WSGI server really WSGI-compliant by adding variables to the
   environment that are required by the spec.
 
 
 3.5.0a1 (2007-06-02)
---------------------
+====================
 
 - Added a factory and entry point for PasteDeploy.
 
 
 3.4.3 (2008-08-18)
-------------------
+==================
 
 - Moved some imports from test modules to their setUp to prevent
   failures when ZEO tests are run by the same testrunner
 
 
 3.4.2 (2008-02-02)
-------------------
+==================
 
 - Fix of 599 error on conflict error in request
   see: http://mail.zope.org/pipermail/zope-dev/2008-January/030844.html
 
 
 3.4.1 (2007-06-02)
-------------------
+==================
 
 - Made WSGI server really WSGI-compliant by adding variables to the
   environment that are required by the spec.
 
 
 3.4.0 (2007-06-02)
-------------------
+==================
 
 - Removed an unused import. Unchanged otherwise.
 
 
 3.4.0a1 (2007-04-22)
---------------------
+====================
 
 - Initial release as a separate project, corresponds to zope.server
   from Zope 3.4.0a1
