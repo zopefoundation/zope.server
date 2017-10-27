@@ -15,6 +15,8 @@
   ``"None"`` when the first request line cannot be parsed. Now they
   are empty strings.
 
+- Achieve and maintain 100% test coverage.
+
 3.9.0 (2013-03-13)
 ==================
 

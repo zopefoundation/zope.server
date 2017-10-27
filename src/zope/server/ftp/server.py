@@ -152,7 +152,7 @@ class FTPServerChannel(LineServerChannel):
         self.abortData()
 
 
-    def cmd_appe (self, args):
+    def cmd_appe(self, args):
         'See IFTPCommandHandler'
         return self.cmd_stor(args, 'a')
 
@@ -163,7 +163,7 @@ class FTPServerChannel(LineServerChannel):
         if self._getFileSystem().type(path):
             self.cwd = path
             self.reply('SUCCESS_250', 'CDUP')
-        else:
+        else: # pragma: no cover
             self.reply('ERR_NO_FILE', path)
 
 
@@ -211,7 +211,7 @@ class FTPServerChannel(LineServerChannel):
             if len(args) > 1:
                 self.reply('ERR_ARGS')
                 return
-            args = args and args[0] or ''
+            args = args[0] if args else ''
 
         fs = self._getFileSystem()
         path = self._generatePath(args)
@@ -222,9 +222,9 @@ class FTPServerChannel(LineServerChannel):
         try:
             s = self.getList(
                 args, long,
-                directory=bool([opt for opt in opts if opt[0]=='-d'])
-                )
-        except OSError as err:
+                directory=bool([opt for opt in opts if opt[0] == '-d'])
+            )
+        except OSError as err: # pragma: no cover
             self.reply('ERR_NO_LIST', str(err))
             return
         ok_reply = ('OPEN_DATA_CONN', self.type_map[self.transfer_mode])
@@ -232,7 +232,7 @@ class FTPServerChannel(LineServerChannel):
         try:
             cdc.write(s.encode('utf-8'))
             cdc.close_when_done()
-        except OSError as err:
+        except OSError as err: # pragma: no cover
             self.reply('ERR_NO_LIST', str(err))
             cdc.reported = True
             cdc.close_when_done()
@@ -243,10 +243,7 @@ class FTPServerChannel(LineServerChannel):
         path_args = []
         for arg in args:
             if arg[0] != '-':
-                path_args.append (arg)
-            else:
-                # ignore arguments
-                pass
+                path_args.append(arg)
         if len(path_args) < 1:
             path = '.'
         else:
@@ -257,12 +254,12 @@ class FTPServerChannel(LineServerChannel):
         if fs.type(path) == 'd' and not directory:
             if long:
                 file_list = map(ls, fs.ls(path))
-            else:
+            else: # pragma: no cover
                 file_list = fs.names(path)
         else:
             if long:
                 file_list = [ls(fs.lsinfo(path))]
-            else:
+            else: # pragma: no cover
                 file_list = [posixpath.split(path)[1]]
 
         return '\r\n'.join(file_list) + '\r\n'
@@ -283,7 +280,7 @@ class FTPServerChannel(LineServerChannel):
             mtime = fs.mtime(path)
             if mtime is not None:
                 mtime = (mtime.year, mtime.month, mtime.day,
-                         mtime.hour, mtime. minute, mtime.second)
+                         mtime.hour, mtime.minute, mtime.second)
             else:
                 mtime = 0, 0, 0, 0, 0, 0
 
@@ -347,8 +344,8 @@ class FTPServerChannel(LineServerChannel):
         self.passive_listener = PassiveListener(self, local_addr)
         port = self.passive_listener.port
         self.reply('PASV_MODE_MSG', (','.join(local_addr.split('.')),
-                                     port/256,
-                                     port%256 ) )
+                                     port / 256,
+                                     port % 256))
 
 
     def cmd_port(self, args):
@@ -382,7 +379,7 @@ class FTPServerChannel(LineServerChannel):
             self.reply('CMD_UNKNOWN', 'RETR')
         path = self._generatePath(args)
 
-        if not (fs.type(path) == 'f'):
+        if fs.type(path) != 'f':
             self.reply('ERR_IS_NOT_FILE', path)
             return
 
@@ -398,11 +395,11 @@ class FTPServerChannel(LineServerChannel):
         try:
             fs.readfile(path, outstream, start)
             cdc.close_when_done()
-        except OSError as err:
+        except OSError as err: # pragma: no cover
             self.reply('ERR_OPEN_READ', str(err))
             cdc.reported = True
             cdc.close_when_done()
-        except IOError as err:
+        except IOError as err: # pragma: no cover XXX Same thing on Python 3
             self.reply('ERR_IO', str(err))
             cdc.reported = True
             cdc.close_when_done()
@@ -430,7 +427,7 @@ class FTPServerChannel(LineServerChannel):
         except OSError as err:
             self.reply('ERR_DELETE_DIR', str(err))
         else:
-            self.reply('SUCCESS_250', 'RMD')
+            self.reply('SUCCESS_250', 'RMD') # pragma: no cover
 
 
     def cmd_rnfr(self, args):
@@ -453,7 +450,7 @@ class FTPServerChannel(LineServerChannel):
         except OSError as err:
             self.reply('ERR_RENAME', (self._rnfr, path, str(err)))
         else:
-            self.reply('SUCCESS_250', 'RNTO')
+            self.reply('SUCCESS_250', 'RNTO') # pragma: no cover
         self._rnfr = None
 
 
@@ -496,12 +493,12 @@ class FTPServerChannel(LineServerChannel):
             infile = buffer.getfile()
             infile.seek(0)
             self._getFileSystem().writefile(path, infile, start,
-                                            append=(mode[0]=='a'))
-        except OSError as err:
+                                            append=(mode[0] == 'a'))
+        except OSError as err: # pragma: no cover
             self.reply('ERR_OPEN_WRITE', str(err))
-        except IOError as err:
+        except IOError as err: # pragma: no cover XXX On Py3 this is OSError
             self.reply('ERR_IO', str(err))
-        except:
+        except: # pragma: no cover
             self.exception()
         else:
             self.reply('TRANS_SUCCESS')
@@ -527,7 +524,7 @@ class FTPServerChannel(LineServerChannel):
         t = args[0].lower()
         # no support for EBCDIC
         # if t not in ['a','e','i','l']:
-        if t not in ['a','i','l']:
+        if t not in ('a', 'i', 'l'):
             self.reply('ERR_ARGS')
         elif t == 'l' and (len(args) > 2 and args[2] != '8'):
             self.reply('WRONG_BYTE_SIZE')
@@ -576,7 +573,7 @@ class FTPServerChannel(LineServerChannel):
         if self.passive_listener is not None:
             # Connect via PASV
             self.passive_listener.connectData(cdc)
-        if self.port_addr:
+        if self.port_addr: # pragma: no cover
             # Connect via PORT
             a = self.port_addr
             self.port_addr = None
@@ -639,10 +636,8 @@ def ls(ls_info):
 
     mtime = info.get('mtime')
     if mtime is not None:
-        if date.today() - mtime.date() > timedelta(days=180):
-            mtime = mtime.strftime('%b %d  %Y')
-        else:
-            mtime = mtime.strftime('%b %d %H:%M')
+        fstring = '%b %d  %Y' if date.today() - mtime.date() > timedelta(days=180) else '%b %d %H:%M'
+        mtime = mtime.strftime(fstring)
     else:
         mtime = "Jan 02  0000"
 
@@ -685,8 +680,8 @@ class PassiveListener(asyncore.dispatcher):
        command first.
        """
 
-    def __init__ (self, control_channel, local_addr):
-        asyncore.dispatcher.__init__ (self)
+    def __init__(self, control_channel, local_addr):
+        asyncore.dispatcher.__init__(self)
         self.control_channel = control_channel
         self.accepted = None  # The accepted socket address
         self.client_dc = None  # The data connection to accept the socket
@@ -698,33 +693,33 @@ class PassiveListener(asyncore.dispatcher):
         self.port = self.socket.getsockname()[1]
         self.listen(1)
 
-    def log (self, *ignore):
+    def log(self, *ignore): # pragma: no cover
         pass
 
     def abort(self):
         """Abort the passive listener."""
-        if not self.closed:
+        if not self.closed: # pragma: no cover
             self.closed = True
             self.close()
         if self.accepted is not None:
             self.accepted.close()
 
-    def handle_accept (self):
+    def handle_accept(self):
         """Accept a connection from the client.
 
         For some reason, sometimes accept() returns None instead of a
         socket.  This code ignores that case.
         """
         v = self.accept()
-        if v is None:
+        if v is None: # pragma: no cover
             return
-        self.accepted, addr = v
-        if self.accepted is None:
+        self.accepted, _addr = v
+        if self.accepted is None: # pragma: no cover
             return
         self.accepted.setblocking(0)
         self.closed = True
         self.close()
-        if self.client_dc is not None:
+        if self.client_dc is not None: # pragma: no cover
             self.connectData(self.client_dc)
 
     def connectData(self, cdc):
@@ -744,7 +739,7 @@ class PassiveListener(asyncore.dispatcher):
             # record that the data connection already has the socket.
             self.accepted = None
             self.control_channel.connectedPassive()
-        else:
+        else: # pragma: no cover
             self.client_dc = cdc
 
 
@@ -754,7 +749,7 @@ class FTPDataChannel(DualModeChannel):
     Note that data channels are always in async mode.
     """
 
-    def __init__ (self, control_channel):
+    def __init__(self, control_channel):
         self.control_channel = control_channel
         self.reported = False
         self.closed = False
@@ -767,7 +762,7 @@ class FTPDataChannel(DualModeChannel):
         #    self.bind(('', self.control_channel.server.port - 1))
         try:
             self.connect(client_addr)
-        except socket.error:
+        except socket.error: # pragma: no cover
             self.report('NO_DATA_CONN')
 
     def abort(self):
@@ -785,7 +780,6 @@ class FTPDataChannel(DualModeChannel):
 
     def reportDefault(self):
         """Provide a default report on close."""
-        pass
 
     def close(self):
         """Notifies the control channel when the data connection closes."""
@@ -806,23 +800,23 @@ class STORChannel(FTPDataChannel):
     complete_transfer = 0
     _fileno = None  # provide a default for asyncore.dispatcher._fileno
 
-    def __init__ (self, control_channel, finish_args):
+    def __init__(self, control_channel, finish_args):
         self.finish_args = finish_args
         self.inbuf = OverflowableBuffer(control_channel.adj.inbuf_overflow)
         FTPDataChannel.__init__(self, control_channel)
         # Note that this channel starts in async mode.
 
-    def writable (self):
+    def writable(self):
         return 0
 
-    def handle_connect (self):
+    def handle_connect(self):
         pass
 
-    def received (self, data):
+    def received(self, data):
         if data:
             self.inbuf.append(data)
 
-    def handle_close (self):
+    def handle_close(self):
         """Client closed, indicating EOF."""
         c = self.control_channel
         task = FinishSTORTask(c, self.inbuf, self.finish_args)
@@ -831,7 +825,7 @@ class STORChannel(FTPDataChannel):
         c.queue_task(task)
 
     def reportDefault(self):
-        if not self.complete_transfer:
+        if not self.complete_transfer: # pragma: no cover
             self.report('TRANSFER_ABORTED')
         # else the transfer completed and FinishSTORTask will
         # provide a complete reply through finishSTOR().
@@ -864,7 +858,7 @@ class RETRChannel(FTPDataChannel):
     opened = 0
     _fileno = None  # provide a default for asyncore.dispatcher._fileno
 
-    def __init__ (self, control_channel, ok_reply_args):
+    def __init__(self, control_channel, ok_reply_args):
         self.ok_reply_args = ok_reply_args
         FTPDataChannel.__init__(self, control_channel)
 
@@ -905,11 +899,11 @@ class RETRChannel(FTPDataChannel):
             # All data transferred
             if not self.opened:
                 # Zero-length file
-                self._open()
+                self._open() # pragma: no cover
             self.report('TRANS_SUCCESS')
         else:
             # Not all data transferred
-            self.report('TRANSFER_ABORTED')
+            self.report('TRANSFER_ABORTED') # pragma: no cover
 
 
 class ApplicationOutputStream(object):

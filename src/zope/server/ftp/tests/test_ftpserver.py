@@ -36,6 +36,7 @@ def retrlines(ftpconn, cmd):
     ftpconn.retrlines(cmd, res.append)
     return ''.join(res)
 
+# pylint:disable=deprecated-method
 
 class TestIntegration(LoopTestMixin,
                       AsyncoreErrorHookMixin,
@@ -74,11 +75,12 @@ class TestIntegration(LoopTestMixin,
                          task_dispatcher=self.td, adj=my_adj)
 
 
-    def getFTPConnection(self, login=1):
+    def getFTPConnectionSocket(self, login=1):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.ftp.server import status_messages
         ftp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.addCleanup(ftp.close)
         ftp.connect((self.LOCALHOST, self.port))
         result = ftp.recv(10000).split()[0]
         self.assertEqual(result, b'220')
@@ -94,18 +96,16 @@ class TestIntegration(LoopTestMixin,
 
 
     def execute(self, commands, login=1):
-        ftp = self.getFTPConnection(login)
+        ftp = self.getFTPConnectionSocket(login)
 
-        try:
-            if isinstance(commands, str):
-                commands = (commands,)
+        if isinstance(commands, str):
+            commands = (commands,)
 
-            for command in commands:
-                ftp.send(command.encode('ascii') + b'\r\n')
-                result = ftp.recv(10000).decode('ascii')
-            self.assertTrue(result.endswith('\r\n'))
-        finally:
-            ftp.close()
+        for command in commands:
+            ftp.send(command.encode('ascii') + b'\r\n')
+            result = ftp.recv(10000).decode('ascii')
+        self.assertTrue(result.endswith('\r\n'))
+        ftp.close()
         return result
 
 
@@ -116,48 +116,43 @@ class TestIntegration(LoopTestMixin,
         self.assertEqual(self.execute('ABOR', 1).rstrip(),
                          status_messages['TRANSFER_ABORTED'])
 
+    def getFTPConnection(self, login=True):
+        conn = ftplib.FTP()
+        self.addCleanup(conn.close)
+        conn.connect(self.LOCALHOST, self.port)
+        if login:
+            conn.login('foo', 'bar')
+        return conn
 
     def testAPPE(self):
-        conn = ftplib.FTP()
-        try:
-            conn.connect(self.LOCALHOST, self.port)
-            conn.login('foo', 'bar')
-            fp = BytesIO(b'Charity never faileth')
-            # Successful write
-            conn.storbinary('APPE /test/existing', fp)
-            self.assertEqual(self.__fs.files['test']['existing'].data,
-                             b'test initial dataCharity never faileth')
-        finally:
-            conn.close()
+        conn = self.getFTPConnection()
+        fp = BytesIO(b'Charity never faileth')
+        # Successful write
+        conn.storbinary('APPE /test/existing', fp)
+        self.assertEqual(self.__fs.files['test']['existing'].data,
+                         b'test initial dataCharity never faileth')
         # Make sure no garbage was left behind.
         self.testNOOP()
 
     def testAPPE_errors(self):
-        conn = ftplib.FTP()
-        try:
-            conn.connect(self.LOCALHOST, self.port)
-            conn.login('foo', 'bar')
+        conn = self.getFTPConnection()
+        fp = BytesIO(b'Speak softly')
 
-            fp = BytesIO(b'Speak softly')
+        # Can't overwrite directory
+        self.assertRaises(
+            ftplib.error_perm, conn.storbinary, 'APPE /test', fp)
 
-            # Can't overwrite directory
-            self.assertRaises(
-                ftplib.error_perm, conn.storbinary, 'APPE /test', fp)
+        # No such file
+        self.assertRaises(
+            ftplib.error_perm, conn.storbinary, 'APPE /nosush', fp)
 
-            # No such file
-            self.assertRaises(
-                ftplib.error_perm, conn.storbinary, 'APPE /nosush', fp)
+        # No such dir
+        self.assertRaises(
+            ftplib.error_perm, conn.storbinary, 'APPE /nosush/f', fp)
 
-            # No such dir
-            self.assertRaises(
-                ftplib.error_perm, conn.storbinary, 'APPE /nosush/f', fp)
-
-            # Not allowed
-            self.assertRaises(
-                ftplib.error_perm, conn.storbinary, 'APPE /existing', fp)
-
-        finally:
-            conn.close()
+        # Not allowed
+        self.assertRaises(
+            ftplib.error_perm, conn.storbinary, 'APPE /existing', fp)
         # Make sure no garbage was left behind.
         self.testNOOP()
 
@@ -167,9 +162,13 @@ class TestIntegration(LoopTestMixin,
         from zope.server.ftp.server import status_messages
         self.execute('CWD test', 1)
         self.assertEqual(self.execute('CDUP', 1).rstrip(),
-                         status_messages['SUCCESS_250'] %'CDUP')
+                         status_messages['SUCCESS_250'] % 'CDUP')
         self.assertEqual(self.execute('CDUP', 1).rstrip(),
-                         status_messages['SUCCESS_250'] %'CDUP')
+                         status_messages['SUCCESS_250'] % 'CDUP')
+        self.assertEqual(self.execute('CDUP', 1).rstrip(),
+                         status_messages['SUCCESS_250'] % 'CDUP')
+        self.assertEqual(self.execute('CDUP', 1).rstrip(),
+                         status_messages['SUCCESS_250'] % 'CDUP')
 
 
     def testCWD(self):
@@ -205,36 +204,62 @@ class TestIntegration(LoopTestMixin,
         self.assertEqual(self.execute('HELP', 1), result)
 
 
-    def testLIST(self):
-        conn = ftplib.FTP()
-        try:
-            conn.connect(self.LOCALHOST, self.port)
-            conn.login('anonymous', 'bar')
-            self.assertRaises(ftplib.Error, retrlines, conn, 'LIST /foo')
-            listing = retrlines(conn, 'LIST')
-            self.assertGreater(len(listing), 0)
-            listing = retrlines(conn, 'LIST -la')
-            self.assertGreater(len(listing), 0)
-        finally:
-            conn.close()
+    def testLIST(self, conn=None):
+        import datetime
+        conn = conn or self.getFTPConnection()
+
+
+        self.__fs.getany('existing').modified = datetime.datetime.now()
+
+        self.assertRaises(ftplib.Error, retrlines, conn, 'LIST /foo')
+        listing = retrlines(conn, 'LIST')
+        self.assertGreater(len(listing), 0)
+        listing = retrlines(conn, 'LIST -la')
+        self.assertGreater(len(listing), 0)
+
+        listing = retrlines(conn, 'LIST -a')
+        self.assertGreater(len(listing), 0)
+
+        listing = retrlines(conn, 'LIST -d')
+        self.assertGreater(len(listing), 0)
+
+        with self.assertRaises(ftplib.Error):
+            retrlines(conn, 'LIST -no')
+
+        with self.assertRaises(ftplib.Error):
+            retrlines(conn, 'LIST -a /foo /bar')
+
+        with self.assertRaises(ftplib.Error):
+            retrlines(conn, 'LIST DirectoryDoesNotExist')
+
         # Make sure no garbage was left behind.
         self.testNOOP()
 
+    def testLIST_pasv(self):
+        conn = self.getFTPConnection()
+        conn.set_pasv(True)
+        self.testLIST(conn)
+
+    def testNLST(self):
+        conn = self.getFTPConnection()
+        conn.nlst('/')
+
     def testMKDLIST(self):
         self.execute(['MKD test/f1', 'MKD test/f2'], 1)
-        conn = ftplib.FTP()
-        try:
-            conn.connect(self.LOCALHOST, self.port)
-            conn.login('foo', 'bar')
-            listing = []
-            conn.retrlines('LIST /test', listing.append)
-            self.assertGreaterEqual(len(listing), 2)
-            listing = []
-            conn.retrlines('LIST -lad test/f1', listing.append)
-            self.assertEqual(len(listing), 1)
-            self.assertEqual(listing[0][0], 'd')
-        finally:
-            conn.close()
+        conn = self.getFTPConnection()
+        with self.assertRaises(ftplib.Error):
+            conn.sendcmd('MKD') # no arguments
+
+        with self.assertRaises(ftplib.Error):
+            conn.sendcmd('MKD test/f1') # repeat
+
+        listing = []
+        conn.retrlines('LIST /test', listing.append)
+        self.assertGreaterEqual(len(listing), 2)
+        listing = []
+        conn.retrlines('LIST -lad test/f1', listing.append)
+        self.assertEqual(len(listing), 1)
+        self.assertEqual(listing[0][0], 'd')
         # Make sure no garbage was left behind.
         self.testNOOP()
 
@@ -271,36 +296,34 @@ class TestIntegration(LoopTestMixin,
 
 
     def testSTOR(self):
-        conn = ftplib.FTP()
-        try:
-            conn.connect(self.LOCALHOST, self.port)
-            conn.login('foo', 'bar')
-            fp = BytesIO(b'Speak softly')
-            # Can't overwrite directory
-            self.assertRaises(
-                ftplib.error_perm, conn.storbinary, 'STOR /test', fp)
-            fp = BytesIO(b'Charity never faileth')
-            # Successful write
-            conn.storbinary('STOR /test/stuff', fp)
-            self.assertEqual(self.__fs.files['test']['stuff'].data,
-                             b'Charity never faileth')
-        finally:
-            conn.close()
+        conn = self.getFTPConnection()
+        fp = BytesIO(b'Speak softly')
+        # Can't overwrite directory
+        self.assertRaises(
+            ftplib.error_perm, conn.storbinary, 'STOR /test', fp)
+        fp = BytesIO(b'Charity never faileth')
+        # Successful write
+        conn.storbinary('STOR /test/stuff', fp)
+        self.assertEqual(self.__fs.files['test']['stuff'].data,
+                         b'Charity never faileth')
         # Make sure no garbage was left behind.
+
+        conn.sendcmd('REST 2')
+        fp = BytesIO(b'Charity never faileth')
+        # Successful write
+        conn.storbinary('STOR /test/stuff', fp)
+
+        with self.assertRaises(ftplib.Error):
+            conn.sendcmd('STOR')
         self.testNOOP()
 
 
     def testSTOR_over(self):
-        conn = ftplib.FTP()
-        try:
-            conn.connect(self.LOCALHOST, self.port)
-            conn.login('foo', 'bar')
-            fp = BytesIO(b'Charity never faileth')
-            conn.storbinary('STOR /test/existing', fp)
-            self.assertEqual(self.__fs.files['test']['existing'].data,
-                             b'Charity never faileth')
-        finally:
-            conn.close()
+        conn = self.getFTPConnection()
+        fp = BytesIO(b'Charity never faileth')
+        conn.storbinary('STOR /test/existing', fp)
+        self.assertEqual(self.__fs.files['test']['existing'].data,
+                         b'Charity never faileth')
         # Make sure no garbage was left behind.
         self.testNOOP()
 
@@ -313,3 +336,174 @@ class TestIntegration(LoopTestMixin,
                          status_messages['PASS_REQUIRED'])
         self.assertEqual(self.execute('USER', 0).rstrip(),
                          status_messages['ERR_ARGS'])
+
+    def testMDTM(self):
+        conn = self.getFTPConnection()
+        with self.assertRaises(ftplib.Error):
+            retrlines(conn, 'MDTM arg1 arg2')
+
+        with self.assertRaises(ftplib.Error):
+            retrlines(conn, 'MDTM path')
+
+        conn.sendcmd('MDTM existing')
+
+        class mtime(object):
+            year = 1999
+            month = 10
+            day = 10
+            hour = 1
+            minute = 1
+            second = 1
+
+        self.__fs.getany('existing').modified = mtime
+        conn.sendcmd('MDTM existing')
+
+    def testMODE(self):
+        conn = self.getFTPConnection()
+        with self.assertRaisesRegexp(ftplib.Error, 'MODE_UNKNOWN'):
+            conn.sendcmd('MODE a b')
+
+        conn.sendcmd('MODE s')
+
+    def testPORT(self):
+        conn = self.getFTPConnection()
+        resp = conn.sendcmd('PORT 127,0,0,1,0,1')
+        self.assertEqual(resp, '200 PORT command successful.')
+
+    def testPWD(self):
+        conn = self.getFTPConnection()
+        resp = conn.sendcmd('PWD')
+        self.assertEqual(resp, '257 "/" is the current directory.')
+
+    def testRETR_not_understood(self):
+        conn = self.getFTPConnection()
+        with self.assertRaisesRegexp(ftplib.Error, "command not understood"):
+            conn.sendcmd('RETR')
+    def testRETR_no_file(self):
+        conn = self.getFTPConnection()
+        with self.assertRaisesRegexp(ftplib.Error, "not a file"):
+            conn.sendcmd('RETR /DNE')
+
+    def testRETR(self):
+        conn = self.getFTPConnection()
+        resp = conn.sendcmd('RETR /existing')
+        self.assertIn('/existing', resp)
+
+        # Restart it
+        resp = conn.sendcmd('REST 1')
+        self.assertIn('Restarting', resp)
+        resp = conn.sendcmd('RETR /existing')
+        self.assertIn('/existing', resp)
+
+    def testRETR_non_pasv(self):
+        conn = self.getFTPConnection()
+        conn.set_pasv(False)
+        s = conn.transfercmd('RETR /existing')
+        s.recv(100)
+        s.close()
+
+    def testRETR_pasv(self):
+        conn = self.getFTPConnection()
+        conn.set_pasv(True)
+        s = conn.transfercmd('RETR /existing')
+        s.recv(100)
+        s.close()
+
+    def testREST(self):
+        conn = self.getFTPConnection()
+        with self.assertRaisesRegexp(ftplib.Error, 'arguments'):
+            conn.sendcmd("REST a")
+
+    def testRMD(self):
+        conn = self.getFTPConnection()
+        with self.assertRaisesRegexp(ftplib.Error, 'arguments'):
+            conn.sendcmd('RMD')
+
+        with self.assertRaisesRegexp(ftplib.Error, 'denied'):
+            conn.sendcmd('RMD /foo')
+
+    def testRNFR_dne(self):
+        conn = self.getFTPConnection()
+        with self.assertRaisesRegexp(ftplib.Error, 'No such file'):
+            conn.sendcmd('RNFR /dne')
+
+    def testRNTO_bad_state(self):
+        conn = self.getFTPConnection()
+
+        with self.assertRaisesRegexp(ftplib.Error, 'ERR_RENAME'):
+            conn.sendcmd('RNTO /dne')
+
+    def testRNFR(self):
+        conn = self.getFTPConnection()
+
+        conn.sendcmd('RNFR /existing')
+        with self.assertRaisesRegexp(ftplib.Error, 'denied'):
+            conn.sendcmd('RNTO /existing2')
+
+    def testSIZE(self):
+        conn = self.getFTPConnection()
+        resp = conn.sendcmd('SIZE /existing')
+        # XXX: This fails with the ftp client though, "17 bytes" can't be parsed
+        # as an int
+        self.assertEqual(resp, '213 17 Bytes')
+
+        with self.assertRaisesRegexp(ftplib.Error, 'No such file'):
+            conn.size('/DNE')
+
+    @unittest.expectedFailure
+    def testSIZE_fails(self):
+        conn = self.getFTPConnection()
+        conn.size('/existing')
+
+    def testSTRU(self):
+        conn = self.getFTPConnection()
+        with self.assertRaisesRegexp(ftplib.Error, 'Unimplemented'):
+            conn.sendcmd('STRU a b')
+
+        conn.sendcmd('STRU f')
+
+    def testSYST(self):
+        conn = self.getFTPConnection()
+        resp = conn.sendcmd('SYST')
+        self.assertIn('UNIX', resp)
+
+    def testTYPE(self):
+        conn = self.getFTPConnection()
+        with self.assertRaisesRegexp(ftplib.Error, 'arguments'):
+            conn.sendcmd('TYPE g')
+
+        with self.assertRaisesRegexp(ftplib.Error, 'size must be 8'):
+            conn.sendcmd('TYPE l 9 x')
+
+class MockChannel(object):
+    class adj(object):
+        outbuf_overflow = 1
+    def closedData(self):
+        pass
+    connected = False
+
+class TestRETRChannel(unittest.TestCase):
+
+    def _makeOne(self):
+        from zope.server.ftp import server
+        return server.RETRChannel(MockChannel(), None)
+
+    def test_write_no_channel(self):
+        c = self._makeOne()
+        c.close()
+        with self.assertRaises(IOError):
+            c.write(b'')
+
+    def test_handle_read_error(self):
+        from zope.server.ftp import server
+        class S(server.RETRChannel):
+            def recv(self, *args):
+                raise socket.error()
+            def report(self, _code):
+                pass
+
+
+        c = S(MockChannel(), None)
+        c.handle_read()
+
+        c.handle_comm_error()

@@ -87,7 +87,7 @@ class DemoFileSystem(object):
         d = self.files
         if path:
             for name in path.split('/'):
-                assert d.type == 'd'
+                assert d.type == 'd', "wrong type"
                 assert d.accessable(self.user)
                 d = d.get(name)
                 if d is None:
@@ -127,7 +127,7 @@ class DemoFileSystem(object):
     def names(self, path, filter=None):
         "See zope.server.interfaces.ftp.IFileSystem"
         f = list(self.getdir(path))
-        assert filter is None
+        assert filter is None, "no filter allowed"
         return f
 
     def _lsinfo(self, name, file):
@@ -139,7 +139,8 @@ class DemoFileSystem(object):
             }
         if file.type == 'f':
             info['size'] = len(file.data)
-        assert file.modified is None
+        if file.modified is not None:
+            info['mtime'] = file.modified
 
         return info
 
@@ -171,18 +172,19 @@ class DemoFileSystem(object):
 
     def mtime(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
-        raise AssertionError("Not implemented or called")
+        return self.getany(path).modified
 
     def size(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
-        raise AssertionError("Not implemented or called")
+        f = self.getany(path)
+        return len(getattr(f, 'data', b''))
 
     def mkdir(self, path):
         "See zope.server.interfaces.ftp.IFileSystem"
         path, name = posixpath.split(path)
         d = self.getwdir(path)
         if name in d.files:
-            raise AssertionError("Already exists:", name)
+            raise OSError("Already exists:", name)
         newdir = self.Directory()
         newdir.grant(self.user, read | write)
         d.files[name] = newdir

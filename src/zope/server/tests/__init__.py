@@ -25,6 +25,7 @@ class LoopTestMixin(object):
         if len(asyncore.socket_map) != 1:
             # Let sockets die off.
             # TODO tests should be more careful to clear the socket map.
+            gc.collect()
             asyncore.poll(0.1) # pragma: no cover
         self.orig_map_size = len(asyncore.socket_map)
 
@@ -44,6 +45,7 @@ class LoopTestMixin(object):
         self.assertTrue(self.thread_started.isSet())
 
     def tearDown(self):
+        self.doCleanups()
         self.run_loop = 0
         self.thread.join()
         self.td.shutdown()
@@ -54,7 +56,9 @@ class LoopTestMixin(object):
             # bandage for PyPy: sometimes we were relying on GC to close sockets.
             # (This sometimes comes up under coverage on Python 2 as well)
             gc.collect()
-            if len(asyncore.socket_map) == self.orig_map_size:
+            if (len(asyncore.socket_map) <= self.orig_map_size
+                    #  Account for the sadly global `the_trigger` defined in dualchannelmap.
+                    or (self.orig_map_size == 0 and len(asyncore.socket_map) == 1)):
                 # Clean!
                 break
             if time.time() >= timeout: # pragma: no cover
