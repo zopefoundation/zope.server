@@ -20,6 +20,9 @@ import time
 import sys
 import asyncore
 from threading import Lock
+
+from six import reraise
+
 from zope.interface import implementer
 
 from zope.server.dualmodechannel import DualModeChannel
@@ -102,7 +105,9 @@ class ServerChannelBase(DualModeChannel):
         """
         now = time.time()
         cutoff = now - self.adj.channel_timeout
-        for channel in self.active_channels.values():
+        # channel.close calls channel.del_channel, which can change
+        # the size of the map.
+        for channel in list(self.active_channels.values()):
             if (channel is not self and not channel.running_tasks and
                     channel.last_activity < cutoff):
                 channel.close()
@@ -145,8 +150,8 @@ class ServerChannelBase(DualModeChannel):
         Handles program errors (not communication errors)
         """
         t, v = sys.exc_info()[:2]
-        if t is SystemExit or t is KeyboardInterrupt:
-            raise t(v)
+        if issubclass(t, (SystemExit, KeyboardInterrupt)):
+            reraise(*sys.exc_info())
         asyncore.dispatcher.handle_error(self)
 
     def handle_comm_error(self):
@@ -206,10 +211,7 @@ class ServerChannelBase(DualModeChannel):
     def cancel(self):
         """Cancels all pending tasks"""
         with task_lock:
-            if self.tasks:
-                old = self.tasks[:]
-            else:
-                old = []
+            old = () if not self.tasks else list(self.tasks)
             self.tasks = []
             self.running_tasks = False
 
@@ -221,3 +223,20 @@ class ServerChannelBase(DualModeChannel):
 
     def defer(self):
         pass
+
+try:
+    from zope.testing.cleanup import addCleanUp
+except ImportError: # pragma: no cover
+    pass
+else:
+    # Tests are very bad about actually closing
+    # all the channels that they create. This leads to
+    # an ever growing active_channels map.
+    def _clean_active_channels():
+        for c in list(ServerChannelBase.active_channels.values()):
+            try:
+                c.close()
+            except BaseException: # pragma: no cover
+                pass
+        ServerChannelBase.active_channels.clear()
+    addCleanUp(_clean_active_channels)

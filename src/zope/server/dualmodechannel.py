@@ -210,4 +210,11 @@ class DualModeChannel(asyncore.dispatcher, object):
         # descriptor.
         assert self.async_mode
         self.connected = False
-        asyncore.dispatcher.close(self)
+        try:
+            asyncore.dispatcher.close(self)
+        except AttributeError:
+            # On Python 2.7, this is not idempotent. If we were
+            # already closed (or never fully opened) it will
+            # raise a AttributeError because it tries to call close()
+            # on self.socket, which is None
+            pass
