@@ -847,7 +847,7 @@ class FinishSTORTask(AbstractTask):
         self.channel.finishSTOR(self.inbuf, self.finish_args)
 
     def finish(self):
-        "Does nothing"
+        """Does nothing"""
 
 class RETRChannel(FTPDataChannel):
     """Channel for downloading one file from server to client

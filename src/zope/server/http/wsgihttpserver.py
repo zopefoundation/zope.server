@@ -146,7 +146,7 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
     def post_mortem(cls, exc_info):
         import pdb
         print("%s:" % exc_info[0])
-        print(sys.exc_info()[1])
+        print(exc_info[1])
         zope.security.management.restoreInteraction()
         try:
             pdb.post_mortem(exc_info[2])

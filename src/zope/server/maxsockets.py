@@ -16,7 +16,9 @@ Find max number of sockets allowed.
 
 .. caution:: These functions are all hard coded to return a constant value
    of 100. Attempting to dynamically compute them by looping and creating
-   sockets until failure was very time consuming.
+   sockets until failure was very time consuming, at least at one point,
+   and at least on macOS. (Anecdotally this has also been observed on other
+   platforms too.)
 
 """
 # Medusa max_sockets module.

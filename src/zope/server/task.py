@@ -61,11 +61,11 @@ class AbstractTask(object):
         raise NotImplementedError()
 
     def cancel(self):
-        'See ITask'
+        """See ITask"""
         self.channel.close_when_done()
 
     def defer(self):
-        'See ITask'
+        """See ITask"""
         # Does nothing
 
     def start(self):

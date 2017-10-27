@@ -145,8 +145,8 @@ class pipetrigger(_triggerbase, asyncore.file_dispatcher):
         if self.socket.fd != r:
             # Starting in Python 2.6, the descriptor passed to
             # file_dispatcher gets duped and assigned to
-            # self.socket.fd. This breals the instantiation semantics and
-            # is a bug imo.  I dount it will get fixed, but maybe
+            # self.socket.fd. This breaks the instantiation semantics and
+            # is a bug imo.  I doubt it will get fixed, but maybe
             # it will. Who knows. For that reason, we test for the
             # fd changing rather than just checking the Python version.
             os.close(r)
@@ -212,6 +212,7 @@ class sockettrigger(_triggerbase, asyncore.dispatcher):
                     # "Address already in use" is the only error
                     # I've seen on two WinXP Pro SP2 boxes, under
                     # Pythons 2.3.5 and 2.4.1.
+                    # (Original commit: https://github.com/zopefoundation/ZEO/commit/c4f736a78ca6713fc3dec21f8aa1fa6f144dd82f)
                     raise
                 # (10048, 'Address already in use')
                 # assert count <= 2 # never triggered in Tim's tests

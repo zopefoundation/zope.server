@@ -88,7 +88,7 @@ class TestLineServerChannel(unittest.TestCase):
         class Chunnel(Channel):
             authenticated = True
             # Python 3.4 includes a __getattr__ in asyncore.dispatcher
-            # that does `gettar(self.socket, name)`, but self.socket is only
+            # that does `getattr(self.socket, name)`, but self.socket is only
             # set by the constructor in certain circumstances---and we don't
             # call the constructor. This leads to a recursion error unless
             # we make that attribute available here.
