@@ -80,3 +80,44 @@ class TestDualModeChannel(unittest.TestCase):
         channel = C(None, None, A())
         channel.write(b'some bytes')
         self.assertTrue(channel.flush_called)
+
+
+    def test_channels_accept_iterables(self):
+        # Channels accept iterables (they special-case strings).
+
+        from zope.server.tests.test_serverbase import FakeSocket
+        socket = FakeSocket()
+        channel = DualModeChannel(socket, ('localhost', 42))
+
+        written = channel.write(b"First")
+        self.assertEqual(5, written)
+
+        channel.flush()
+        self.assertEqual(socket.data.decode('ascii'),
+                         'First')
+
+        written = channel.write([b"\n", b"Second", b"\n", b"Third"])
+        self.assertEqual(13, written)
+
+        channel.flush()
+        self.assertEqual(socket.data.decode('ascii'),
+                         "First\n"
+                         "Second\n"
+                         "Third")
+
+        def count():
+            yield b'\n1\n2\n3\n'
+            yield b'I love to count. Ha ha ha.'
+
+        written = channel.write(count())
+        self.assertEqual(written, 33)
+
+        channel.flush()
+        self.assertEqual(socket.data.decode('ascii'),
+                         "First\n"
+                         "Second\n"
+                         "Third\n"
+                         "1\n"
+                         "2\n"
+                         "3\n"
+                         "I love to count. Ha ha ha.")

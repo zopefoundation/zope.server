@@ -61,7 +61,7 @@ class ServerBase(asyncore.dispatcher, object):
         'info': logging.INFO,
         'error': logging.ERROR,
         'warning': logging.WARN,
-        }
+    }
 
     def log_info(self, message, type='info'):
         """See zope.server.interfaces.IDispatcherLogging"""
@@ -95,11 +95,11 @@ class ServerBase(asyncore.dispatcher, object):
         if self.verbose:
             self.log_info('%s started.\n'
                           '\tHostname: %s\n\tPort: %d%s' % (
-                self.SERVER_IDENT,
-                self.server_name,
-                self.port,
-                self.getExtraLogMessage()
-                ))
+                              self.SERVER_IDENT,
+                              self.server_name,
+                              self.port,
+                              self.getExtraLogMessage()
+                          ))
 
     def getExtraLogMessage(self):
         r"""Additional information to be logged on startup.
@@ -128,11 +128,9 @@ class ServerBase(asyncore.dispatcher, object):
 
     def handle_read(self):
         """See zope.server.interfaces.IDispatcherEventHandler"""
-        pass
 
     def handle_connect(self):
         """See zope.server.interfaces.IDispatcherEventHandler"""
-        pass
 
     def handle_accept(self):
         """See zope.server.interfaces.IDispatcherEventHandler"""
@@ -147,8 +145,8 @@ class ServerBase(asyncore.dispatcher, object):
             # address family is unknown.  We don't want the whole server
             # to shut down because of this.
             if self.adj.log_socket_errors:
-                self.log_info ('warning: server accept() threw an exception',
-                               'warning')
+                self.log_info('warning: server accept() threw an exception',
+                              'warning')
             return
         for (level, optname, value) in self.adj.socket_options:
             conn.setsockopt(level, optname, value)
