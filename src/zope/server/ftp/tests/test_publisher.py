@@ -113,3 +113,35 @@ class TestPublisherFileSystem(FileSystemTests, unittest.TestCase):
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.ftp.publisher import PublisherFileSystem
         self.filesystem = PublisherFileSystem('bob', RequestFactory(fs))
+
+
+    def test_translate_parent(self):
+        self.assertEqual('/', self.filesystem._translate('..'))
+
+class TestPublisherFTPServer(unittest.TestCase):
+
+    def test_construct(self):
+        from zope.server.ftp.publisher import PublisherFTPServer
+        class NonBinding(PublisherFTPServer):
+
+            def bind(self, addr):
+                return
+
+        server = NonBinding(Request, 'name', None, 80, start=False)
+        self.assertIsNotNone(server.fs_access)
+
+class TestPublisherFileSystemAccess(unittest.TestCase):
+
+    def test_authenticate(self):
+        from zope.server.ftp.publisher import PublisherFileSystemAccess
+
+        access = PublisherFileSystemAccess(None)
+        self.assertIsNone(access.authenticate(None))
+
+    def test_open(self):
+        from zope.server.ftp.publisher import PublisherFileSystemAccess
+        from zope.server.ftp.publisher import PublisherFileSystem
+        access = PublisherFileSystemAccess(None)
+
+        fs = access.open(None)
+        self.assertIsInstance(fs, PublisherFileSystem)

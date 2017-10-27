@@ -212,7 +212,7 @@ class DualModeChannel(asyncore.dispatcher, object):
         self.connected = False
         try:
             asyncore.dispatcher.close(self)
-        except AttributeError:
+        except AttributeError: # pragma: no cover (tox coverage environment is python 3)
             # On Python 2.7, this is not idempotent. If we were
             # already closed (or never fully opened) it will
             # raise a AttributeError because it tries to call close()

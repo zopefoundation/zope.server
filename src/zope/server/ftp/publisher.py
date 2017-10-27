@@ -41,33 +41,24 @@ class PublisherFileSystem(object):
 
         return self._execute(path, 'type')
 
-    def names(self, path, filter=None):
-        return self._execute(path, 'names', split=False, filter=filter)
-
-    def ls(self, path, filter=None):
-        return self._execute(path, 'ls', split=False, filter=filter)
 
     def readfile(self, path, outstream, start=0, end=None):
         return self._execute(path, 'readfile',
                              outstream=outstream, start=start, end=end)
 
-    def lsinfo(self, path):
-        return self._execute(path, 'lsinfo')
+    _name = None
+    for _name in ('names', 'ls'):
+        f = locals()[_name] = lambda self, path, filter=None, _name=_name: self._execute(
+            path,
+            _name,
+            split=False,
+            filter=filter)
+        f.__name__ = _name
 
-    def mtime(self, path):
-        return self._execute(path, 'mtime')
-
-    def size(self, path):
-        return self._execute(path, 'size')
-
-    def mkdir(self, path):
-        return self._execute(path, 'mkdir')
-
-    def remove(self, path):
-        return self._execute(path, 'remove')
-
-    def rmdir(self, path):
-        return self._execute(path, 'rmdir')
+    for _name in ('lsinfo', 'mtime', 'size', 'mkdir', 'remove', 'rmdir'):
+        f = locals()[_name] = lambda self, path, _name=_name: self._execute(path, _name)
+        f.__name__ = _name
+    del _name
 
     def rename(self, old, new):
         'See IWriteFileSystem'
