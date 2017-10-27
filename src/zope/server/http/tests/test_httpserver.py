@@ -103,15 +103,16 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
         # Make sure all sockets get closed by asyncore normally.
         timeout = time() + 5
         while 1:
+            # bandage for PyPy: sometimes we were relying on GC to close sockets.
+            # (This sometimes comes up under coverage on Python 2 as well)
+            gc.collect()
             if len(socket_map) == self.orig_map_size:
                 # Clean!
                 break
             if time() >= timeout: # pragma: no cover
                 self.fail('Leaked a socket: %s' % repr(socket_map))
             poll(0.1) # pragma: no cover
-            # bandage for PyPy: sometimes we were relying on GC to close sockets.
-            # (This sometimes comes up under coverage on Python 2 as well)
-            gc.collect()
+
         super(Tests, self).tearDown()
 
     def loop(self):
