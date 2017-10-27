@@ -16,15 +16,13 @@ import sys
 import unittest
 import warnings
 from contextlib import contextmanager
-from asyncore import socket_map, poll
-from threading import Thread
-from time import sleep
 from io import BytesIO, StringIO
 
 import paste.lint
 from six.moves.http_client import HTTPConnection
 
-from zope.server.taskthreads import ThreadedTaskDispatcher
+from zope.server.tests import LoopTestMixin
+from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
 
 from zope.component.testing import PlacelessSetup
 import zope.component
@@ -39,9 +37,6 @@ from zope.publisher.base import DefaultPublication
 from zope.publisher.interfaces import Redirect, Retry
 from zope.publisher.http import HTTPRequest
 
-td = ThreadedTaskDispatcher()
-
-LOCALHOST = '127.0.0.1'
 
 HTTPRequest.STAGGER_RETRIES = 0  # Don't pause.
 
@@ -159,7 +154,12 @@ class WSGIInfo(object):
         """Return the proxy host."""
         return REQUEST['zserver.proxy.host']
 
-class Tests(PlacelessSetup, unittest.TestCase):
+class Tests(LoopTestMixin,
+            AsyncoreErrorHookMixin,
+            PlacelessSetup,
+            unittest.TestCase):
+
+    thread_name = 'test_wsgiserver'
 
     def _getServerClass(self):
         # import only now to prevent the testrunner from importing it too early
@@ -171,6 +171,8 @@ class Tests(PlacelessSetup, unittest.TestCase):
         super(Tests, self).setUp()
         zope.component.provideAdapter(HTTPCharsets, [IHTTPRequest],
                                       IUserPreferredCharsets, '')
+
+    def _makeServer(self):
         obj = tested_object()
         obj.folder = tested_object()
         obj.folder.item = tested_object()
@@ -187,32 +189,15 @@ class Tests(PlacelessSetup, unittest.TestCase):
             start_response(response.getStatusString(), response.getHeaders())
             return response.consumeBodyIter()
 
-        td.setThreadCount(4)
-        # Bind to any port on localhost.
+
         ServerClass = self._getServerClass()
         self.server = ServerClass(application, 'Browser',
-                                  LOCALHOST, 0, task_dispatcher=td)
-
-        self.port = self.server.socket.getsockname()[1]
-        self.run_loop = 1
-        self.thread = Thread(target=self.loop, name='test_wsgiserver')
-        self.thread.start()
-        sleep(0.1)  # Give the thread some time to start.
-
-    def tearDown(self):
-        self.run_loop = 0
-        self.thread.join()
-        td.shutdown()
-        self.server.close()
-        super(Tests, self).tearDown()
-
-    def loop(self):
-        while self.run_loop:
-            poll(0.1, socket_map)
+                                  self.LOCALHOST, self.CONNECT_TO_PORT, task_dispatcher=self.td)
+        return self.server
 
     def invokeRequest(self, path='/',
                       return_response=False):
-        h = HTTPConnection(LOCALHOST, self.port)
+        h = HTTPConnection(self.LOCALHOST, self.port)
         h.putrequest('GET', path)
         h.putheader('Accept', 'text/plain')
         h.endheaders()
@@ -234,7 +219,7 @@ class Tests(PlacelessSetup, unittest.TestCase):
         status, response_body = self.invokeRequest('/folder/item')
         self.assertEqual(status, 200)
         expect_response = 'URL invoked: http://%s:%d/folder/item' % (
-            LOCALHOST, self.port)
+            self.LOCALHOST, self.port)
         self.assertEqual(response_body, expect_response.encode('ascii'))
 
     def testNotFound(self):

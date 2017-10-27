@@ -5,9 +5,9 @@ Tests for asyncerror.py
 """
 
 import unittest
-from zope.server.tests.asyncerror import AsyncoreErrorHook
+from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
 
-class TestAsyncoreErrorHook(AsyncoreErrorHook,
+class TestAsyncoreErrorHook(AsyncoreErrorHookMixin,
                             unittest.TestCase):
 
     def test_handle_asynore_error(self):

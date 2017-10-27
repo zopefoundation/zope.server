@@ -1,2 +1,97 @@
-#
-# This file is necessary to make this directory a package.
+
+import asyncore
+import sys
+import traceback
+import time
+import gc
+from threading import Thread, Event
+
+from zope.server.taskthreads import ThreadedTaskDispatcher
+
+class LoopTestMixin(object):
+
+    thread_name = 'LoopTest'
+    task_dispatcher_count = 4
+
+    LOCALHOST = '127.0.0.1'
+    SERVER_PORT = 0      # Set these port numbers to 0 to auto-bind, or
+    CONNECT_TO_PORT = 0  # use specific numbers to inspect using TCPWatch.
+
+
+    def setUp(self):
+        super(LoopTestMixin, self).setUp()
+        td = self.td = ThreadedTaskDispatcher()
+        td.setThreadCount(self.task_dispatcher_count)
+        if len(asyncore.socket_map) != 1:
+            # Let sockets die off.
+            # TODO tests should be more careful to clear the socket map.
+            asyncore.poll(0.1) # pragma: no cover
+        self.orig_map_size = len(asyncore.socket_map)
+
+        self.server = self._makeServer()
+
+        if self.CONNECT_TO_PORT == 0:
+            self.port = self.server.socket.getsockname()[1]
+        else: # pragma: no cover
+            self.port = self.CONNECT_TO_PORT
+        self.run_loop = 1
+        self.counter = 0
+        self.thread_started = Event()
+        self.thread = Thread(target=self.loop, name=self.thread_name)
+        self.thread.setDaemon(True)
+        self.thread.start()
+        self.thread_started.wait(10.0)
+        self.assertTrue(self.thread_started.isSet())
+
+    def tearDown(self):
+        self.run_loop = 0
+        self.thread.join()
+        self.td.shutdown()
+        self.server.close()
+        # Make sure all sockets get closed by asyncore normally.
+        timeout = time.time() + 5
+        while 1:
+            # bandage for PyPy: sometimes we were relying on GC to close sockets.
+            # (This sometimes comes up under coverage on Python 2 as well)
+            gc.collect()
+            if len(asyncore.socket_map) == self.orig_map_size:
+                # Clean!
+                break
+            if time.time() >= timeout: # pragma: no cover
+                self.fail('Leaked a socket: %s' % repr(asyncore.socket_map))
+            asyncore.poll(0.1) # pragma: no cover
+        super(LoopTestMixin, self).tearDown()
+
+    def _makeServer(self):
+        raise NotImplementedError()
+
+    def loop(self):
+        self.thread_started.set()
+        import select
+        from errno import EBADF
+        while self.run_loop:
+            self.counter = self.counter + 1
+            # Note that it isn't acceptable to fail out of
+            # this loop. That will likely make the tests hang.
+            try:
+                asyncore.poll(0.1)
+            except select.error as data: # pragma: no cover
+                print("EXCEPTION POLLING IN LOOP(): %s" % data)
+                if data.args[0] == EBADF:
+                    for key in asyncore.socket_map:
+                        print("")
+                        try:
+                            select.select([], [], [key], 0.0)
+                        except select.error as v:
+                            print("Bad entry in socket map %s %s" % (key, v))
+                            print(asyncore.socket_map[key])
+                            print(asyncore.socket_map[key].__class__)
+                            del asyncore.socket_map[key]
+                        else:
+                            print("OK entry in socket map %s" % key)
+                            print(asyncore.socket_map[key])
+                            print(asyncore.socket_map[key].__class__)
+                        print("")
+            except: # pragma: no cover pylint:disable=bare-except
+                print("WEIRD EXCEPTION IN LOOP")
+                traceback.print_exception(*(sys.exc_info()+(100,)))

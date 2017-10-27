@@ -13,26 +13,19 @@
 ##############################################################################
 """FTP Server tests
 """
-import asyncore
+
 import ftplib
 import socket
-import sys
-import time
-import traceback
+
 import unittest
-from threading import Thread, Event
+
 from io import BytesIO
 
 from zope.server.adjustments import Adjustments
 from zope.server.ftp.tests import demofs
-from zope.server.taskthreads import ThreadedTaskDispatcher
-from zope.server.tests.asyncerror import AsyncoreErrorHook
 
-td = ThreadedTaskDispatcher()
-
-LOCALHOST = '127.0.0.1'
-SERVER_PORT = 0      # Set these port numbers to 0 to auto-bind, or
-CONNECT_TO_PORT = 0  # use specific numbers to inspect using TCPWatch.
+from zope.server.tests import LoopTestMixin
+from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
 
 
 my_adj = Adjustments()
@@ -44,22 +37,22 @@ def retrlines(ftpconn, cmd):
     return ''.join(res)
 
 
-class Tests(AsyncoreErrorHook, unittest.TestCase):
+class TestIntegration(LoopTestMixin,
+                      AsyncoreErrorHookMixin,
+                      unittest.TestCase):
+
+    task_dispatcher_count = 1
 
     def setUp(self):
-        super(Tests, self).setUp()
+        super(TestIntegration, self).setUp()
         # Avoid the tests hanging for a long time if something goes wrong
-        socket.setdefaulttimeout(10)
+        socket.setdefaulttimeout(10) # XXX: We don't tear this down
 
+    def _makeServer(self):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.ftp.server import FTPServer
-        td.setThreadCount(1)
-        if len(asyncore.socket_map) != 1:
-            # Let sockets die off.
-            # TODO tests should be more careful to clear the socket map.
-            asyncore.poll(0.1)  # pragma: no cover
-        self.orig_map_size = len(asyncore.socket_map)
+
 
         root_dir = demofs.Directory()
         root_dir['test'] = demofs.Directory()
@@ -77,78 +70,16 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
 
         fs_access = demofs.DemoFileSystemAccess(root_dir, {'foo': 'bar'})
 
-        self.server = FTPServer(LOCALHOST, SERVER_PORT, fs_access,
-                                task_dispatcher=td, adj=my_adj)
-        if CONNECT_TO_PORT == 0:
-            self.port = self.server.socket.getsockname()[1]
-        else: # pragma: no cover
-            self.port = CONNECT_TO_PORT
-        self.run_loop = 1
-        self.counter = 0
-        self.thread_started = Event()
-        self.thread = Thread(target=self.loop)
-        self.thread.setDaemon(True)
-        self.thread.start()
-        self.thread_started.wait(10.0)
-        self.assertTrue(self.thread_started.isSet())
+        return FTPServer(self.LOCALHOST, self.SERVER_PORT, fs_access,
+                         task_dispatcher=self.td, adj=my_adj)
 
-    def tearDown(self):
-        self.run_loop = 0
-        self.thread.join()
-        td.shutdown()
-        self.server.close()
-        # Make sure all sockets get closed by asyncore normally.
-        timeout = time.time() + 2
-        while 1:
-            if len(asyncore.socket_map) == self.orig_map_size:
-                # Clean!
-                break
-            if time.time() >= timeout: # pragma: no cover
-                self.fail('Leaked a socket: %s' % repr(asyncore.socket_map))
-                break
-            asyncore.poll(0.1) # pragma: no cover
-
-        super(Tests, self).tearDown()
-
-    def loop(self):
-        self.thread_started.set()
-        import select
-        from errno import EBADF
-        while self.run_loop:
-            self.counter = self.counter + 1
-            # Note that it isn't acceptable to fail out of
-            # this loop. That will likely make the tests hang.
-            try:
-                asyncore.poll(0.1)
-                continue
-            except select.error as data: # pragma: no cover
-                print("EXCEPTION POLLING IN LOOP(): %s" % data)
-                if data.args[0] == EBADF:
-                    for key in asyncore.socket_map:
-                        print("")
-                        try:
-                            select.select([], [], [key], 0.0)
-                        except select.error as v:
-                            print("Bad entry in socket map %s %s" % (key, v))
-                            print(asyncore.socket_map[key])
-                            print(asyncore.socket_map[key].__class__)
-                            del asyncore.socket_map[key]
-                        else:
-                            print("OK entry in socket map %s" % key)
-                            print(asyncore.socket_map[key])
-                            print(asyncore.socket_map[key].__class__)
-                        print("")
-            except: # pragma: no cover pylint:disable=bare-except
-                print("WEIRD EXCEPTION IN LOOP")
-                traceback.print_exception(*(sys.exc_info()+(100,)))
-            print("")  # pragma: no cover
 
     def getFTPConnection(self, login=1):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.ftp.server import status_messages
         ftp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ftp.connect((LOCALHOST, self.port))
+        ftp.connect((self.LOCALHOST, self.port))
         result = ftp.recv(10000).split()[0]
         self.assertEqual(result, b'220')
         if login:
@@ -189,7 +120,7 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
     def testAPPE(self):
         conn = ftplib.FTP()
         try:
-            conn.connect(LOCALHOST, self.port)
+            conn.connect(self.LOCALHOST, self.port)
             conn.login('foo', 'bar')
             fp = BytesIO(b'Charity never faileth')
             # Successful write
@@ -204,7 +135,7 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
     def testAPPE_errors(self):
         conn = ftplib.FTP()
         try:
-            conn.connect(LOCALHOST, self.port)
+            conn.connect(self.LOCALHOST, self.port)
             conn.login('foo', 'bar')
 
             fp = BytesIO(b'Speak softly')
@@ -277,7 +208,7 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
     def testLIST(self):
         conn = ftplib.FTP()
         try:
-            conn.connect(LOCALHOST, self.port)
+            conn.connect(self.LOCALHOST, self.port)
             conn.login('anonymous', 'bar')
             self.assertRaises(ftplib.Error, retrlines, conn, 'LIST /foo')
             listing = retrlines(conn, 'LIST')
@@ -293,7 +224,7 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
         self.execute(['MKD test/f1', 'MKD test/f2'], 1)
         conn = ftplib.FTP()
         try:
-            conn.connect(LOCALHOST, self.port)
+            conn.connect(self.LOCALHOST, self.port)
             conn.login('foo', 'bar')
             listing = []
             conn.retrlines('LIST /test', listing.append)
@@ -342,7 +273,7 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
     def testSTOR(self):
         conn = ftplib.FTP()
         try:
-            conn.connect(LOCALHOST, self.port)
+            conn.connect(self.LOCALHOST, self.port)
             conn.login('foo', 'bar')
             fp = BytesIO(b'Speak softly')
             # Can't overwrite directory
@@ -362,7 +293,7 @@ class Tests(AsyncoreErrorHook, unittest.TestCase):
     def testSTOR_over(self):
         conn = ftplib.FTP()
         try:
-            conn.connect(LOCALHOST, self.port)
+            conn.connect(self.LOCALHOST, self.port)
             conn.login('foo', 'bar')
             fp = BytesIO(b'Charity never faileth')
             conn.storbinary('STOR /test/existing', fp)
