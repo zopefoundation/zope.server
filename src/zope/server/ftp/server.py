@@ -445,6 +445,7 @@ class FTPServerChannel(LineServerChannel):
         path = self._generatePath(args)
         if self._rnfr is None:
             self.reply('ERR_RENAME')
+            return
         try:
             self._getFileSystem().rename(self._rnfr, path)
         except OSError as err:
