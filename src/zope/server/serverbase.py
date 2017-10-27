@@ -52,11 +52,6 @@ class ServerBase(asyncore.dispatcher, object):
         if start:
             self.accept_connections()
 
-    def log(self, message):
-        """See zope.server.interfaces.IDispatcherLogging"""
-        # Override asyncore's default log()
-        self.logger.info(message)
-
     level_mapping = {
         'info': logging.INFO,
         'error': logging.ERROR,
@@ -67,6 +62,8 @@ class ServerBase(asyncore.dispatcher, object):
         """See zope.server.interfaces.IDispatcherLogging"""
         self.logger.log(self.level_mapping.get(type, logging.INFO), message)
 
+    log = log_info
+
     def computeServerName(self, ip=''):
         """Given an IP, try to determine the server name."""
         if ip:
@@ -76,6 +73,7 @@ class ServerBase(asyncore.dispatcher, object):
         # Convert to a host name if necessary.
         is_hostname = 0
         for c in server_name:
+            # XXX: What about ipv6?
             if c != '.' and not c.isdigit():
                 is_hostname = 1
                 break

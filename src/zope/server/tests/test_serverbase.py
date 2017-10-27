@@ -15,7 +15,7 @@
 """
 import unittest
 
-from zope.server.serverbase import ServerBase
+from zope.server import serverbase
 
 
 class FakeSocket(object):
@@ -38,6 +38,17 @@ class FakeSocket(object):
         return len(data)
 
 
+class NonBindingServerBase(serverbase.ServerBase):
+
+    def bind(self, addr):
+        self.socket = FakeSocket()
+
+    logs = ()
+
+    def log_info(self, message, type='info'):
+        self.logs += (message.expandtabs(),)
+
+
 class TestServerBase(unittest.TestCase):
     def test_ServerBase_ip_string_verbose(self):
         # Regression test for ServerBase
@@ -52,7 +63,7 @@ class TestServerBase(unittest.TestCase):
 
         bound = []
 
-        class ServerBaseForTest(ServerBase):
+        class ServerBaseForTest(NonBindingServerBase):
             def bind(self, addr):
                 ip, port = addr
                 bound.append("Listening on %s:%d" % (ip or '*', port))
@@ -66,31 +77,87 @@ class TestServerBase(unittest.TestCase):
         # We will use a subclass of ServerBase so that unit tests do
         # not actually try to bind to ports.
 
-        logs = []
-
-        class ServerBaseForTest(ServerBase):
-            def bind(self, addr):
-                self.socket = FakeSocket()
-
-            def log_info(self, message, type='info'):
-                logs.append(message.expandtabs())
-
-        ServerBaseForTest('example.com', 80, start=True, verbose=True)
-        self.assertEqual(logs[0],
+        sb = NonBindingServerBase('example.com', 80, start=True, verbose=True)
+        self.assertEqual(sb.logs[0],
                          "zope.server.serverbase started.\n"
                          "        Hostname: example.com\n"
                          "        Port: 80")
 
         # Subclasses can add extra information there
 
-        class ServerForTest(ServerBaseForTest):
+        class ServerForTest(NonBindingServerBase):
             def getExtraLogMessage(self):
                 return '\n\tURL: http://example.com/'
 
-        del logs[:]
-        ServerForTest('example.com', 80, start=True, verbose=True)
-        self.assertEqual(logs[0],
+        sb = ServerForTest('example.com', 80, start=True, verbose=True)
+        self.assertEqual(sb.logs[0],
                          "zope.server.serverbase started.\n"
                          "        Hostname: example.com\n"
                          "        Port: 80\n"
                          "        URL: http://example.com/")
+
+    def test_computeServerName(self):
+        sb = NonBindingServerBase('', 80, start=False)
+
+        self.assertNotEqual(sb.server_name, '')
+
+    def test_computeServerName_errors(self):
+
+        sb = NonBindingServerBase('', 80, start=False, verbose=True)
+        import socket
+
+        class mysocket(object):
+            error = socket.error
+
+            def gethostname(self):
+                return '127.0.0.1'
+
+            def gethostbyaddr(self, name):
+                raise socket.error
+
+        orig_socket = serverbase.socket
+        serverbase.socket = mysocket()
+        try:
+            sb.logs = ()
+            sb.computeServerName()
+        finally:
+            serverbase.socket = orig_socket
+
+        self.assertEqual(sb.logs,
+                         ('Computing hostname',
+                          'Cannot do reverse lookup'))
+
+    def test_addTask_no_dispatcher_executes_immediately(self):
+        sb = NonBindingServerBase('', 80, start=False)
+        self.assertIsNone(sb.task_dispatcher)
+
+        class Task(object):
+            serviced = False
+
+            def service(self):
+                self.serviced = True
+
+        task = Task()
+        sb.addTask(task)
+        self.assertTrue(task.serviced)
+
+    def test_handle_accept_accept_returns_none(self):
+        class SB(NonBindingServerBase):
+            def accept(self):
+                return None
+
+        sb = SB('', 80, start=False)
+        self.assertIsNone(sb.handle_accept())
+
+    def test_handle_accept_error(self):
+
+        class SB(NonBindingServerBase):
+            def accept(self):
+                import socket
+                raise socket.error()
+
+        sb = SB('', 80, start=False)
+        self.assertIsNone(sb.handle_accept())
+
+        self.assertEqual(sb.logs,
+                         ('warning: server accept() threw an exception',))
