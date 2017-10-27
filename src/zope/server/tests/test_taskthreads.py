@@ -67,3 +67,84 @@ class TestExceptionLogging(unittest.TestCase):
         self.assertIn(
             "NotImplementedError: emit must be implemented by Handler subclasses",
             logged)
+
+class TestThreadedDispatcher(unittest.TestCase):
+
+    def test_handlerThread_exits_while_running(self):
+
+        dispatcher = ThreadedTaskDispatcher()
+
+        class Task(object):
+
+            def service(self):
+                del dispatcher.threads[42]
+
+        dispatcher.threads[42] = True
+        dispatcher.queue.put(Task())
+        dispatcher.handlerThread(42)
+
+        self.assertEqual({}, dispatcher.threads)
+
+    def test_addTask_None(self):
+        with self.assertRaises(ValueError):
+            ThreadedTaskDispatcher().addTask(None)
+
+    def test_addTask_no_defer(self):
+        class Task(object):
+
+            cancel_called = False
+
+            def cancel(self):
+                self.cancel_called = True
+
+        task = Task()
+
+        with self.assertRaises(AttributeError):
+            ThreadedTaskDispatcher().addTask(task)
+
+        self.assertTrue(task.cancel_called)
+
+    def test_shutdown_with_threads_still_running(self):
+
+        from zope.testing.loggingsupport import InstalledHandler
+        handler = InstalledHandler('zope.server.taskthreads')
+
+        dispatcher = ThreadedTaskDispatcher()
+        dispatcher.threads[42] = 1
+
+        dispatcher.shutdown(timeout=-1)
+
+        self.assertIn("1 thread(s) still running", str(handler))
+
+    def test_shutdown_cancel_pending(self):
+
+        dispatcher = ThreadedTaskDispatcher()
+
+        class Task(object):
+
+            canceled = False
+
+            def cancel(self):
+                self.canceled = True
+                from six.moves.queue import Empty
+                # We cheat to be able to catch the exception handler
+                raise Empty()
+
+        task = Task()
+        dispatcher.queue.put(task)
+        self.assertEqual(1, dispatcher.getPendingTasksEstimate())
+        dispatcher.shutdown()
+
+        self.assertTrue(task.canceled)
+        self.assertEqual(0, dispatcher.getPendingTasksEstimate())
+
+    def test_setThreadCount_adjust_twice(self):
+        dispatcher = ThreadedTaskDispatcher()
+
+        dispatcher.setThreadCount(1)
+        self.assertEqual(1, len(dispatcher.threads))
+
+        dispatcher.setThreadCount(2)
+        self.assertEqual(2, len(dispatcher.threads))
+
+        dispatcher.shutdown()
