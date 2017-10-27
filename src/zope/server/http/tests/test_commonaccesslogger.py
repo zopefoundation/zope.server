@@ -27,16 +27,13 @@ class CommonAccessLogger(_CommonAccessLogger):
 class TestCommonAccessLogger(unittest.TestCase):
 
     def test_default_constructor(self):
-
-        from zope.server.logger.unresolvinglogger import UnresolvingLogger
         from zope.server.logger.pythonlogger import PythonLogger
         logger = CommonAccessLogger()
         # CommonHitLogger is registered as an argumentless factory via
         # ZCML, so the defaults should be sensible
-        self.assertIsInstance(logger.output, UnresolvingLogger)
-        self.assertIsInstance(logger.output.logger, PythonLogger)
+        self.assertIsInstance(logger.output, PythonLogger)
         self.assertEqual(logger.output.logger.name, 'accesslog')
-        self.assertEqual(logger.output.logger.level, logging.INFO)
+        self.assertEqual(logger.output.level, logging.INFO)
 
     def test_compute_timezone_for_log_negative(self):
         tz = -3600
@@ -77,11 +74,9 @@ class TestCommonAccessLogger(unittest.TestCase):
 
     def test_log_request(self):
         import time
-
-        class Output(object):
-            msgs = ()
-            def logMessage(self, msg):
-                self.msgs += (msg,)
+        from zope.testing import loggingsupport
+        handler = loggingsupport.InstalledHandler("accesslog")
+        self.addCleanup(handler.uninstall)
 
         class Resolver(object):
             def resolve_ptr(self, ip, then):
@@ -105,8 +100,7 @@ class TestCommonAccessLogger(unittest.TestCase):
         time.altzone = -3600
         time.time = t
         try:
-            output = Output()
-            cal = CommonAccessLogger(output, Resolver())
+            cal = CommonAccessLogger(resolver=Resolver())
             cal.log(Task())
         finally:
             time.daylight = orig_dl
@@ -114,5 +108,5 @@ class TestCommonAccessLogger(unittest.TestCase):
             time.time = orig_t
 
         self.assertEqual(
-            'host - anonymous [29/Nov/1973:21:33:09 +0100] "GET / HTTP/1.0" 200 OK 10 "" ""\n',
-            output.msgs[0])
+            'accesslog INFO\n  host - anonymous [29/Nov/1973:21:33:09 +0100] "GET / HTTP/1.0" 200 OK 10 "" ""',
+            str(handler))
