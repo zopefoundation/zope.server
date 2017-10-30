@@ -15,6 +15,10 @@
   ``"None"`` when the first request line cannot be parsed. Now they
   are empty strings.
 
+- Reimplement ``buffers.OverflowableBuffer`` in terms of the standard
+  libraries ``tempfile.SpooledTemporaryFile``. This is much simpler.
+  See `issue 5 <https://github.com/zopefoundation/zope.server/issues/5>`_.
+
 - Achieve and maintain 100% test coverage.
 
 3.9.0 (2013-03-13)
