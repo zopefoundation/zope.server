@@ -19,22 +19,28 @@ import time
 from zope.server.http.http_date import monthname
 from zope.server.logger.pythonlogger import PythonLogger
 from zope.server.logger.resolvinglogger import ResolvingLogger
-from zope.server.logger.unresolvinglogger import UnresolvingLogger
 
 class CommonAccessLogger(object):
     """Outputs accesses in common HTTP log format.
     """
 
-    def __init__(self, logger_object=None, resolver=None):
-        if logger_object is None:
-            # logger_object is an IMessageLogger
-            logger_object = PythonLogger('accesslog')
+    def __init__(self, logger_object='accesslog', resolver=None):
+        """
 
-        # self.output is an IRequestLogger
+        :keyword logger_object: Either a Python :class:`logging.Logger`
+           object, or a string giving the name of a Python logger to find.
+
+        .. versionchanged:: 4.0.0
+           Remove support for arbitrary ``IMessageLogger`` objects in
+           *logger_object*. Logging is now always directed through the
+           Python standard logging library.
+        """
+        self.output = PythonLogger(logger_object)
+
+        # self.output is an IRequestLogger, which PythonLogger implements
+        # as unresolving.
         if resolver is not None:
-            self.output = ResolvingLogger(resolver, logger_object)
-        else:
-            self.output = UnresolvingLogger(logger_object)
+            self.output = ResolvingLogger(resolver, self.output)
 
     @classmethod
     def compute_timezone_for_log(cls, tz):

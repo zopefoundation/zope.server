@@ -16,22 +16,35 @@
 import logging
 
 from zope.server.interfaces.logger import IMessageLogger
+from zope.server.interfaces.logger import IRequestLogger
 from zope.interface import implementer
 
-@implementer(IMessageLogger)
+@implementer(IMessageLogger, IRequestLogger)
 class PythonLogger(object):
     """Proxy for Python's logging module"""
 
     def __init__(self, name=None, level=logging.INFO):
+        """
+        :keyword str name: The name of a logger to use,
+           or the logger itself.
+        """
+        name = getattr(name, 'name', name)
         self.name = name
         self.level = level
         self.logger = logging.getLogger(name)
 
     def __repr__(self):
         return '<python logger: %s %s>' % (self.name,
-                    logging.getLevelName(self.level))
+                                           logging.getLevelName(self.level))
 
     def logMessage(self, message):
         """See IMessageLogger"""
         self.logger.log(self.level, message.rstrip())
 
+
+    def logRequest(self, ip, message):
+        """
+        Log request is implemented to call :meth:`logMessage` without
+        attempting any resolution.
+        """
+        self.logMessage('%s%s' % (ip, message))

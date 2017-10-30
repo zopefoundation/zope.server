@@ -8,6 +8,8 @@ import unittest
 
 from zope.server.ftp import logger
 
+from zope.testing import loggingsupport
+
 class TestCommonFTPActivityLogger(unittest.TestCase):
 
     def test_log(self):
@@ -18,15 +20,12 @@ class TestCommonFTPActivityLogger(unittest.TestCase):
                 addr = ('localhost',)
             m_name = 'head'
 
-        msgs = []
-        class Output(object):
-            def logMessage(self, msg):
-                msgs.append(msg)
+        handler = loggingsupport.InstalledHandler("accesslog")
+        self.addCleanup(handler.uninstall)
 
-        output = Output()
-        cal = logger.CommonFTPActivityLogger(output)
+        cal = logger.CommonFTPActivityLogger()
         cal.log(Task)
 
-        self.assertEqual(1, len(msgs))
-        self.assertIn('localhost', msgs[0])
-        self.assertIn('user', msgs[0])
+        self.assertEqual(1, len(handler.records))
+        self.assertIn('localhost', str(handler))
+        self.assertIn('user', str(handler))

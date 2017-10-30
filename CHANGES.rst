@@ -21,6 +21,14 @@
 
 - Achieve and maintain 100% test coverage.
 
+- Remove all the custom logging implementations in
+  ``zope.server.logging`` and change the ``CommonAccessLogger`` and
+  ``CommonFTPActivityLogger`` to only work with Python standard
+  library loggers. The standard library supports all the logging
+  functions this package used to expose. It can be easily configured
+  with ZConfig. See `issue 4
+  <https://github.com/zopefoundation/zope.server/issues/4>`_.
+
 3.9.0 (2013-03-13)
 ==================
 
