@@ -16,7 +16,7 @@
   are empty strings.
 
 - Reimplement ``buffers.OverflowableBuffer`` in terms of the standard
-  libraries ``tempfile.SpooledTemporaryFile``. This is much simpler.
+  library's ``tempfile.SpooledTemporaryFile``. This is much simpler.
   See `issue 5 <https://github.com/zopefoundation/zope.server/issues/5>`_.
 
 - Achieve and maintain 100% test coverage.
@@ -25,7 +25,7 @@
   ``zope.server.logging`` and change the ``CommonAccessLogger`` and
   ``CommonFTPActivityLogger`` to only work with Python standard
   library loggers. The standard library supports all the logging
-  functions this package used to expose. It can be easily configured
+  functions this package previously provided. It can be easily configured
   with ZConfig. See `issue 4
   <https://github.com/zopefoundation/zope.server/issues/4>`_.
 
