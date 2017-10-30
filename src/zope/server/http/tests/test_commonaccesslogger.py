@@ -107,6 +107,7 @@ class TestCommonAccessLogger(unittest.TestCase):
             time.altzone = orig_az
             time.time = orig_t
 
+        self.assertEqual(1, len(handler.records))
         self.assertEqual(
-            'accesslog INFO\n  host - anonymous [29/Nov/1973:21:33:09 +0100] "GET / HTTP/1.0" 200 OK 10 "" ""',
-            str(handler))
+            'host - anonymous [29/Nov/1973:21:33:09 +0100] "GET / HTTP/1.0" 200 OK 10 "" ""',
+            handler.records[0].getMessage())
