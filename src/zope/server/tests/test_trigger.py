@@ -20,6 +20,8 @@ class TestFunctions(unittest.TestCase):
         finally:
             del trigger.id
 
+@unittest.skipIf(not hasattr(trigger, 'pipetrigger'),
+                 "pipetrigger not available on Windows")
 class TestPipeTrigger(unittest.TestCase):
 
     def _getFUT(self):
