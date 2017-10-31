@@ -2,10 +2,11 @@
  CHANGES
 =========
 
-4.0.1 (unreleased)
+4.0.1 (2017-10-31)
 ==================
 
-- Nothing changed yet.
+- Fix Windows compatibility regression introduced in 4.0.0.
+  See `issue 9 <https://github.com/zopefoundation/zope.server/issues/9>`_.
 
 
 4.0.0 (2017-10-30)

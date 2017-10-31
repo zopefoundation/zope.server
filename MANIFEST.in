@@ -8,3 +8,6 @@ include buildout.cfg
 include test.ini
 
 recursive-include src *.txt *.py *.rst
+
+# added by check_manifest.py
+include *.yml
