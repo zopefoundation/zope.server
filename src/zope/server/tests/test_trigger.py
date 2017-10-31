@@ -4,21 +4,22 @@ Tests for trigger.py
 
 """
 from __future__ import print_function
+import sys
 import unittest
 
 from zope.server import trigger
 
+
 class TestFunctions(unittest.TestCase):
 
     def test_positive_id(self):
-
+        expected = 18446744073709551574 if sys.maxsize > 2**32 else 4294967254
         trigger.id = lambda o: -42
         try:
-            # This is possibly only correct on 64-bit platforms
-            self.assertEqual(18446744073709551574,
-                             trigger.positive_id(None))
+            self.assertEqual(trigger.positive_id(None), expected)
         finally:
             del trigger.id
+
 
 @unittest.skipIf(not hasattr(trigger, 'pipetrigger'),
                  "pipetrigger not available on Windows")
