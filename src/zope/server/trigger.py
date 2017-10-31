@@ -134,33 +134,35 @@ class _triggerbase(object):
         return '<select-trigger (%s) at %x>' % (self.kind, positive_id(self))
 
 
-class pipetrigger(_triggerbase, asyncore.file_dispatcher):
-    kind = "pipe"
+if hasattr(asyncore, 'file_dispatcher'):
+    # asyncore.file_dispatcher does not exist on Windows
+    class pipetrigger(_triggerbase, asyncore.file_dispatcher):
+        kind = "pipe"
 
-    def __init__(self):
-        _triggerbase.__init__(self)
-        r, self.trigger = self._fds = os.pipe()
-        asyncore.file_dispatcher.__init__(self, r)
+        def __init__(self):
+            _triggerbase.__init__(self)
+            r, self.trigger = self._fds = os.pipe()
+            asyncore.file_dispatcher.__init__(self, r)
 
-        if self.socket.fd != r:
-            # Starting in Python 2.6, the descriptor passed to
-            # file_dispatcher gets duped and assigned to
-            # self.socket.fd. This breaks the instantiation semantics and
-            # is a bug imo.  I doubt it will get fixed, but maybe
-            # it will. Who knows. For that reason, we test for the
-            # fd changing rather than just checking the Python version.
-            os.close(r)
+            if self.socket.fd != r:
+                # Starting in Python 2.6, the descriptor passed to
+                # file_dispatcher gets duped and assigned to
+                # self.socket.fd. This breaks the instantiation semantics and
+                # is a bug imo.  I doubt it will get fixed, but maybe
+                # it will. Who knows. For that reason, we test for the
+                # fd changing rather than just checking the Python version.
+                os.close(r)
 
-    def _close(self):
-        for fd in self._fds:
-            try:
-                os.close(fd)
-            except OSError:
-                pass
-        self._fds = []
+        def _close(self):
+            for fd in self._fds:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+            self._fds = []
 
-    def _physical_pull(self):
-        os.write(self.trigger, b'x')
+        def _physical_pull(self):
+            os.write(self.trigger, b'x')
 
 class BindError(Exception):
     pass
