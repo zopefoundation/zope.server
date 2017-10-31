@@ -63,7 +63,7 @@ class WSGIHTTPServer(HTTPServer):
 
     def __init__(self, application, sub_protocol=None, *args, **kw):
 
-        if sys.platform[:3] == "win" and args[0] == 'localhost': # pragma: no cover
+        if sys.platform[:3] == "win" and args[:1] == ('localhost',): # pragma: no cover
             args = ('',) + args[1:]
 
         self.application = application
