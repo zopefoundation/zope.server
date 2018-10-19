@@ -41,13 +41,13 @@ class ServerBase(asyncore.dispatcher, object):
         asyncore.dispatcher.__init__(self)
         self.port = port
         self.task_dispatcher = task_dispatcher
+        self.verbose = verbose
+        self.hit_log = hit_log
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.set_reuse_addr()
             self.bind((ip, port))
-            self.verbose = verbose
-            self.hit_log = hit_log
-            self.logger = logging.getLogger(self.__class__.__name__)
             self.server_name = self.computeServerName(ip)
 
             if start:
