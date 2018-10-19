@@ -63,7 +63,7 @@ class TestPipeTrigger(unittest.TestCase):
         def thunk():
             raise Exception("TestException")
         t = self._makeOne()
-        t.close()
+        t.recv = lambda s: ''
         t.thunks.append(thunk)
         trigger.print = buf.write
         try:

@@ -141,7 +141,7 @@ if hasattr(asyncore, 'file_dispatcher'):
 
         def __init__(self):
             _triggerbase.__init__(self)
-            r, self.trigger = self._fds = os.pipe()
+            r, self.trigger = os.pipe()
             asyncore.file_dispatcher.__init__(self, r)
 
             if self.socket.fd != r:
@@ -154,12 +154,15 @@ if hasattr(asyncore, 'file_dispatcher'):
                 os.close(r)
 
         def _close(self):
-            for fd in self._fds:
+            if self.socket is not None:
+                self.socket.close()
+                self.socket = None
+            if self.trigger is not None:
                 try:
-                    os.close(fd)
+                    os.close(self.trigger)
                 except OSError:
                     pass
-            self._fds = []
+                self.trigger = None
 
         def _physical_pull(self):
             os.write(self.trigger, b'x')

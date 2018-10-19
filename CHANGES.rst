@@ -5,7 +5,8 @@
 4.0.2 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fix pipetrigger.close() to close the right file descriptor.
+  (This could've been causing EBADF errors in unrelated places!)
 
 
 4.0.1 (2017-10-31)
