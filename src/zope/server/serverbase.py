@@ -42,15 +42,19 @@ class ServerBase(asyncore.dispatcher, object):
         self.port = port
         self.task_dispatcher = task_dispatcher
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.set_reuse_addr()
-        self.bind((ip, port))
-        self.verbose = verbose
-        self.hit_log = hit_log
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.server_name = self.computeServerName(ip)
+        try:
+            self.set_reuse_addr()
+            self.bind((ip, port))
+            self.verbose = verbose
+            self.hit_log = hit_log
+            self.logger = logging.getLogger(self.__class__.__name__)
+            self.server_name = self.computeServerName(ip)
 
-        if start:
-            self.accept_connections()
+            if start:
+                self.accept_connections()
+        except BaseException:
+            self.close()
+            raise
 
     level_mapping = {
         'info': logging.INFO,

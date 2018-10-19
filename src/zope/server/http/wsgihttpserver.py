@@ -16,10 +16,12 @@
 import asyncore
 import re
 import sys
+from contextlib import closing
+
 import six
+import zope.security.management
 from zope.server.http.httpserver import HTTPServer
 from zope.server.taskthreads import ThreadedTaskDispatcher
-import zope.security.management
 
 
 def fakeWrite(body):
@@ -163,6 +165,6 @@ def run_paste(wsgi_app, global_conf, name='zope.server.http',
 
     task_dispatcher = ThreadedTaskDispatcher()
     task_dispatcher.setThreadCount(threads)
-    server = WSGIHTTPServer(wsgi_app, name, host, port,
-                            task_dispatcher=task_dispatcher)
-    asyncore.loop()
+    with closing(WSGIHTTPServer(wsgi_app, name, host, port,
+                                task_dispatcher=task_dispatcher)):
+        asyncore.loop()
