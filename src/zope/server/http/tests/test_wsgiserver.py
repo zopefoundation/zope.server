@@ -15,7 +15,7 @@
 import sys
 import unittest
 import warnings
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from io import BytesIO, StringIO
 
 import paste.lint
@@ -197,22 +197,22 @@ class Tests(LoopTestMixin,
 
     def invokeRequest(self, path='/',
                       return_response=False):
-        h = HTTPConnection(self.LOCALHOST, self.port)
-        h.putrequest('GET', path)
-        h.putheader('Accept', 'text/plain')
-        h.endheaders()
-        response = h.getresponse()
-        if return_response:
-            return response
-        length = int(response.getheader('Content-Length', '0'))
-        if length:
-            response_body = response.read(length)
-        else:
-            response_body = b''
+        with closing(HTTPConnection(self.LOCALHOST, self.port)) as h:
+            h.putrequest('GET', path)
+            h.putheader('Accept', 'text/plain')
+            h.endheaders()
+            response = h.getresponse()
+            if return_response:
+                return response
+            length = int(response.getheader('Content-Length', '0'))
+            if length:
+                response_body = response.read(length)
+            else:
+                response_body = b''
 
-        self.assertEqual(length, len(response_body))
+            self.assertEqual(length, len(response_body))
 
-        return response.status, response_body
+            return response.status, response_body
 
 
     def testDeeperPath(self):
@@ -461,7 +461,7 @@ class Tests(LoopTestMixin,
 
         with warnings.catch_warnings(record=True) as w:
             self.invokeRequest("/foo")
-        self.assertTrue(len(w) == 0, w)
+        self.assertEqual(len(w), 0, [str(m) for m in w])
         self.server.application = orig_app
 
 class TestWSGIHttpServer(unittest.TestCase):
