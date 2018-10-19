@@ -202,8 +202,6 @@ class Tests(LoopTestMixin,
             h.putheader('Accept', 'text/plain')
             h.endheaders()
             response = h.getresponse()
-            if return_response:
-                return response
             length = int(response.getheader('Content-Length', '0'))
             if length:
                 response_body = response.read(length)
@@ -212,7 +210,10 @@ class Tests(LoopTestMixin,
 
             self.assertEqual(length, len(response_body))
 
-            return response.status, response_body
+            if return_response:
+                return response, response_body
+            else:
+                return response.status, response_body
 
 
     def testDeeperPath(self):
@@ -252,7 +253,7 @@ class Tests(LoopTestMixin,
         self.assertEqual(status, 409)
 
     def testServerAsProxy(self):
-        response = self.invokeRequest(
+        response, response_body = self.invokeRequest(
             '/proxy', return_response=True)
         # The headers set by the proxy are honored,
         self.assertEqual(
@@ -263,7 +264,7 @@ class Tests(LoopTestMixin,
         self.assertEqual(
             response.getheader('Via'), 'zope.server.http (Browser)')
         # And the content got here too.
-        self.assertEqual(response.read(), b'Proxied Content')
+        self.assertEqual(response_body, b'Proxied Content')
 
     def testWSGIVariables(self):
         # Assert that the environment contains all required WSGI variables
