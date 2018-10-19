@@ -42,6 +42,11 @@ class TestIntegration(LoopTestMixin,
                       AsyncoreErrorHookMixin,
                       unittest.TestCase):
 
+    # Avoid DeprecationWarning for assertRaisesRegexp on Python 3 while
+    # coping with Python 2 not having the Regex spelling variant
+    assertRaisesRegex = getattr(unittest.TestCase, 'assertRaisesRegex',
+                                unittest.TestCase.assertRaisesRegexp)
+
     task_dispatcher_count = 1
 
     def setUp(self):
@@ -360,7 +365,7 @@ class TestIntegration(LoopTestMixin,
 
     def testMODE(self):
         conn = self.getFTPConnection()
-        with self.assertRaisesRegexp(ftplib.Error, 'MODE_UNKNOWN'):
+        with self.assertRaisesRegex(ftplib.Error, 'MODE_UNKNOWN'):
             conn.sendcmd('MODE a b')
 
         conn.sendcmd('MODE s')
@@ -377,11 +382,11 @@ class TestIntegration(LoopTestMixin,
 
     def testRETR_not_understood(self):
         conn = self.getFTPConnection()
-        with self.assertRaisesRegexp(ftplib.Error, "command not understood"):
+        with self.assertRaisesRegex(ftplib.Error, "command not understood"):
             conn.sendcmd('RETR')
     def testRETR_no_file(self):
         conn = self.getFTPConnection()
-        with self.assertRaisesRegexp(ftplib.Error, "not a file"):
+        with self.assertRaisesRegex(ftplib.Error, "not a file"):
             conn.sendcmd('RETR /DNE')
 
     def testRETR(self):
@@ -411,33 +416,33 @@ class TestIntegration(LoopTestMixin,
 
     def testREST(self):
         conn = self.getFTPConnection()
-        with self.assertRaisesRegexp(ftplib.Error, 'arguments'):
+        with self.assertRaisesRegex(ftplib.Error, 'arguments'):
             conn.sendcmd("REST a")
 
     def testRMD(self):
         conn = self.getFTPConnection()
-        with self.assertRaisesRegexp(ftplib.Error, 'arguments'):
+        with self.assertRaisesRegex(ftplib.Error, 'arguments'):
             conn.sendcmd('RMD')
 
-        with self.assertRaisesRegexp(ftplib.Error, 'denied'):
+        with self.assertRaisesRegex(ftplib.Error, 'denied'):
             conn.sendcmd('RMD /foo')
 
     def testRNFR_dne(self):
         conn = self.getFTPConnection()
-        with self.assertRaisesRegexp(ftplib.Error, 'No such file'):
+        with self.assertRaisesRegex(ftplib.Error, 'No such file'):
             conn.sendcmd('RNFR /dne')
 
     def testRNTO_bad_state(self):
         conn = self.getFTPConnection()
 
-        with self.assertRaisesRegexp(ftplib.Error, 'ERR_RENAME'):
+        with self.assertRaisesRegex(ftplib.Error, 'ERR_RENAME'):
             conn.sendcmd('RNTO /dne')
 
     def testRNFR(self):
         conn = self.getFTPConnection()
 
         conn.sendcmd('RNFR /existing')
-        with self.assertRaisesRegexp(ftplib.Error, 'denied'):
+        with self.assertRaisesRegex(ftplib.Error, 'denied'):
             conn.sendcmd('RNTO /existing2')
 
     def testSIZE(self):
@@ -447,7 +452,7 @@ class TestIntegration(LoopTestMixin,
         # as an int
         self.assertEqual(resp, '213 17 Bytes')
 
-        with self.assertRaisesRegexp(ftplib.Error, 'No such file'):
+        with self.assertRaisesRegex(ftplib.Error, 'No such file'):
             conn.size('/DNE')
 
     @unittest.expectedFailure
@@ -457,7 +462,7 @@ class TestIntegration(LoopTestMixin,
 
     def testSTRU(self):
         conn = self.getFTPConnection()
-        with self.assertRaisesRegexp(ftplib.Error, 'Unimplemented'):
+        with self.assertRaisesRegex(ftplib.Error, 'Unimplemented'):
             conn.sendcmd('STRU a b')
 
         conn.sendcmd('STRU f')
@@ -469,10 +474,10 @@ class TestIntegration(LoopTestMixin,
 
     def testTYPE(self):
         conn = self.getFTPConnection()
-        with self.assertRaisesRegexp(ftplib.Error, 'arguments'):
+        with self.assertRaisesRegex(ftplib.Error, 'arguments'):
             conn.sendcmd('TYPE g')
 
-        with self.assertRaisesRegexp(ftplib.Error, 'size must be 8'):
+        with self.assertRaisesRegex(ftplib.Error, 'size must be 8'):
             conn.sendcmd('TYPE l 9 x')
 
 class MockChannel(object):
