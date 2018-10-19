@@ -41,6 +41,7 @@ class FakeSocket(object):
 class NonBindingServerBase(serverbase.ServerBase):
 
     def bind(self, addr):
+        self.socket.close()
         self.socket = FakeSocket()
 
     logs = ()

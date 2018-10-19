@@ -46,6 +46,7 @@ class SleepingTask(AbstractTask):
     def _do_service(self):
         sleep(0.2)
 
+
 class Tests(LoopTestMixin,
             AsyncoreErrorHookMixin,
             CleanUp,
@@ -70,20 +71,24 @@ class Tests(LoopTestMixin,
                     if not data:
                         break
                     task.write(data)
+                instream.close()
 
         return EchoHTTPServer(self.LOCALHOST, self.SERVER_PORT,
                               task_dispatcher=self.td, adj=my_adj)
 
+    def _makeConnection(self, host=None, port=None):
+        h = HTTPConnection(host or self.LOCALHOST, port or self.port)
+        self.addCleanup(h.close)
+        return h
+
     def testEchoResponse(self, h=None, add_headers=None, body=b''):
         if h is None:
-            h = HTTPConnection(self.LOCALHOST, self.port)
+            h = self._makeConnection()
         headers = {}
         if add_headers:
             headers.update(add_headers)
         headers["Accept"] = "text/plain"
         # Content-Length header automatically added by HTTPConnection.request
-        #if body:
-        #    headers["Content-Length"] = str(int(len(body)))
         h.request("GET", "/", body, headers)
         response = h.getresponse()
         self.assertEqual(int(response.status), 200)
@@ -97,14 +102,14 @@ class Tests(LoopTestMixin,
 
     def testMultipleRequestsWithoutBody(self):
         # Tests the use of multiple requests in a single connection.
-        h = HTTPConnection(self.LOCALHOST, self.port)
+        h = self._makeConnection()
         for _n in range(3):
             self.testEchoResponse(h)
         self.testEchoResponse(h, {'Connection': 'close'})
 
     def testMultipleRequestsWithBody(self):
         # Tests the use of multiple requests in a single connection.
-        h = HTTPConnection(self.LOCALHOST, self.port)
+        h = self._makeConnection()
         for _n in range(3):
             self.testEchoResponse(h, body=b'Hello, world!')
         self.testEchoResponse(h, {'Connection': 'close'})
@@ -128,6 +133,7 @@ class Tests(LoopTestMixin,
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.LOCALHOST, self.port))
+        self.addCleanup(sock.close)
         for n, req in enumerate(to_send):
             sock.send(req.encode('ascii'))
             expect_body = ("Response #%d\r\n" % (n + 1)).encode('ascii')
@@ -150,6 +156,7 @@ class Tests(LoopTestMixin,
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.LOCALHOST, self.port))
+        self.addCleanup(sock.close)
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
@@ -161,7 +168,7 @@ class Tests(LoopTestMixin,
 
     def testLargeBody(self):
         # Tests the use of multiple requests in a single connection.
-        h = HTTPConnection(self.LOCALHOST, self.port)
+        h = self._makeConnection()
         s = b'This string has 32 characters.\r\n' * 32  # 1024 characters.
         self.testEchoResponse(h, body=(s * 1024))  # 1 MB
         self.testEchoResponse(h, {'Connection': 'close'},
@@ -192,15 +199,13 @@ class Tests(LoopTestMixin,
 
         conns = []
         for _n in range(nconn):
-            #print('open %s %s' % (n, clock()))
-            h = HTTPConnection(self.LOCALHOST, self.port)
-            #h.debuglevel = 1
+            h = self._makeConnection()
             h.request("GET", "/", headers={"Accept": "text/plain"})
             conns.append(h)
             # If you uncomment the next line, you can raise the
             # number of connections much higher without running
             # into delays.
-            #sleep(0.01)
+            # sleep(0.01)
         responses = []
         for h in conns:
             response = h.getresponse()
@@ -222,7 +227,7 @@ class Tests(LoopTestMixin,
         self.assertEqual(len(td.threads), 1)
 
     def testChunkingRequestWithoutContent(self):
-        h = HTTPConnection(self.LOCALHOST, self.port)
+        h = self._makeConnection()
         h.request("GET", "/", headers={"Accept": "text/plain",
                                        "Transfer-Encoding": "chunked"})
         h.send(b"0\r\n\r\n")
@@ -236,7 +241,7 @@ class Tests(LoopTestMixin,
         s = b'This string has 32 characters.\r\n'
         expect = s * 12
 
-        h = HTTPConnection(self.LOCALHOST, self.port)
+        h = self._makeConnection()
         h.request("GET", "/", headers={"Accept": "text/plain",
                                        "Transfer-Encoding": "chunked"})
         for _n in range(12):
@@ -257,6 +262,7 @@ class Tests(LoopTestMixin,
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.LOCALHOST, self.port))
+        self.addCleanup(sock.close)
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
@@ -277,6 +283,7 @@ class Tests(LoopTestMixin,
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.LOCALHOST, self.port))
+        self.addCleanup(sock.close)
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
@@ -295,6 +302,7 @@ class Tests(LoopTestMixin,
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.LOCALHOST, self.port))
+        self.addCleanup(sock.close)
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
@@ -310,6 +318,7 @@ class Tests(LoopTestMixin,
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.LOCALHOST, self.port))
+        self.addCleanup(sock.close)
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
@@ -318,7 +327,7 @@ class Tests(LoopTestMixin,
 
         # no idea why the test publisher handles this request incorrectly
         # it would be less typing in the test :)
-        # h = HTTPConnection(self.LOCALHOST, self.port)
+        # h = self._makeConnection()
         # h.request("GET", "/")
         # response = h.getresponse()
         # self.assertEqual(int(response.status), 200)
@@ -333,6 +342,7 @@ class Tests(LoopTestMixin,
              "%s") % (len(data), data)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.LOCALHOST, self.port))
+        self.addCleanup(sock.close)
         sock.send(s.encode('ascii'))
         response = ClientHTTPResponse(sock)
         response.begin()
