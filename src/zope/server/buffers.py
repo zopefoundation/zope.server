@@ -98,10 +98,14 @@ class FileBasedBuffer(object):
             if not data:
                 break
             nf.write(data)
+        self.file.close()
         self.file = nf
 
     def getfile(self):
         return self.file
+
+    def close(self):
+        self.file.close()
 
 
 class TempfileBasedBuffer(FileBasedBuffer):
