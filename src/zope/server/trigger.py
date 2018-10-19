@@ -141,7 +141,7 @@ if hasattr(asyncore, 'file_dispatcher'):
 
         def __init__(self):
             _triggerbase.__init__(self)
-            r, self.trigger = os.pipe()
+            r, self.trigger = self._fds = os.pipe()
             asyncore.file_dispatcher.__init__(self, r)
 
             if self.socket.fd != r:
@@ -154,13 +154,12 @@ if hasattr(asyncore, 'file_dispatcher'):
                 os.close(r)
 
         def _close(self):
-            # NB: this causes self.del_channel() to be called twice, but it's
-            # idempotent, so it's fine.
-            asyncore.file_dispatcher.close(self)
-            try:
-                os.close(self.trigger)
-            except OSError:
-                pass
+            for fd in self._fds:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+            self._fds = []
 
         def _physical_pull(self):
             os.write(self.trigger, b'x')
@@ -216,8 +215,6 @@ class sockettrigger(_triggerbase, asyncore.dispatcher):
                     # I've seen on two WinXP Pro SP2 boxes, under
                     # Pythons 2.3.5 and 2.4.1.
                     # (Original commit: https://github.com/zopefoundation/ZEO/commit/c4f736a78ca6713fc3dec21f8aa1fa6f144dd82f)
-                    a.close()
-                    w.close()
                     raise
                 # (10048, 'Address already in use')
                 # assert count <= 2 # never triggered in Tim's tests
