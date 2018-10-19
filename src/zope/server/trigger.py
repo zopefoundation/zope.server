@@ -215,6 +215,8 @@ class sockettrigger(_triggerbase, asyncore.dispatcher):
                     # I've seen on two WinXP Pro SP2 boxes, under
                     # Pythons 2.3.5 and 2.4.1.
                     # (Original commit: https://github.com/zopefoundation/ZEO/commit/c4f736a78ca6713fc3dec21f8aa1fa6f144dd82f)
+                    a.close()
+                    w.close()
                     raise
                 # (10048, 'Address already in use')
                 # assert count <= 2 # never triggered in Tim's tests
