@@ -158,10 +158,7 @@ if hasattr(asyncore, 'file_dispatcher'):
                 self.socket.close()
                 self.socket = None
             if self.trigger is not None:
-                try:
-                    os.close(self.trigger)
-                except OSError:
-                    pass
+                os.close(self.trigger)
                 self.trigger = None
 
         def _physical_pull(self):
