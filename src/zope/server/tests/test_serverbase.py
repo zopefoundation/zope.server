@@ -37,6 +37,9 @@ class FakeSocket(object):
         self.data += data
         return len(data)
 
+    def close(self):
+        pass
+
 
 class NonBindingServerBase(serverbase.ServerBase):
 
@@ -68,7 +71,8 @@ class TestServerBase(unittest.TestCase):
             def bind(self, addr):
                 ip, port = addr
                 bound.append("Listening on %s:%d" % (ip or '*', port))
-        ServerBaseForTest('127.0.0.1', 80, start=False, verbose=True)
+        sb = ServerBaseForTest('127.0.0.1', 80, start=False, verbose=True)
+        self.addCleanup(sb.close)
         self.assertEqual(bound,
                          ['Listening on 127.0.0.1:80'])
 
@@ -79,6 +83,7 @@ class TestServerBase(unittest.TestCase):
         # not actually try to bind to ports.
 
         sb = NonBindingServerBase('example.com', 80, start=True, verbose=True)
+        self.addCleanup(sb.close)
         self.assertEqual(sb.logs[0],
                          "zope.server.serverbase started.\n"
                          "        Hostname: example.com\n"
@@ -91,6 +96,7 @@ class TestServerBase(unittest.TestCase):
                 return '\n\tURL: http://example.com/'
 
         sb = ServerForTest('example.com', 80, start=True, verbose=True)
+        self.addCleanup(sb.close)
         self.assertEqual(sb.logs[0],
                          "zope.server.serverbase started.\n"
                          "        Hostname: example.com\n"
@@ -99,12 +105,14 @@ class TestServerBase(unittest.TestCase):
 
     def test_computeServerName(self):
         sb = NonBindingServerBase('', 80, start=False)
+        self.addCleanup(sb.close)
 
         self.assertNotEqual(sb.server_name, '')
 
     def test_computeServerName_errors(self):
 
         sb = NonBindingServerBase('', 80, start=False, verbose=True)
+        self.addCleanup(sb.close)
         import socket
 
         class mysocket(object):
@@ -130,6 +138,7 @@ class TestServerBase(unittest.TestCase):
 
     def test_addTask_no_dispatcher_executes_immediately(self):
         sb = NonBindingServerBase('', 80, start=False)
+        self.addCleanup(sb.close)
         self.assertIsNone(sb.task_dispatcher)
 
         class Task(object):
@@ -148,6 +157,7 @@ class TestServerBase(unittest.TestCase):
                 return None
 
         sb = SB('', 80, start=False)
+        self.addCleanup(sb.close)
         self.assertIsNone(sb.handle_accept())
 
     def test_handle_accept_error(self):
@@ -158,6 +168,7 @@ class TestServerBase(unittest.TestCase):
                 raise socket.error()
 
         sb = SB('', 80, start=False)
+        self.addCleanup(sb.close)
         self.assertIsNone(sb.handle_accept())
 
         self.assertEqual(sb.logs,
