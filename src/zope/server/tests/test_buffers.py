@@ -14,7 +14,9 @@ class TestStringBuffer(unittest.TestCase):
         return buffers.StringIOBasedBuffer
 
     def _makeOne(self):
-        return self._getFUT()()
+        buf = self._getFUT()()
+        self.addCleanup(buf.close)
+        return buf
 
     def test_cannot_skip_empty(self):
         with self.assertRaises(ValueError):
@@ -48,6 +50,7 @@ class TestStringBuffer(unittest.TestCase):
         buf1.append(b'data')
 
         buf2 = self._getFUT()(buf1)
+        self.addCleanup(buf2.close)
 
         self.assertEqual(buf2.get(), b'data')
 

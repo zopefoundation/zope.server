@@ -128,6 +128,7 @@ class TestPublisherFTPServer(unittest.TestCase):
                 return
 
         server = NonBinding(Request, 'name', None, 80, start=False)
+        self.addCleanup(server.close)
         self.assertIsNotNone(server.fs_access)
 
 class TestPublisherFileSystemAccess(unittest.TestCase):

@@ -567,6 +567,8 @@ class TestPaste(unittest.TestCase):
         class Server(object):
             def __init__(self, *args, **kwargs):
                 pass
+            def close(self):
+                pass
 
         class asyncore(object):
             looped = False

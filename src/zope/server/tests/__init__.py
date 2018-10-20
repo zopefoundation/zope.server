@@ -22,11 +22,13 @@ class LoopTestMixin(object):
         super(LoopTestMixin, self).setUp()
         td = self.td = ThreadedTaskDispatcher()
         td.setThreadCount(self.task_dispatcher_count)
-        if len(asyncore.socket_map) != 1:
+        if len(asyncore.socket_map) != 1:  # pragma: no cover
             # Let sockets die off.
-            # TODO tests should be more careful to clear the socket map.
+            # (tests should be more careful to clear the socket map, and they
+            # currently do, but let's keep this backstop just in case, to avoid
+            # confusing failures).
             gc.collect()
-            asyncore.poll(0.1) # pragma: no cover
+            asyncore.poll(0.1)
         self.orig_map_size = len(asyncore.socket_map)
 
         self.server = self._makeServer()
