@@ -5,6 +5,9 @@
 4.0.2 (unreleased)
 ==================
 
+- Fix pipetrigger.close() to close the right file descriptor.
+  (This could've been causing EBADF errors in unrelated places!)
+
 - Add Python 3.7 support.
 
 
