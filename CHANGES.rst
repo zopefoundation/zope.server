@@ -2,7 +2,7 @@
  CHANGES
 =========
 
-4.0.2 (unreleased)
+4.0.2 (2019-07-11)
 ==================
 
 - Fix pipetrigger.close() to close the right file descriptor.
