@@ -31,4 +31,4 @@ WSGI gateway from a configuration file, e.g.::
   port = 8080
 
 .. _WSGI: http://www.python.org/dev/peps/pep-0333/
-.. _PasteDeploy: http://pythonpaste.org/deploy/
+.. _PasteDeploy: https://docs.pylonsproject.org/projects/pastedeploy/
