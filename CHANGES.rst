@@ -9,6 +9,8 @@
 
 - Drop Python 3.4 support.
 
+- Add `python_requires` to `setup.py`.
+
 
 4.0.2 (2019-07-11)
 ==================
