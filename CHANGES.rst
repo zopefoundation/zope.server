@@ -11,6 +11,8 @@
 
 - Add `python_requires` to `setup.py`.
 
+- Update PasteDeploy link in README.
+
 
 4.0.2 (2019-07-11)
 ==================
