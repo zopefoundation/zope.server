@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Tests for trigger.py
-
-"""
+"""Tests for trigger.py"""
 from __future__ import print_function
 import sys
 import unittest
@@ -48,10 +45,12 @@ class TestPipeTrigger(unittest.TestCase):
     def test_handle_read_error(self):
         t = self._makeOne()
         t.close()
+
         def recv(_s):
             import socket
             raise socket.error
         t.recv = recv
+
         def thunk():
             raise AssertionError("I should not be called")
         t.thunks.append(thunk)
@@ -60,6 +59,7 @@ class TestPipeTrigger(unittest.TestCase):
     def test_thunk_error(self):
         import io
         buf = io.BytesIO() if bytes is str else io.StringIO()
+
         def thunk():
             raise Exception("TestException")
         t = self._makeOne()
@@ -77,6 +77,7 @@ class TestPipeTrigger(unittest.TestCase):
         t = self._makeOne()
         t.pull_trigger()
         # The side effects of this are hard to test
+
 
 class TestSocketTrigger(TestPipeTrigger):
 

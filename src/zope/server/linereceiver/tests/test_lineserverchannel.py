@@ -8,6 +8,7 @@ import unittest
 from zope.server.linereceiver.linecommandparser import LineCommandParser
 from zope.server.linereceiver import lineserverchannel
 
+
 class Channel(lineserverchannel.LineServerChannel):
     # pylint:disable=super-init-not-called,signature-differs
     def __init__(self):
@@ -19,6 +20,7 @@ class Channel(lineserverchannel.LineServerChannel):
     def flush(self, _):
         pass
 
+
 class TestLineServerChannel(unittest.TestCase):
 
     def test_unauth(self):
@@ -27,16 +29,18 @@ class TestLineServerChannel(unittest.TestCase):
         channel = Channel()
         channel.handle_request(command)
 
-        self.assertEqual(channel.output,
-                         [(Channel.status_messages['LOGIN_REQUIRED'] + '\r\n').encode("ascii")])
+        self.assertEqual(
+            channel.output,
+            [(Channel.status_messages['LOGIN_REQUIRED']
+              + '\r\n').encode("ascii")])
 
     def test_calls_method(self):
         class Chunnel(Channel):
             authenticated = True
             thing_called = False
+
             def cmd_thing(self, args):
                 self.thing_called = args
-
 
         command = LineCommandParser(None)
         command.cmd = 'thing'
@@ -51,15 +55,18 @@ class TestLineServerChannel(unittest.TestCase):
         # object
         class BadException(Exception):
             str_count = 0
+
             def __str__(self):
                 if not self.str_count:
                     self.str_count += 1
                     raise ValueError("Broken exception")
                 return Exception.__str__(self)
+
         class Chunnel(Channel):
             authenticated = True
             thing_called = False
             msgs = ()
+
             def cmd_thing(self, args):
                 self.thing_called = args
                 raise BadException("Chunnel")
@@ -93,7 +100,6 @@ class TestLineServerChannel(unittest.TestCase):
             # call the constructor. This leads to a recursion error unless
             # we make that attribute available here.
             socket = None
-
 
         command = LineCommandParser(None)
         command.cmd = 'thing'

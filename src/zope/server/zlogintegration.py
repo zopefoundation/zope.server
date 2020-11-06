@@ -25,7 +25,8 @@ severity = {
     'info': logging.INFO,
     'warning': logging.WARN,
     'error': logging.ERROR,
-    }
+}
+
 
 def log_info(self, message, type='info'):
     logger.log(severity.get(type, logging.INFO), message)
@@ -33,14 +34,17 @@ def log_info(self, message, type='info'):
 
 _orig_log_info = asyncore.dispatcher.log_info
 
+
 def setUp():
     asyncore.dispatcher.log_info = log_info
 
+
 setUp()
+
 
 try:
     from zope.testing.cleanup import addCleanUp
-except ImportError: # pragma: no cover
+except ImportError:  # pragma: no cover
     pass
 else:
     addCleanUp(setUp)

@@ -7,6 +7,7 @@ Tests for asyncerror.py
 import unittest
 from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
 
+
 class TestAsyncoreErrorHook(AsyncoreErrorHookMixin,
                             unittest.TestCase):
 

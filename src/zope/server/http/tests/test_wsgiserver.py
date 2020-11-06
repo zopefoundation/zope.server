@@ -63,13 +63,17 @@ class Conflict(Exception):
     Pseudo ZODB conflict error.
     """
 
+
 ERROR_RESPONSE = b"error occurred"
 RESPONSE = b"normal response"
 
+
 class DummyException(Exception):
     value = "Dummy Exception to test start_response"
+
     def __str__(self):
         return repr(self.value)
+
 
 class PublicationWithConflict(DefaultPublication):
 
@@ -81,8 +85,10 @@ class PublicationWithConflict(DefaultPublication):
             DefaultPublication.handleException(self, object, request, exc_info,
                                                retry_allowed)
 
+
 class Accepted(Exception):
     pass
+
 
 class tested_object(object):
     """Docstring required by publisher."""
@@ -92,17 +98,15 @@ class tested_object(object):
         return 'URL invoked: %s' % REQUEST.URL
 
     def redirect_method(self, REQUEST):
-        "Generates a redirect using the redirect() method."
+        """Generate a redirect using the redirect() method."""
         REQUEST.response.redirect("/redirect")
 
     def redirect_exception(self):
-        "Generates a redirect using an exception."
+        """Generate a redirect using an exception."""
         raise Redirect("/exception")
 
     def conflict(self, REQUEST, wait_tries):
-        """
-        Returns 202 status only after (wait_tries) tries.
-        """
+        """Return 202 status only after (wait_tries) tries."""
         if self.tries >= int(wait_tries):
             raise Accepted
         else:
@@ -110,10 +114,11 @@ class tested_object(object):
             raise Conflict
 
     def proxy(self, REQUEST):
-        """Behaves like a real proxy response."""
+        """Behave like a real proxy response."""
         REQUEST.response.addHeader('Server', 'Fake/1.0')
         REQUEST.response.addHeader('Date', 'Thu, 01 Apr 2010 12:00:00 GMT')
         return 'Proxied Content'
+
 
 class WSGIInfo(object):
     """Docstring required by publisher"""
@@ -154,6 +159,7 @@ class WSGIInfo(object):
         """Return the proxy host."""
         return REQUEST['zserver.proxy.host']
 
+
 class Tests(LoopTestMixin,
             AsyncoreErrorHookMixin,
             PlacelessSetup,
@@ -189,10 +195,13 @@ class Tests(LoopTestMixin,
             start_response(response.getStatusString(), response.getHeaders())
             return response.consumeBodyIter()
 
-
         ServerClass = self._getServerClass()
-        self.server = ServerClass(application, 'Browser',
-                                  self.LOCALHOST, self.CONNECT_TO_PORT, task_dispatcher=self.td)
+        self.server = ServerClass(
+            application,
+            'Browser',
+            self.LOCALHOST,
+            self.CONNECT_TO_PORT,
+            task_dispatcher=self.td)
         return self.server
 
     def invokeRequest(self, path='/',
@@ -214,7 +223,6 @@ class Tests(LoopTestMixin,
                 return response, response_body
             else:
                 return response.status, response_body
-
 
     def testDeeperPath(self):
         status, response_body = self.invokeRequest('/folder/item')
@@ -238,7 +246,8 @@ class Tests(LoopTestMixin,
     def testRedirectException(self):
         status, _response_body = self.invokeRequest('/redirect_exception')
         self.assertEqual(status, 303)
-        status, _response_body = self.invokeRequest('/folder/redirect_exception')
+        status, _response_body = self.invokeRequest(
+            '/folder/redirect_exception')
         self.assertEqual(status, 303)
 
     def testConflictRetry(self):
@@ -307,6 +316,7 @@ class Tests(LoopTestMixin,
         # In order to get data out as fast as possible, the WSGI server needs
         # to call task.write() multiple times.
         orig_app = self.server.application
+
         def app(eviron, start_response):
             start_response('200 Ok', [])
             return [b'This', b'is', b'my', b'response.']
@@ -315,13 +325,20 @@ class Tests(LoopTestMixin,
         class FakeTask:
             wrote_header = 0
             counter = 0
-            getCGIEnvironment = lambda _: {}
+
+            def getCGIEnvironment(self):
+                return {}
+
             class request_data:
-                getBodyStream = lambda _: BytesIO()
+                def getBodyStream(self):
+                    return BytesIO()
+
             request_data = request_data()
             setResponseStatus = appendResponseHeaders = lambda *_: None
+
             def wroteResponseHeader(self):
                 return self.wrote_header
+
             def write(self, v):
                 self.counter += 1
 
@@ -350,28 +367,38 @@ class Tests(LoopTestMixin,
             reason = None
             response = []
             accumulated_headers = None
+
             def __init__(self):
                 self.accumulated_headers = []
                 self.response_headers = {}
-            getCGIEnvironment = lambda _: {}
+
+            def getCGIEnvironment(self):
+                return {}
+
             class request_data:
-                getBodyStream = lambda _: BytesIO()
+
+                def getBodyStream(self):
+                    return BytesIO()
+
             request_data = request_data()
+
             def appendResponseHeaders(self, lst):
                 accum = self.accumulated_headers
                 if accum is None:
                     self.accumulated_headers = accum = []
                 accum.extend(lst)
+
             def setResponseStatus(self, status, reason):
                 self.status = status
                 self.reason = reason
+
             def wroteResponseHeader(self):
                 return self.wrote_header
+
             def write(self, v):
                 self.response.append(v)
 
         return app, FakeTask()
-
 
     def test_start_response_with_no_headers_sent(self):
         # start_response exc_info if no headers have been sent
@@ -386,13 +413,13 @@ class Tests(LoopTestMixin,
         self.assertEqual(task.response, ERROR_RESPONSE.split())
         # any headers written before are cleared and
         # only the most recent one is added.
-        self.assertEqual(task.accumulated_headers, ['Content-type: text/plain'])
+        self.assertEqual(task.accumulated_headers,
+                         ['Content-type: text/plain'])
         # response headers are cleared. They'll be rebuilt from
         # accumulated_headers in the prepareResponseHeaders method
         self.assertEqual(task.response_headers, {})
 
         self.server.application = orig_app
-
 
     def test_multiple_start_response_calls(self):
         # if start_response is called more than once with no exc_info
@@ -400,7 +427,6 @@ class Tests(LoopTestMixin,
         task.wrote_header = 1
 
         self.assertRaises(AssertionError, self.server.executeRequest, task)
-
 
     def test_start_response_with_headers_sent(self):
         # If headers have been sent it raises the exception
@@ -412,7 +438,6 @@ class Tests(LoopTestMixin,
         self.assertRaises(DummyException, self.server.executeRequest, task)
 
         self.server.application = orig_app
-
 
     def test_closes_iterator(self):
         """PEP-0333 specifies that if an iterable returned by
@@ -445,6 +470,7 @@ class Tests(LoopTestMixin,
                 self.closed = True
 
         iterator = CloseableIterator([b"Klaatu", b"barada", b"nikto"])
+
         def app(environ, start_response):
             start_response("200 Ok", [], None)
             return iterator
@@ -465,6 +491,7 @@ class Tests(LoopTestMixin,
         self.assertEqual(len(w), 0, [str(m) for m in w])
         self.server.application = orig_app
 
+
 class TestWSGIHttpServer(unittest.TestCase):
 
     def test_secure_environment(self):
@@ -481,16 +508,16 @@ class TestWSGIHttpServer(unittest.TestCase):
             def getBodyStream(self):
                 return None
 
-
         env = WSGIHTTPServer._constructWSGIEnvironment(Task({}))
         self.assertEqual("http", env['wsgi.url_scheme'])
-
 
         env = WSGIHTTPServer._constructWSGIEnvironment(Task({'HTTPS': 'on'}))
         self.assertEqual("https", env['wsgi.url_scheme'])
 
-        env = WSGIHTTPServer._constructWSGIEnvironment(Task({'SERVER_PORT_SECURE': "1"}))
+        env = WSGIHTTPServer._constructWSGIEnvironment(
+            Task({'SERVER_PORT_SECURE': "1"}))
         self.assertEqual("https", env['wsgi.url_scheme'])
+
 
 class PMDBTests(Tests):
 
@@ -517,6 +544,7 @@ class PMDBTests(Tests):
 
         # monkey-patch pdb.post_mortem so we don't go into pdb session.
         pm_traceback = []
+
         def fake_post_mortem(tb):
             import traceback
             pm_traceback.extend(traceback.format_tb(tb))
@@ -540,6 +568,7 @@ class PMDBTests(Tests):
 
         # monkey-patch pdb.post_mortem so we don't go into pdb session.
         pm_traceback = []
+
         def fake_post_mortem(tb):
             import traceback
             pm_traceback.extend(traceback.format_tb(tb))
@@ -555,6 +584,7 @@ class PMDBTests(Tests):
         self.server.application = orig_app
         pdb.post_mortem = orig_post_mortem
 
+
 class TestPaste(unittest.TestCase):
 
     def test_run_paste(self):
@@ -564,14 +594,17 @@ class TestPaste(unittest.TestCase):
 
     def test_run_paste_loop(self):
         from zope.server.http import wsgihttpserver
+
         class Server(object):
             def __init__(self, *args, **kwargs):
                 pass
+
             def close(self):
                 pass
 
         class asyncore(object):
             looped = False
+
             def loop(self):
                 self.looped = True
 
@@ -586,6 +619,5 @@ class TestPaste(unittest.TestCase):
         finally:
             wsgihttpserver.WSGIHTTPServer = orig_wsgi
             wsgihttpserver.asyncore = orig_async
-
 
         self.assertTrue(a.looped)

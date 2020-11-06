@@ -54,8 +54,7 @@ Hello.
         self.assertEqual(parser.headers,
                          {'FIRSTNAME': 'mickey',
                           'LASTNAME': 'Mouse',
-                          'CONTENT_LENGTH': '7',
-                         })
+                          'CONTENT_LENGTH': '7'})
         self.assertEqual(parser.path, '/foobar')
         self.assertEqual(parser.command, 'GET')
         self.assertEqual(parser.query, None)
@@ -71,7 +70,7 @@ lastname: Mouse
 content-length: 10
 
 Hello mickey.
-"""
+"""  # noqa: E501 line too long
         parser = self.parser
         self.feed(data)
         self.assertEqual(parser.command, 'GET')
@@ -80,8 +79,7 @@ Hello mickey.
         self.assertEqual(parser.headers,
                          {'FIRSTNAME': 'mickey',
                           'LASTNAME': 'Mouse',
-                          'CONTENT_LENGTH': '10',
-                         })
+                          'CONTENT_LENGTH': '10'})
         # path should be utf-8 encoded
         self.assertEqual(parser.path, '/foo/a++/ä=&a:int')
         self.assertEqual(parser.query,
@@ -101,8 +99,7 @@ Hello.
         self.assertEqual(parser.version, '8.4')
         self.assertFalse(parser.empty)
         self.assertEqual(parser.headers,
-                         {'CONTENT_LENGTH': '7',
-                         })
+                         {'CONTENT_LENGTH': '7'})
         self.assertEqual(parser.path, '/foobar')
         self.assertEqual(parser.command, 'GET')
         self.assertEqual(parser.proxy_scheme, 'https')

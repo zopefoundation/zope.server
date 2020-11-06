@@ -33,4 +33,5 @@ Find max number of sockets allowed.
 def max_select_sockets():
     return 100
 
+
 max_server_sockets = max_client_sockets = max_select_sockets

@@ -16,13 +16,16 @@
 import unittest
 from zope.server.http import http_date
 
+
 class Tests(unittest.TestCase):
 
     # test roundtrip conversion.
     def testDateRoundTrip(self):
         from time import time
         t = int(time())
-        self.assertEqual(t, http_date.parse_http_date(http_date.build_http_date(t)))
+        self.assertEqual(
+            t,
+            http_date.parse_http_date(http_date.build_http_date(t)))
 
     def test_cannot_parse(self):
         self.assertEqual(0, http_date.parse_http_date("Not Valid"))

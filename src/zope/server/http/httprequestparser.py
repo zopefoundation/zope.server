@@ -204,7 +204,6 @@ class HTTPRequestParser(object):
 
         return (method, uri, version)
 
-
     def split_uri(self):
         (self.proxy_scheme, self.proxy_netloc, path, self.query,
          self.fragment) = urlsplit(self.uri)

@@ -18,6 +18,7 @@ import sys
 from zope.server.http import wsgihttpserver
 from zope.publisher.publish import publish as _publish
 
+
 def _make_application(request_factory, publish):
     def application(environ, start_response):
         request = request_factory(environ['wsgi.input'], environ)
@@ -26,6 +27,7 @@ def _make_application(request_factory, publish):
         start_response(response.getStatusString(), response.getHeaders())
         return response.consumeBody()
     return application
+
 
 class PublisherHTTPServer(wsgihttpserver.WSGIHTTPServer):
 
@@ -38,10 +40,11 @@ class PublisherHTTPServer(wsgihttpserver.WSGIHTTPServer):
     def _make_application(cls, request_factory, publish=_publish):
         return _make_application(request_factory, publish)
 
+
 def _pmdb_publish(request):
     try:
         return _publish(request, handle_errors=False)
-    except: # pylint:disable=bare-except
+    except:  # noqa: E722 do not use bare 'except'
         wsgihttpserver.PMDBWSGIHTTPServer.post_mortem(sys.exc_info())
 
 
@@ -49,4 +52,5 @@ class PMDBHTTPServer(PublisherHTTPServer):
 
     @classmethod
     def _make_application(cls, request_factory, publish=_pmdb_publish):
-        return super(PMDBHTTPServer, cls)._make_application(request_factory, publish)
+        return super(PMDBHTTPServer, cls)._make_application(
+            request_factory, publish)

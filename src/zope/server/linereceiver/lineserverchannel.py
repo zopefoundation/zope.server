@@ -27,6 +27,7 @@ from zope.server.linereceiver.linetask import LineTask
 
 DEBUG = os.environ.get('ZOPE_SERVER_DEBUG')
 
+
 class LineServerChannel(ServerChannelBase):
     """The Line Server Channel represents a connection to a particular
        client. We can therefore store information here."""
@@ -58,14 +59,13 @@ class LineServerChannel(ServerChannelBase):
 
     # Define the status messages
     status_messages = {
-        'CMD_UNKNOWN'      : "500 '%s': command not understood.",
-        'INTERNAL_ERROR'   : "500 Internal error: %s",
-        'LOGIN_REQUIRED'   : '530 Please log in with USER and PASS',
+        'CMD_UNKNOWN': "500 '%s': command not understood.",
+        'INTERNAL_ERROR': "500 Internal error: %s",
+        'LOGIN_REQUIRED': '530 Please log in with USER and PASS',
     }
 
-
     def handle_request(self, command):
-        """Processes a command.
+        """Process a command.
 
         Some commands use an alternate thread.
         """
@@ -84,17 +84,16 @@ class LineServerChannel(ServerChannelBase):
         elif hasattr(self, method):
             try:
                 getattr(self, method)(command.args)
-            except:
+            except:  # noqa: E722 do not use bare 'except'
                 self.exception()
         else:
             self.reply(self.unknown_reply, cmd.upper())
-
 
     def reply(self, code, args=(), flush=1):
         """ """
         try:
             msg = self.status_messages[code] % args
-        except:
+        except:  # noqa: E722 do not use bare 'except'
             msg = self.reply_error % code
 
         self.write(msg.encode('utf-8') + b'\r\n')
@@ -104,7 +103,6 @@ class LineServerChannel(ServerChannelBase):
 
         # TODO: Some logging should go on here.
 
-
     def handle_error_no_close(self):
         """See asyncore.dispatcher.handle_error()"""
         _nil, t, v, tbinfo = compact_traceback()
@@ -112,7 +110,7 @@ class LineServerChannel(ServerChannelBase):
         # sometimes a user repr method will crash.
         try:
             self_repr = repr(self)
-        except:
+        except:  # noqa: E722 do not use bare 'except'
             self_repr = '<__repr__(self) failed for object at %0x>' % id(self)
 
         self.log_info(
@@ -121,19 +119,18 @@ class LineServerChannel(ServerChannelBase):
                 t,
                 v,
                 tbinfo
-                ),
+            ),
             'error'
-            )
-
+        )
 
     def exception(self):
-        if DEBUG: # pragma: no cover
+        if DEBUG:  # pragma: no cover
             import traceback
             traceback.print_exc()
         t, v = sys.exc_info()[:2]
         try:
             info = '%s: %s' % (getattr(t, '__name__', t), v)
-        except:
+        except:  # noqa: E722 do not use bare 'except'
             info = str(t)
         self.reply('INTERNAL_ERROR', info)
         self.handle_error_no_close()

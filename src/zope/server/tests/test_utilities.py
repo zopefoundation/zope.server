@@ -8,6 +8,7 @@ import unittest
 
 from zope.server import utilities
 
+
 class TestFunctions(unittest.TestCase):
 
     def test_find_double_newline_twice(self):

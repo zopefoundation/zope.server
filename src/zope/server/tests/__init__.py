@@ -8,6 +8,7 @@ from threading import Thread, Event
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
 
+
 class LoopTestMixin(object):
 
     thread_name = 'LoopTest'
@@ -16,7 +17,6 @@ class LoopTestMixin(object):
     LOCALHOST = '127.0.0.1'
     SERVER_PORT = 0      # Set these port numbers to 0 to auto-bind, or
     CONNECT_TO_PORT = 0  # use specific numbers to inspect using TCPWatch.
-
 
     def setUp(self):
         super(LoopTestMixin, self).setUp()
@@ -35,7 +35,7 @@ class LoopTestMixin(object):
 
         if self.CONNECT_TO_PORT == 0:
             self.port = self.server.socket.getsockname()[1]
-        else: # pragma: no cover
+        else:  # pragma: no cover
             self.port = self.CONNECT_TO_PORT
         self.run_loop = 1
         self.counter = 0
@@ -55,17 +55,20 @@ class LoopTestMixin(object):
         # Make sure all sockets get closed by asyncore normally.
         timeout = time.time() + 5
         while 1:
-            # bandage for PyPy: sometimes we were relying on GC to close sockets.
-            # (This sometimes comes up under coverage on Python 2 as well)
+            # bandage for PyPy: sometimes we were relying on GC to close
+            # sockets. (This sometimes comes up under coverage on Python 2 as
+            # well)
             gc.collect()
             if (len(asyncore.socket_map) <= self.orig_map_size
-                    #  Account for the sadly global `the_trigger` defined in dualchannelmap.
-                    or (self.orig_map_size == 0 and len(asyncore.socket_map) == 1)):
+                    #  Account for the sadly global `the_trigger` defined in
+                    # dualchannelmap.
+                    or (self.orig_map_size == 0
+                        and len(asyncore.socket_map) == 1)):
                 # Clean!
                 break
-            if time.time() >= timeout: # pragma: no cover
+            if time.time() >= timeout:  # pragma: no cover
                 self.fail('Leaked a socket: %s' % repr(asyncore.socket_map))
-            asyncore.poll(0.1) # pragma: no cover
+            asyncore.poll(0.1)  # pragma: no cover
         super(LoopTestMixin, self).tearDown()
 
     def _makeServer(self):
@@ -81,7 +84,7 @@ class LoopTestMixin(object):
             # this loop. That will likely make the tests hang.
             try:
                 asyncore.poll(0.1)
-            except select.error as data: # pragma: no cover
+            except select.error as data:  # pragma: no cover
                 print("EXCEPTION POLLING IN LOOP(): %s" % data)
                 if data.args[0] == EBADF:
                     for key in asyncore.socket_map:
@@ -98,6 +101,6 @@ class LoopTestMixin(object):
                             print(asyncore.socket_map[key])
                             print(asyncore.socket_map[key].__class__)
                         print("")
-            except: # pragma: no cover pylint:disable=bare-except
+            except:  # noqa: E722 do not use bare 'except' pragma: no cover
                 print("WEIRD EXCEPTION IN LOOP")
-                traceback.print_exception(*(sys.exc_info()+(100,)))
+                traceback.print_exception(*(sys.exc_info() + (100,)))

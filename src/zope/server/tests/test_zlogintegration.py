@@ -6,6 +6,7 @@ Tests for zlogintegration.py
 
 import unittest
 
+
 class TestLogInfo(unittest.TestCase):
 
     def test_patched(self):

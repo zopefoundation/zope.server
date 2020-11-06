@@ -19,11 +19,14 @@ class CountingDict(dict):
             self[key] -= 1
         return value
 
+
 class QueueStub(object):
     def __init__(self, items=()):
         self.items = list(items)
+
     def get(self):
         return self.items.pop(0)
+
 
 class TaskStub(object):
     def service(self):
@@ -45,9 +48,9 @@ class TestExceptionLogging(unittest.TestCase):
         self.logger.removeHandler(self.bad_handler)
         self.logger.removeHandler(self.good_handler)
 
-
-    def test_handlerThread_logs_exceptions_that_happen_during_exception_logging(self):
-        # Test that ThreadedTaskDispatcher.handlerThread doesn't terminate silently
+    def test_handlerThread_logs_exceptions_that_happen_during_exception_logging(self):  # noqa: E501 line too long
+        # Test that ThreadedTaskDispatcher.handlerThread doesn't terminate
+        # silently
 
         dispatcher = ThreadedTaskDispatcher()
         dispatcher.threads = CountingDict({42: 1})
@@ -65,8 +68,9 @@ class TestExceptionLogging(unittest.TestCase):
         self.assertIn("Exception: testing exception handling", logged)
         self.assertIn("Exception in thread main loop\nTraceback", logged)
         self.assertIn(
-            "NotImplementedError: emit must be implemented by Handler subclasses",
-            logged)
+            "NotImplementedError: emit must be implemented by Handler"
+            " subclasses", logged)
+
 
 class TestThreadedDispatcher(unittest.TestCase):
 

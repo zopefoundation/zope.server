@@ -8,6 +8,7 @@ import unittest
 
 from zope.server import buffers
 
+
 class TestStringBuffer(unittest.TestCase):
 
     def _getFUT(self):
@@ -53,6 +54,7 @@ class TestStringBuffer(unittest.TestCase):
         self.addCleanup(buf2.close)
 
         self.assertEqual(buf2.get(), b'data')
+
 
 class TestTempfileBasedBuffer(TestStringBuffer):
 

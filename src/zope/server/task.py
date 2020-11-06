@@ -20,6 +20,7 @@ Abstract implementation of ITask.
 import socket
 import time
 
+
 class AbstractTask(object):
     """
     An abstract task providing a framework for the common
@@ -47,7 +48,7 @@ class AbstractTask(object):
                 self.close_on_finish = 1
                 if self.channel.adj.log_socket_errors:
                     raise
-            except:
+            except:  # noqa: E722 do not use bare 'except'
                 exc = getattr(self.channel, 'exception', None)
                 if exc is not None:
                     exc()

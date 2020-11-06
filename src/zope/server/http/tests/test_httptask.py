@@ -8,10 +8,12 @@ import unittest
 from zope.server.http import httptask
 from zope.server.http.httprequestparser import HTTPRequestParser
 
+
 class MockRequestData(HTTPRequestParser):
 
     def __init__(self):
         HTTPRequestParser.__init__(self, None)
+
 
 class MockChannel(object):
 
@@ -26,6 +28,7 @@ class MockChannel(object):
 
     def flush(self):
         self.flush_called = True
+
 
 class TestHTTPTask(unittest.TestCase):
 

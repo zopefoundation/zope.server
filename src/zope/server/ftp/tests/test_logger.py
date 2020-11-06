@@ -10,6 +10,7 @@ from zope.server.ftp import logger
 
 from zope.testing import loggingsupport
 
+
 class TestCommonFTPActivityLogger(unittest.TestCase):
 
     def test_log(self):

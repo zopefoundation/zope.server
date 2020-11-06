@@ -7,6 +7,7 @@ import unittest
 
 from zope.server.task import AbstractTask
 
+
 class MockChannel(object):
 
     log_socket_errors = False
@@ -17,6 +18,7 @@ class MockChannel(object):
 
     def close_when_done(self):
         self.closing_when_done = True
+
 
 class TestAbstractTask(unittest.TestCase):
 
@@ -55,6 +57,7 @@ class TestAbstractTask(unittest.TestCase):
     def test_hit_log(self):
         class Log(object):
             called = False
+
             def log(self, _task):
                 self.called = True
 

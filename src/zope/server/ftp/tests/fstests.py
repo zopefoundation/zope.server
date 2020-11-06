@@ -19,9 +19,9 @@ from io import BytesIO
 from zope.interface.verify import verifyObject
 from zope.server.interfaces.ftp import IFileSystem
 
+
 class FileSystemTests(object):
-    """Tests of a readable filesystem
-    """
+    """Tests of a readable filesystem"""
 
     filesystem = None
     dir_name = '/dir'
@@ -35,7 +35,6 @@ class FileSystemTests(object):
         self.assertEqual(self.filesystem.type('/'), 'd')
         self.assertEqual(self.filesystem.type(self.file_name), 'f')
 
-
     def test_names(self):
         lst = self.filesystem.names(self.dir_name)
         lst.sort()
@@ -46,12 +45,10 @@ class FileSystemTests(object):
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), self.file_contents)
 
-
     def testReadPartOfFile(self):
         s = BytesIO()
         self.filesystem.readfile(self.file_name, s, 2)
         self.assertEqual(s.getvalue(), self.file_contents[2:])
-
 
     def testReadPartOfFile2(self):
         s = BytesIO()
@@ -75,12 +72,10 @@ class FileSystemTests(object):
         self.filesystem.rmdir(self.dir_name)
         self.assertFalse(self.filesystem.type(self.dir_name))
 
-
     def testRename(self):
         self.filesystem.rename(self.file_name, self.file_name + '.bak')
         self.assertEqual(self.filesystem.type(self.file_name), None)
         self.assertEqual(self.filesystem.type(self.file_name + '.bak'), 'f')
-
 
     def testWriteFile(self):
         s = BytesIO()
@@ -94,7 +89,6 @@ class FileSystemTests(object):
         s = BytesIO()
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), data)
-
 
     def testAppendToFile(self):
         data = b' again'
@@ -139,7 +133,6 @@ class FileSystemTests(object):
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), expect)
 
-
     def testWriteNewFile(self):
         s = BytesIO(self.file_contents)
         self.filesystem.writefile(self.file_name + '.new', s)
@@ -148,9 +141,8 @@ class FileSystemTests(object):
         self.filesystem.readfile(self.file_name, s)
         self.assertEqual(s.getvalue(), self.file_contents)
 
-
     def test_writable(self):
         self.assertFalse(self.filesystem.writable(self.dir_name))
         self.assertFalse(self.filesystem.writable(self.unwritable_filename))
         self.assertTrue(self.filesystem.writable(self.file_name))
-        self.assertTrue(self.filesystem.writable(self.file_name+'1'))
+        self.assertTrue(self.filesystem.writable(self.file_name + '1'))

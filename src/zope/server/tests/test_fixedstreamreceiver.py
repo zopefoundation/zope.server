@@ -8,6 +8,7 @@ import unittest
 
 from zope.server import fixedstreamreceiver
 
+
 class TestFixedStreamReceiver(unittest.TestCase):
 
     def test_received_with_no_remain(self):

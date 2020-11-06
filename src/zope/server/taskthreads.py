@@ -46,9 +46,9 @@ class ThreadedTaskDispatcher(object):
                     break
                 try:
                     task.service()
-                except:
+                except:  # noqa: E722 do not use bare 'except'
                     log.exception('Exception during task')
-        except:
+        except:  # noqa: E722 do not use bare 'except'
             log.exception('Exception in thread main loop')
         finally:
             mlock = self.thread_mgmt_lock
@@ -94,7 +94,7 @@ class ThreadedTaskDispatcher(object):
         try:
             task.defer()
             self.queue.put(task)
-        except:
+        except:  # noqa: E722 do not use bare 'except'
             task.cancel()
             raise
 

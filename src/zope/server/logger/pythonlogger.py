@@ -19,6 +19,7 @@ from zope.server.interfaces.logger import IMessageLogger
 from zope.server.interfaces.logger import IRequestLogger
 from zope.interface import implementer
 
+
 @implementer(IMessageLogger, IRequestLogger)
 class PythonLogger(object):
     """Proxy for Python's logging module"""
@@ -40,7 +41,6 @@ class PythonLogger(object):
     def logMessage(self, message):
         """See IMessageLogger"""
         self.logger.log(self.level, message.rstrip())
-
 
     def logRequest(self, ip, message):
         """

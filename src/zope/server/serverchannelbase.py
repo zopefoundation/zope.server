@@ -36,7 +36,6 @@ task_lock = Lock()
 class ServerChannelBase(DualModeChannel):
     """Base class for a high-performance, mixed-mode server-side channel."""
 
-
     # See zope.server.interfaces.IServerChannel
     parser_class = None       # Subclasses must provide a parser class
     task_class = None         # ... and a task class.
@@ -136,7 +135,7 @@ class ServerChannelBase(DualModeChannel):
             data = data[n:]
 
     def handle_request(self, req):
-        """Creates and queues a task for processing a request.
+        """Create and queues a task for processing a request.
 
         Subclasses may override this method to handle some requests
         immediately in the main async thread.
@@ -203,13 +202,13 @@ class ServerChannelBase(DualModeChannel):
 
             try:
                 task.service()
-            except:
+            except:  # noqa: E722 do not use bare 'except'
                 # propagate the exception, but keep executing tasks
                 self.server.addTask(self)
                 raise
 
     def cancel(self):
-        """Cancels all pending tasks"""
+        """Cancel all pending tasks"""
         with task_lock:
             old = () if not self.tasks else list(self.tasks)
             self.tasks = []
@@ -224,9 +223,10 @@ class ServerChannelBase(DualModeChannel):
     def defer(self):
         pass
 
+
 try:
     from zope.testing.cleanup import addCleanUp
-except ImportError: # pragma: no cover
+except ImportError:  # pragma: no cover
     pass
 else:
     # Tests are very bad about actually closing
@@ -236,7 +236,7 @@ else:
         for c in list(ServerChannelBase.active_channels.values()):
             try:
                 c.close()
-            except BaseException: # pragma: no cover
+            except BaseException:  # pragma: no cover
                 pass
         ServerChannelBase.active_channels.clear()
     addCleanUp(_clean_active_channels)

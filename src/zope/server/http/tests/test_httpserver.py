@@ -55,7 +55,7 @@ class Tests(LoopTestMixin,
     thread_name = 'test_httpserver'
 
     def _makeServer(self):
-                # import only now to prevent the testrunner from importing it too early
+        # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.http.httpserver import HTTPServer
 
@@ -185,7 +185,7 @@ class Tests(LoopTestMixin,
         #          raise socket.error, msg
         #      error: (10055, 'No buffer space available')
         nconn = 50
-        if sys.platform == 'win32': # pragma: no cover
+        if sys.platform == 'win32':  # pragma: no cover
             platform = sys.getwindowsversion()[3]
             if platform < 2:
                 # 0 is Win32s on Windows 3.1
@@ -356,6 +356,7 @@ class TestHTTPServer(unittest.TestCase):
         # Tests.setUp for the explanation why HTTPServer is not imported
         # at the top
         from zope.server.http.httpserver import HTTPServer
+
         class MyServer(HTTPServer):
             def __init__(self):
                 # don't call base class, we don't want real sockets here
@@ -371,6 +372,7 @@ class TestHTTPServer(unittest.TestCase):
         class Task(object):
             def __init__(self):
                 self.response_headers = {}
+
             def write(self, _data):
                 pass
         task = Task()
