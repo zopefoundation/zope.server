@@ -48,7 +48,7 @@ class IFTPCommandHandler(Interface):
 
         Example output: 213 19960301204320
 
-        Geez, there seems to be a second syntax for this fiel, where one
+        Geez, there seems to be a second syntax for this field, where one
         can also set the modification time using:
         MDTM datestring pathname
 
@@ -58,7 +58,7 @@ class IFTPCommandHandler(Interface):
         """Make a directory. Write access required."""
 
     def cmd_mode(args):
-        """Set file transfer mode.  No read access required. Obsolete."""
+        """Set file transfer mode. No read access required. Obsolete."""
 
     def cmd_nlst(args):
         """Give name list of files in directory."""
@@ -115,19 +115,19 @@ class IFTPCommandHandler(Interface):
 
         Replying to this command is of questionable utility,
         because this server does not behave in a predictable way
-        w.r.t. the output of the LIST command.  We emulate Unix ls
+        w.r.t. the output of the LIST command. We emulate Unix ls
         output, but on win32 the pathname can contain drive
         information at the front Currently, the combination of
         ensuring that os.sep == '/' and removing the leading slash
-        when necessary seems to work.  [cd'ing to another drive
+        when necessary seems to work. [cd'ing to another drive
         also works]
 
         This is how wuftpd responds, and is probably the most
-        expected.  The main purpose of this reply is so that the
+        expected. The main purpose of this reply is so that the
         client knows to expect Unix ls-style LIST output.
 
-        one disadvantage to this is that some client programs
-        assume they can pass args to /bin/ls.  a few typical
+        One disadvantage to this is that some client programs
+        assume they can pass args to /bin/ls. A few typical
         responses:
 
         215 UNIX Type: L8 (wuftpd)
@@ -169,7 +169,7 @@ class IFileSystemAccess(Interface):
         not be authenticated.
 
         This method checks only general access and is not used for each
-        call to open().  Rather, open() should do its own verification.
+        call to open(). Rather, open() should do its own verification.
 
         Credentials are passed as (username, password) tuples.
         """
@@ -230,7 +230,7 @@ class IFileSystem(Interface):
     def readfile(path, outstream, start=0, end=None):
         """Output the file at `path` to a stream.
 
-        Data are copied starting from `start`.  If `end` is not None,
+        Data are copied starting from `start`. If `end` is not None,
         data are copied up to `end`.
 
         """
@@ -246,7 +246,7 @@ class IFileSystem(Interface):
 
         owner_name
 
-           Defaults to "na".  Must not include spaces.
+           Defaults to "na". Must not include spaces.
 
         owner_readable
 
@@ -262,7 +262,7 @@ class IFileSystem(Interface):
 
         group_name
 
-           Defaults to "na".  Must not include spaces.
+           Defaults to "na". Must not include spaces.
 
         group_readable
 
@@ -298,7 +298,7 @@ class IFileSystem(Interface):
 
         size
 
-           The file size.  Defaults to 0.
+           The file size. Defaults to 0.
 
         name
 
@@ -331,7 +331,7 @@ class IFileSystem(Interface):
         """
 
     def remove(path):
-        """Remove a file.  Same as unlink.
+        """Remove a file. Same as unlink.
 
         If it is not possible or allowed to remove the file, an `OSError`
         should be raised describing the reason of failure.
@@ -359,7 +359,7 @@ class IFileSystem(Interface):
         file that is to be written.
 
         If `end` is None, the file is truncated after the data are
-        written.  If `end` is not None, any parts of the file after
+        written. If `end` is not None, any parts of the file after
         `end` are left unchanged.
 
         Note that if `end` is not `None`, and there is not enough data
