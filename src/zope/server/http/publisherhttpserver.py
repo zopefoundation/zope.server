@@ -44,7 +44,7 @@ class PublisherHTTPServer(wsgihttpserver.WSGIHTTPServer):
 def _pmdb_publish(request):
     try:
         return _publish(request, handle_errors=False)
-    except:  # noqa: E722 do not use bare 'except'
+    except:  # noqa: E722 pylint:disable=bare-except
         wsgihttpserver.PMDBWSGIHTTPServer.post_mortem(sys.exc_info())
 
 
