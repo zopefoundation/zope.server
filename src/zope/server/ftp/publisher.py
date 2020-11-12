@@ -41,27 +41,28 @@ class PublisherFileSystem(object):
 
         return self._execute(path, 'type')
 
-
     def readfile(self, path, outstream, start=0, end=None):
         return self._execute(path, 'readfile',
                              outstream=outstream, start=start, end=end)
 
     _name = None
     for _name in ('names', 'ls'):
-        f = locals()[_name] = lambda self, path, filter=None, _name=_name: self._execute(
-            path,
-            _name,
-            split=False,
-            filter=filter)
+        f = locals()[_name] = (
+            lambda self, path, filter=None, _name=_name: self._execute(
+                path,
+                _name,
+                split=False,
+                filter=filter))
         f.__name__ = _name
 
     for _name in ('lsinfo', 'mtime', 'size', 'mkdir', 'remove', 'rmdir'):
-        f = locals()[_name] = lambda self, path, _name=_name: self._execute(path, _name)
+        f = locals()[_name] = (
+            lambda self, path, _name=_name: self._execute(path, _name))
         f.__name__ = _name
     del _name
 
     def rename(self, old, new):
-        'See IWriteFileSystem'
+        """See IWriteFileSystem"""
         old = self._translate(old)
         new = self._translate(new)
         path0, old = posixpath.split(old)
@@ -70,13 +71,13 @@ class PublisherFileSystem(object):
         return self._execute(path0, 'rename', split=False, old=old, new=new)
 
     def writefile(self, path, instream, start=None, end=None, append=False):
-        'See IWriteFileSystem'
+        """See IWriteFileSystem"""
         return self._execute(
             path, 'writefile',
             instream=instream, start=start, end=end, append=append)
 
     def writable(self, path):
-        'See IWriteFileSystem'
+        """See IWriteFileSystem"""
         return self._execute(path, 'writable')
 
     def _execute(self, path, command, split=True, **kw):

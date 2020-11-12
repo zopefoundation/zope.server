@@ -38,6 +38,7 @@ def retrlines(ftpconn, cmd):
 
 # pylint:disable=deprecated-method
 
+
 class TestIntegration(LoopTestMixin,
                       AsyncoreErrorHookMixin,
                       unittest.TestCase):
@@ -52,13 +53,12 @@ class TestIntegration(LoopTestMixin,
     def setUp(self):
         super(TestIntegration, self).setUp()
         # Avoid the tests hanging for a long time if something goes wrong
-        socket.setdefaulttimeout(10) # XXX: We don't tear this down
+        socket.setdefaulttimeout(10)  # XXX: We don't tear this down
 
     def _makeServer(self):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.ftp.server import FTPServer
-
 
         root_dir = demofs.Directory()
         root_dir['test'] = demofs.Directory()
@@ -79,7 +79,6 @@ class TestIntegration(LoopTestMixin,
         return FTPServer(self.LOCALHOST, self.SERVER_PORT, fs_access,
                          task_dispatcher=self.td, adj=my_adj)
 
-
     def getFTPConnectionSocket(self, login=1):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
@@ -99,7 +98,6 @@ class TestIntegration(LoopTestMixin,
 
         return ftp
 
-
     def execute(self, commands, login=1):
         ftp = self.getFTPConnectionSocket(login)
 
@@ -112,7 +110,6 @@ class TestIntegration(LoopTestMixin,
         self.assertTrue(result.endswith('\r\n'))
         ftp.close()
         return result
-
 
     def testABOR(self):
         # import only now to prevent the testrunner from importing it too early
@@ -175,28 +172,25 @@ class TestIntegration(LoopTestMixin,
         self.assertEqual(self.execute('CDUP', 1).rstrip(),
                          status_messages['SUCCESS_250'] % 'CDUP')
 
-
     def testCWD(self):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.ftp.server import status_messages
         self.assertEqual(self.execute('CWD test', 1).rstrip(),
-                         status_messages['SUCCESS_250'] %'CWD')
+                         status_messages['SUCCESS_250'] % 'CWD')
         self.assertEqual(self.execute('CWD foo', 1).rstrip(),
-                         status_messages['ERR_NO_DIR'] %'/foo')
-
+                         status_messages['ERR_NO_DIR'] % '/foo')
 
     def testDELE(self):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.ftp.server import status_messages
         self.assertEqual(self.execute('DELE test/existing', 1).rstrip(),
-                         status_messages['SUCCESS_250'] %'DELE')
+                         status_messages['SUCCESS_250'] % 'DELE')
         res = self.execute('DELE bar', 1).split()[0]
         self.assertEqual(res, '550')
         self.assertEqual(self.execute('DELE', 1).rstrip(),
                          status_messages['ERR_ARGS'])
-
 
     def testHELP(self):
         # import only now to prevent the testrunner from importing it too early
@@ -208,11 +202,9 @@ class TestIntegration(LoopTestMixin,
 
         self.assertEqual(self.execute('HELP', 1), result)
 
-
     def testLIST(self, conn=None):
         import datetime
         conn = conn or self.getFTPConnection()
-
 
         self.__fs.getany('existing').modified = datetime.datetime.now()
 
@@ -253,10 +245,10 @@ class TestIntegration(LoopTestMixin,
         self.execute(['MKD test/f1', 'MKD test/f2'], 1)
         conn = self.getFTPConnection()
         with self.assertRaises(ftplib.Error):
-            conn.sendcmd('MKD') # no arguments
+            conn.sendcmd('MKD')  # no arguments
 
         with self.assertRaises(ftplib.Error):
-            conn.sendcmd('MKD test/f1') # repeat
+            conn.sendcmd('MKD test/f1')  # repeat
 
         listing = []
         conn.retrlines('LIST /test', listing.append)
@@ -268,16 +260,14 @@ class TestIntegration(LoopTestMixin,
         # Make sure no garbage was left behind.
         self.testNOOP()
 
-
     def testNOOP(self):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
         from zope.server.ftp.server import status_messages
         self.assertEqual(self.execute('NOOP', 0).rstrip(),
-                         status_messages['SUCCESS_200'] %'NOOP')
+                         status_messages['SUCCESS_200'] % 'NOOP')
         self.assertEqual(self.execute('NOOP', 1).rstrip(),
-                         status_messages['SUCCESS_200'] %'NOOP')
-
+                         status_messages['SUCCESS_200'] % 'NOOP')
 
     def testPASS(self):
         # import only now to prevent the testrunner from importing it too early
@@ -289,7 +279,6 @@ class TestIntegration(LoopTestMixin,
         self.assertEqual(self.execute('PASS bar', 0).rstrip(),
                          status_messages['LOGIN_MISMATCH'])
 
-
     def testQUIT(self):
         # import only now to prevent the testrunner from importing it too early
         # Otherwise dualmodechannel.the_trigger is closed by the ZEO tests
@@ -298,7 +287,6 @@ class TestIntegration(LoopTestMixin,
                          status_messages['GOODBYE'])
         self.assertEqual(self.execute('QUIT', 1).rstrip(),
                          status_messages['GOODBYE'])
-
 
     def testSTOR(self):
         conn = self.getFTPConnection()
@@ -322,7 +310,6 @@ class TestIntegration(LoopTestMixin,
             conn.sendcmd('STOR')
         self.testNOOP()
 
-
     def testSTOR_over(self):
         conn = self.getFTPConnection()
         fp = BytesIO(b'Charity never faileth')
@@ -331,7 +318,6 @@ class TestIntegration(LoopTestMixin,
                          b'Charity never faileth')
         # Make sure no garbage was left behind.
         self.testNOOP()
-
 
     def testUSER(self):
         # import only now to prevent the testrunner from importing it too early
@@ -384,6 +370,7 @@ class TestIntegration(LoopTestMixin,
         conn = self.getFTPConnection()
         with self.assertRaisesRegex(ftplib.Error, "command not understood"):
             conn.sendcmd('RETR')
+
     def testRETR_no_file(self):
         conn = self.getFTPConnection()
         with self.assertRaisesRegex(ftplib.Error, "not a file"):
@@ -448,8 +435,8 @@ class TestIntegration(LoopTestMixin,
     def testSIZE(self):
         conn = self.getFTPConnection()
         resp = conn.sendcmd('SIZE /existing')
-        # XXX: This fails with the ftp client though, "17 bytes" can't be parsed
-        # as an int
+        # XXX: This fails with the ftp client though, "17 bytes" can't be
+        # parsed as an int
         self.assertEqual(resp, '213 17 Bytes')
 
         with self.assertRaisesRegex(ftplib.Error, 'No such file'):
@@ -480,12 +467,15 @@ class TestIntegration(LoopTestMixin,
         with self.assertRaisesRegex(ftplib.Error, 'size must be 8'):
             conn.sendcmd('TYPE l 9 x')
 
+
 class MockChannel(object):
     class adj(object):
         outbuf_overflow = 1
+
     def closedData(self):
         pass
     connected = False
+
 
 class TestRETRChannel(unittest.TestCase):
 
@@ -501,12 +491,13 @@ class TestRETRChannel(unittest.TestCase):
 
     def test_handle_read_error(self):
         from zope.server.ftp import server
+
         class S(server.RETRChannel):
             def recv(self, *args):
                 raise socket.error()
+
             def report(self, _code):
                 pass
-
 
         c = S(MockChannel(), None)
         c.handle_read()

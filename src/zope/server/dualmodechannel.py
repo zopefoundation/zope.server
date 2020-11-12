@@ -94,10 +94,7 @@ class DualModeChannel(asyncore.dispatcher, object):
         self.received(data)
 
     def received(self, data):
-        """
-        Override to receive data in async mode.
-        """
-
+        """Override to receive data in async mode."""
 
     def handle_comm_error(self):
         """
@@ -108,7 +105,7 @@ class DualModeChannel(asyncore.dispatcher, object):
         self.handle_error()
 
     def set_sync(self):
-        """Switches to synchronous mode.
+        """Switch to synchronous mode.
 
         The main thread will stop calling received().
         """
@@ -119,7 +116,7 @@ class DualModeChannel(asyncore.dispatcher, object):
     #
 
     def flush(self, block=True):
-        """Sends pending data.
+        """Send pending data.
 
         If block is set, this pauses the application.  If it is turned
         off, only the amount of data that can be sent without blocking
@@ -142,7 +139,7 @@ class DualModeChannel(asyncore.dispatcher, object):
                 self.socket.setblocking(0)
 
     def set_async(self):
-        """Switches to asynchronous mode.
+        """Switch to asynchronous mode.
 
         The main thread will begin calling received() again.
         """
@@ -176,14 +173,14 @@ class DualModeChannel(asyncore.dispatcher, object):
         return wrote
 
     def pull_trigger(self):
-        """Wakes up the main loop.
-        """
+        """Wake up the main loop."""
         the_trigger.pull_trigger()
 
     def _flush_some(self):
-        """Flushes data.
+        """Flush data.
 
-        Returns 1 if some data was sent."""
+        Returns 1 if some data was sent.
+        """
         outbuf = self.outbuf
         if outbuf and self.connected:
             chunk = outbuf.get(self.adj.send_bytes)
@@ -212,7 +209,8 @@ class DualModeChannel(asyncore.dispatcher, object):
         self.connected = False
         try:
             asyncore.dispatcher.close(self)
-        except AttributeError: # pragma: no cover (tox coverage environment is python 3)
+        except AttributeError:  # pragma: no cover
+            # (tox coverage environment is python 3)
             # On Python 2.7, this is not idempotent. If we were
             # already closed (or never fully opened) it will
             # raise a AttributeError because it tries to call close()

@@ -21,6 +21,7 @@ execute = 1
 read = 2
 write = 4
 
+
 class File(object):
     type = 'f'
     modified = None
@@ -41,6 +42,7 @@ class File(object):
     def revoke(self, user, access):
         self.access[user] = self.access.get(user, 0) ^ access
 
+
 class Directory(File):
 
     type = 'd'
@@ -58,7 +60,7 @@ class Directory(File):
     def __setitem__(self, name, v):
         self.files[name] = v
 
-    def __delitem__(self, name): # pragma: no cover
+    def __delitem__(self, name):  # pragma: no cover
         del self.files[name]
 
     def __contains__(self, name):
@@ -67,10 +69,10 @@ class Directory(File):
     def __iter__(self):
         return iter(self.files)
 
+
 @implementer(IFileSystem)
 class DemoFileSystem(object):
     __doc__ = IFileSystem.__doc__
-
 
     File = File
     Directory = Directory
@@ -120,12 +122,12 @@ class DemoFileSystem(object):
         return d
 
     def type(self, path):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         f = self.get(path)
         return getattr(f, 'type', None)
 
     def names(self, path, filter=None):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         f = list(self.getdir(path))
         assert filter is None, "no filter allowed"
         return f
@@ -136,7 +138,7 @@ class DemoFileSystem(object):
             'name': name,
             'group_read': file.accessable(self.user, read),
             'group_write': file.accessable(self.user, write),
-            }
+        }
         if file.type == 'f':
             info['size'] = len(file.data)
         if file.modified is not None:
@@ -145,7 +147,7 @@ class DemoFileSystem(object):
         return info
 
     def ls(self, path, filter=None):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         f = self.getdir(path)
         assert filter is None
         return [
@@ -154,7 +156,7 @@ class DemoFileSystem(object):
         ]
 
     def readfile(self, path, outstream, start=0, end=None):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         f = self.getfile(path)
 
         data = f.data
@@ -166,21 +168,21 @@ class DemoFileSystem(object):
         outstream.write(data)
 
     def lsinfo(self, path):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         f = self.getany(path)
         return self._lsinfo(posixpath.split(path)[1], f)
 
     def mtime(self, path):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         return self.getany(path).modified
 
     def size(self, path):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         f = self.getany(path)
         return len(getattr(f, 'data', b''))
 
     def mkdir(self, path):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         path, name = posixpath.split(path)
         d = self.getwdir(path)
         if name in d.files:
@@ -190,7 +192,7 @@ class DemoFileSystem(object):
         d.files[name] = newdir
 
     def remove(self, path):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         path, name = posixpath.split(path)
         d = self.getwdir(path)
         if name not in d.files:
@@ -212,7 +214,7 @@ class DemoFileSystem(object):
         del d.files[name]
 
     def rename(self, old, new):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         oldpath, oldname = posixpath.split(old)
         newpath, newname = posixpath.split(new)
 
@@ -228,7 +230,7 @@ class DemoFileSystem(object):
         del olddir.files[oldname]
 
     def writefile(self, path, instream, start=None, end=None, append=False):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         path, name = posixpath.split(path)
         d = self.getdir(path)
         f = d.files.get(name)
@@ -258,15 +260,15 @@ class DemoFileSystem(object):
             if end:
                 if end < 0:
                     raise AssertionError("Negative ending file position")
-                l = end - start
-                newdata = instream.read(l)
+                length = end - start
+                newdata = instream.read(length)
 
                 f.data = prefix + newdata + f.data[start + len(newdata):]
             else:
                 f.data = prefix + instream.read()
 
     def writable(self, path):
-        "See zope.server.interfaces.ftp.IFileSystem"
+        """See zope.server.interfaces.ftp.IFileSystem"""
         path, name = posixpath.split(path)
         try:
             d = self.getdir(path)
@@ -277,17 +279,17 @@ class DemoFileSystem(object):
         f = d[name]
         return f.type == 'f' and f.accessable(self.user, write)
 
+
 @implementer(IFileSystemAccess)
 class DemoFileSystemAccess(object):
     __doc__ = IFileSystemAccess.__doc__
-
 
     def __init__(self, files, users):
         self.files = files
         self.users = users
 
     def authenticate(self, credentials):
-        "See zope.server.interfaces.ftp.IFileSystemAccess"
+        """See zope.server.interfaces.ftp.IFileSystemAccess"""
         user, password = credentials
         if user != 'anonymous':
             if self.users.get(user) != password:
@@ -295,6 +297,6 @@ class DemoFileSystemAccess(object):
         return user
 
     def open(self, credentials):
-        "See zope.server.interfaces.ftp.IFileSystemAccess"
+        """See zope.server.interfaces.ftp.IFileSystemAccess"""
         user = self.authenticate(credentials)
         return DemoFileSystem(self.files, user)

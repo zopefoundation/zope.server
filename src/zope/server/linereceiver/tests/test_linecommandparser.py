@@ -7,6 +7,7 @@ import unittest
 
 from zope.server.linereceiver import linecommandparser
 
+
 class TestLineCommandparser(unittest.TestCase):
 
     def test_received_completed(self):

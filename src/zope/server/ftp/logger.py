@@ -17,11 +17,12 @@ import time
 
 from zope.server.http.commonaccesslogger import CommonAccessLogger
 
+
 class CommonFTPActivityLogger(CommonAccessLogger):
     """Outputs hits in common HTTP log format."""
 
     def log(self, task):
-        """Receives a completed task and logs it in the common log format."""
+        """Receive a completed task and logs it in the common log format."""
         now = time.time()
         message = ' - %s [%s] "%s %s"' % (
             task.channel.username,

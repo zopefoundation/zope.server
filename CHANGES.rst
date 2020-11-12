@@ -5,7 +5,7 @@
 4.0.3 (unreleased)
 ==================
 
-- Add Python 3.8 support.
+- Add Python 3.8 and 3.9 support.
 
 - Drop Python 3.4 support.
 

@@ -8,6 +8,7 @@ import unittest
 from zope.testing.cleanup import CleanUp
 from zope.server import serverchannelbase
 
+
 class TestServerChannelBase(CleanUp,
                             unittest.TestCase):
 
@@ -28,7 +29,6 @@ class TestServerChannelBase(CleanUp,
 
         channel = self._makeOne()
         channel.adj = adj
-
 
         def log_info(msg, level):
             self.assertEqual(level, 'error')
@@ -53,6 +53,7 @@ class TestServerChannelBase(CleanUp,
         channel.adj = adj
 
         closed = []
+
         def close():
             closed.append(True)
 
@@ -72,6 +73,7 @@ class TestServerChannelBase(CleanUp,
 
         class MyExit(SystemExit):
             pass
+
         class MyKB(KeyboardInterrupt):
             pass
 
@@ -106,7 +108,6 @@ class TestServerChannelBase(CleanUp,
             def addTask(self, t):
                 self.tasks += (t,)
 
-
         channel.server = Server()
 
         # Exception propagates
@@ -115,7 +116,6 @@ class TestServerChannelBase(CleanUp,
 
         # and task is queue again
         self.assertEqual(channel.server.tasks, (channel,))
-
 
     def test_cancel(self):
         channel = self._makeOne()

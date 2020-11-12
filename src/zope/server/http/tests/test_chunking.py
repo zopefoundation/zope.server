@@ -8,6 +8,7 @@ import unittest
 from zope.server.http import chunking
 from zope.server.buffers import StringIOBasedBuffer
 
+
 class TestChunkedReceiver(unittest.TestCase):
 
     def _makeOne(self):

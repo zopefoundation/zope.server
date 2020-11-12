@@ -20,6 +20,8 @@ from threading import Lock
 import errno
 
 _ADDRESS_MASK = 256 ** struct.calcsize('P')
+
+
 def positive_id(obj):
     """Return id(obj) as a non-negative integer."""
     # Note that the output depends on the size of void* on the platform.
@@ -61,6 +63,7 @@ def positive_id(obj):
 # why this is true, imagine this scenario: A thread tries to push some
 # new data onto a channel's outgoing data queue at the same time that
 # the main thread is trying to remove some]
+
 
 class _triggerbase(object):
     """OS-independent base class for OS-dependent trigger class."""
@@ -124,7 +127,7 @@ class _triggerbase(object):
             for thunk in self.thunks:
                 try:
                     thunk()
-                except:
+                except:  # noqa: E722 do not use bare 'except'
                     _nil, t, v, tbinfo = asyncore.compact_traceback()
                     print('exception in trigger thunk:'
                           ' (%s:%s %s)' % (t, v, tbinfo))
@@ -164,8 +167,10 @@ if hasattr(asyncore, 'file_dispatcher'):
         def _physical_pull(self):
             os.write(self.trigger, b'x')
 
+
 class BindError(Exception):
     pass
+
 
 class sockettrigger(_triggerbase, asyncore.dispatcher):
     # Windows version; uses just sockets, because a pipe isn't select'able
@@ -214,7 +219,7 @@ class sockettrigger(_triggerbase, asyncore.dispatcher):
                     # "Address already in use" is the only error
                     # I've seen on two WinXP Pro SP2 boxes, under
                     # Pythons 2.3.5 and 2.4.1.
-                    # (Original commit: https://github.com/zopefoundation/ZEO/commit/c4f736a78ca6713fc3dec21f8aa1fa6f144dd82f)
+                    # (Original commit: https://github.com/zopefoundation/ZEO/commit/c4f736a78ca6713fc3dec21f8aa1fa6f144dd82f)   # noqa: E501 line too long
                     a.close()
                     w.close()
                     raise
@@ -244,7 +249,8 @@ class sockettrigger(_triggerbase, asyncore.dispatcher):
     def _physical_pull(self):
         self.trigger.send(b'x')
 
+
 if os.name == 'posix':
     trigger = pipetrigger
-else: # pragma: no cover
+else:  # pragma: no cover
     trigger = sockettrigger

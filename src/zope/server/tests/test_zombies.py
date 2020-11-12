@@ -15,13 +15,18 @@
 """
 import doctest
 
+
 class FakeSocket(object):
     data = b''
-    setblocking = lambda *_: None
-    close = lambda *_: None
 
     def __init__(self, no):
         self.no = no
+
+    def setblocking(self, *args):
+        return None
+
+    def close(self, *args):
+        return None
 
     def fileno(self):
         return self.no
@@ -140,6 +145,7 @@ def zombies_test():
     True
 
 """
+
 
 def test_suite():
     return doctest.DocTestSuite()

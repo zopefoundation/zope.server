@@ -30,6 +30,7 @@ from zope.server.linereceiver.lineserverchannel import LineServerChannel
 from zope.server.serverbase import ServerBase
 from zope.server.dualmodechannel import DualModeChannel, the_trigger
 
+# flake8: noqa: E203 whitespace before ':'
 status_messages = {
     'OPEN_DATA_CONN'   : '150 Opening %s mode data connection for file list',
     'OPEN_CONN'        : '150 Opening %s connection for %s',
@@ -81,13 +82,13 @@ status_messages = {
     'ERR_IO'           : '553 I/O Error: %s',
     'ERR_RENAME'       : '560 Could not rename "%s" to "%s": %s',
     'ERR_RNFR_SOURCE'  : '560 No source filename specify. Call RNFR first.',
-    }
+}
+
 
 @implementer(IFTPCommandHandler)
 class FTPServerChannel(LineServerChannel):
     """The FTP Server Channel represents a connection to a particular
        client. We can therefore store information here."""
-
 
     # List of commands that are always available
     special_commands = (
@@ -116,10 +117,12 @@ class FTPServerChannel(LineServerChannel):
 
     restart_position = 0
 
-    type_map = {'a':'ASCII', 'i':'Binary', 'e':'EBCDIC', 'l':'Binary'}
+    type_map = {'a': 'ASCII',
+                'i': 'Binary',
+                'e': 'EBCDIC',
+                'l': 'Binary'}
 
-    type_mode_map = {'a':'t', 'i':'b', 'e':'b', 'l':'b'}
-
+    type_mode_map = {'a': 't', 'i': 'b', 'e': 'b', 'l': 'b'}
 
     def __init__(self, server, conn, addr, adj=None):
         super(FTPServerChannel, self).__init__(server, conn, addr, adj)
@@ -138,37 +141,32 @@ class FTPServerChannel(LineServerChannel):
 
         self.reply('SERVER_READY', self.server.server_name)
 
-
     def _getFileSystem(self):
         """Open the filesystem using the current credentials."""
         return self.server.fs_access.open(self.credentials)
 
-
     def cmd_abor(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         assert self.async_mode
         self.reply('TRANSFER_ABORTED')
         self.abortPassive()
         self.abortData()
 
-
     def cmd_appe(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         return self.cmd_stor(args, 'a')
 
-
     def cmd_cdup(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         path = self._generatePath('../')
         if self._getFileSystem().type(path):
             self.cwd = path
             self.reply('SUCCESS_250', 'CDUP')
-        else: # pragma: no cover
+        else:  # pragma: no cover
             self.reply('ERR_NO_FILE', path)
 
-
     def cmd_cwd(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         path = self._generatePath(args)
         if self._getFileSystem().type(path) == 'd':
             self.cwd = path
@@ -176,9 +174,8 @@ class FTPServerChannel(LineServerChannel):
         else:
             self.reply('ERR_NO_DIR', path)
 
-
     def cmd_dele(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         if not args:
             self.reply('ERR_ARGS')
             return
@@ -191,16 +188,14 @@ class FTPServerChannel(LineServerChannel):
         else:
             self.reply('SUCCESS_250', 'DELE')
 
-
     def cmd_help(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         self.reply('HELP_START', flush=0)
         self.write(b'Help goes here somewhen.\r\n')
         self.reply('HELP_END')
 
-
     def cmd_list(self, args, long=1):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         opts = ()
         if args.strip().startswith('-'):
             try:
@@ -224,7 +219,7 @@ class FTPServerChannel(LineServerChannel):
                 args, long,
                 directory=bool([opt for opt in opts if opt[0] == '-d'])
             )
-        except OSError as err: # pragma: no cover
+        except OSError as err:  # pragma: no cover
             self.reply('ERR_NO_LIST', str(err))
             return
         ok_reply = ('OPEN_DATA_CONN', self.type_map[self.transfer_mode])
@@ -232,7 +227,7 @@ class FTPServerChannel(LineServerChannel):
         try:
             cdc.write(s.encode('utf-8'))
             cdc.close_when_done()
-        except OSError as err: # pragma: no cover
+        except OSError as err:  # pragma: no cover
             self.reply('ERR_NO_LIST', str(err))
             cdc.reported = True
             cdc.close_when_done()
@@ -254,19 +249,18 @@ class FTPServerChannel(LineServerChannel):
         if fs.type(path) == 'd' and not directory:
             if long:
                 file_list = map(ls, fs.ls(path))
-            else: # pragma: no cover
+            else:  # pragma: no cover
                 file_list = fs.names(path)
         else:
             if long:
                 file_list = [ls(fs.lsinfo(path))]
-            else: # pragma: no cover
+            else:  # pragma: no cover
                 file_list = [posixpath.split(path)[1]]
 
         return '\r\n'.join(file_list) + '\r\n'
 
-
     def cmd_mdtm(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         fs = self._getFileSystem()
         # We simply do not understand this non-standard extension to MDTM
         if len(args.split()) > 1:
@@ -286,9 +280,8 @@ class FTPServerChannel(LineServerChannel):
 
             self.reply('FILE_DATE', mtime)
 
-
     def cmd_mkd(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         if not args:
             self.reply('ERR_ARGS')
             return
@@ -300,27 +293,23 @@ class FTPServerChannel(LineServerChannel):
         else:
             self.reply('SUCCESS_257', 'MKD')
 
-
     def cmd_mode(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         if len(args) == 1 and args in 'sS':
             self.reply('MODE_OK')
         else:
             self.reply('MODE_UNKNOWN')
 
-
     def cmd_nlst(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         self.cmd_list(args, 0)
 
-
     def cmd_noop(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         self.reply('SUCCESS_200', 'NOOP')
 
-
     def cmd_pass(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         self.authenticated = 0
         password = args
         credentials = (self.username, password)
@@ -334,9 +323,8 @@ class FTPServerChannel(LineServerChannel):
             self.authenticated = 1
             self.reply('LOGIN_SUCCESS')
 
-
     def cmd_pasv(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         assert self.async_mode
         # Kill any existing passive listener first.
         self.abortPassive()
@@ -347,12 +335,11 @@ class FTPServerChannel(LineServerChannel):
                                      port / 256,
                                      port % 256))
 
-
     def cmd_port(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         info = args.split(',')
         ip = '.'.join(info[:4])
-        port = int(info[4])*256 + int(info[5])
+        port = int(info[4]) * 256 + int(info[5])
         # how many data connections at a time?
         # I'm assuming one for now...
         # TODO: we should (optionally) verify that the
@@ -360,20 +347,17 @@ class FTPServerChannel(LineServerChannel):
         self.port_addr = (ip, port)
         self.reply('SUCCESS_200', 'PORT')
 
-
     def cmd_pwd(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         self.reply('ALREADY_CURRENT', self.cwd)
 
-
     def cmd_quit(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         self.reply('GOODBYE')
         self.close_when_done()
 
-
     def cmd_retr(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         fs = self._getFileSystem()
         if not args:
             self.reply('CMD_UNKNOWN', 'RETR')
@@ -395,18 +379,17 @@ class FTPServerChannel(LineServerChannel):
         try:
             fs.readfile(path, outstream, start)
             cdc.close_when_done()
-        except OSError as err: # pragma: no cover
+        except OSError as err:  # pragma: no cover
             self.reply('ERR_OPEN_READ', str(err))
             cdc.reported = True
             cdc.close_when_done()
-        except IOError as err: # pragma: no cover XXX Same thing on Python 3
+        except IOError as err:  # pragma: no cover XXX Same thing on Python 3
             self.reply('ERR_IO', str(err))
             cdc.reported = True
             cdc.close_when_done()
 
-
     def cmd_rest(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         try:
             pos = int(args)
         except ValueError:
@@ -415,9 +398,8 @@ class FTPServerChannel(LineServerChannel):
         self.restart_position = pos
         self.reply('RESTART_TRANSFER', pos)
 
-
     def cmd_rmd(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         if not args:
             self.reply('ERR_ARGS')
             return
@@ -427,11 +409,10 @@ class FTPServerChannel(LineServerChannel):
         except OSError as err:
             self.reply('ERR_DELETE_DIR', str(err))
         else:
-            self.reply('SUCCESS_250', 'RMD') # pragma: no cover
-
+            self.reply('SUCCESS_250', 'RMD')  # pragma: no cover
 
     def cmd_rnfr(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         path = self._generatePath(args)
         if self._getFileSystem().type(path):
             self._rnfr = path
@@ -439,9 +420,8 @@ class FTPServerChannel(LineServerChannel):
         else:
             self.reply('ERR_NO_FILE', path)
 
-
     def cmd_rnto(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         path = self._generatePath(args)
         if self._rnfr is None:
             self.reply('ERR_RENAME')
@@ -451,12 +431,11 @@ class FTPServerChannel(LineServerChannel):
         except OSError as err:
             self.reply('ERR_RENAME', (self._rnfr, path, str(err)))
         else:
-            self.reply('SUCCESS_250', 'RNTO') # pragma: no cover
+            self.reply('SUCCESS_250', 'RNTO')  # pragma: no cover
         self._rnfr = None
 
-
     def cmd_size(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         path = self._generatePath(args)
         fs = self._getFileSystem()
         if fs.type(path) != 'f':
@@ -464,9 +443,8 @@ class FTPServerChannel(LineServerChannel):
         else:
             self.reply('FILE_SIZE', fs.size(path))
 
-
     def cmd_stor(self, args, write_mode='w'):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         if not args:
             self.reply('ERR_ARGS')
             return
@@ -485,7 +463,6 @@ class FTPServerChannel(LineServerChannel):
         self.syncConnectData(cdc)
         self.reply('OPEN_CONN', (self.type_map[self.transfer_mode], path))
 
-
     def finishSTOR(self, buffer, finish_args):
         """Called by STORChannel when the client has sent all data."""
         (path, mode, start) = finish_args
@@ -495,31 +472,28 @@ class FTPServerChannel(LineServerChannel):
             infile.seek(0)
             self._getFileSystem().writefile(path, infile, start,
                                             append=(mode[0] == 'a'))
-        except OSError as err: # pragma: no cover
+        except OSError as err:  # pragma: no cover
             self.reply('ERR_OPEN_WRITE', str(err))
-        except IOError as err: # pragma: no cover XXX On Py3 this is OSError
+        except IOError as err:  # pragma: no cover XXX On Py3 this is OSError
             self.reply('ERR_IO', str(err))
-        except: # pragma: no cover
+        except:  # noqa: E722 do not use bare 'except' pragma: no cover
             self.exception()
         else:
             self.reply('TRANS_SUCCESS')
 
-
     def cmd_stru(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         if len(args) == 1 and args in 'fF':
             self.reply('STRU_OK')
         else:
             self.reply('STRU_UNKNOWN')
 
-
     def cmd_syst(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         self.reply('SERVER_TYPE', self.system)
 
-
     def cmd_type(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         # ascii, ebcdic, image, local <byte size>
         args = args.split()
         t = args[0].lower()
@@ -533,9 +507,8 @@ class FTPServerChannel(LineServerChannel):
             self.transfer_mode = t
             self.reply('TYPE_SET_OK', self.type_map[t])
 
-
     def cmd_user(self, args):
-        'See IFTPCommandHandler'
+        """See IFTPCommandHandler"""
         self.authenticated = 0
         if len(args) > 1:
             self.username = args
@@ -553,11 +526,11 @@ class FTPServerChannel(LineServerChannel):
         return posixpath.normpath(path)
 
     def syncConnectData(self, cdc):
-        """Calls asyncConnectData in the asynchronous thread."""
+        """Call asyncConnectData in the asynchronous thread."""
         the_trigger.pull_trigger(lambda: self.asyncConnectData(cdc))
 
     def asyncConnectData(self, cdc):
-        """Starts connecting the data channel.
+        """Start connecting the data channel.
 
         This is a little complicated because the data connection might
         be established already (in passive mode) or might be
@@ -574,7 +547,7 @@ class FTPServerChannel(LineServerChannel):
         if self.passive_listener is not None:
             # Connect via PASV
             self.passive_listener.connectData(cdc)
-        if self.port_addr: # pragma: no cover
+        if self.port_addr:  # pragma: no cover
             # Connect via PORT
             a = self.port_addr
             self.port_addr = None
@@ -606,11 +579,8 @@ class FTPServerChannel(LineServerChannel):
         LineServerChannel.close(self)
 
 
-
 def ls(ls_info):
-    """Formats a directory entry similarly to the 'ls' command.
-    """
-
+    """Format a directory entry similarly to the 'ls' command."""
     info = {
         'owner_name': 'na',
         'owner_readable': True,
@@ -622,7 +592,7 @@ def ls(ls_info):
         'other_writable': False,
         'nlinks': 1,
         'size': 0,
-        }
+    }
 
     if ls_info['type'] == 'd':
         info['owner_executable'] = True
@@ -637,7 +607,9 @@ def ls(ls_info):
 
     mtime = info.get('mtime')
     if mtime is not None:
-        fstring = '%b %d  %Y' if date.today() - mtime.date() > timedelta(days=180) else '%b %d %H:%M'
+        fstring = ('%b %d  %Y'
+                   if date.today() - mtime.date() > timedelta(days=180)
+                   else '%b %d %H:%M')
         mtime = mtime.strftime(fstring)
     else:
         mtime = "Jan 02  0000"
@@ -659,7 +631,7 @@ def ls(ls_info):
         info['size'],
         mtime,
         info['name'],
-        )
+    )
 
 
 class PassiveListener(asyncore.dispatcher):
@@ -694,12 +666,12 @@ class PassiveListener(asyncore.dispatcher):
         self.port = self.socket.getsockname()[1]
         self.listen(1)
 
-    def log(self, *ignore): # pragma: no cover
+    def log(self, *ignore):  # pragma: no cover
         pass
 
     def abort(self):
         """Abort the passive listener."""
-        if not self.closed: # pragma: no cover
+        if not self.closed:  # pragma: no cover
             self.closed = True
             self.close()
         if self.accepted is not None:
@@ -712,19 +684,19 @@ class PassiveListener(asyncore.dispatcher):
         socket.  This code ignores that case.
         """
         v = self.accept()
-        if v is None: # pragma: no cover
+        if v is None:  # pragma: no cover
             return
         self.accepted, _addr = v
-        if self.accepted is None: # pragma: no cover
+        if self.accepted is None:  # pragma: no cover
             return
         self.accepted.setblocking(0)
         self.closed = True
         self.close()
-        if self.client_dc is not None: # pragma: no cover
+        if self.client_dc is not None:  # pragma: no cover
             self.connectData(self.client_dc)
 
     def connectData(self, cdc):
-        """Sends the connection to the data channel.
+        """Send the connection to the data channel.
 
         If the connection has not yet been made, sends the connection
         when it becomes available.
@@ -740,7 +712,7 @@ class PassiveListener(asyncore.dispatcher):
             # record that the data connection already has the socket.
             self.accepted = None
             self.control_channel.connectedPassive()
-        else: # pragma: no cover
+        else:  # pragma: no cover
             self.client_dc = cdc
 
 
@@ -759,11 +731,11 @@ class FTPDataChannel(DualModeChannel):
     def connectPort(self, client_addr):
         """Connect to a port on the client"""
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        #if bind_local_minus_one:
+        # if bind_local_minus_one:
         #    self.bind(('', self.control_channel.server.port - 1))
         try:
             self.connect(client_addr)
-        except socket.error: # pragma: no cover
+        except socket.error:  # pragma: no cover
             self.report('NO_DATA_CONN')
 
     def abort(self):
@@ -774,7 +746,7 @@ class FTPDataChannel(DualModeChannel):
             self.close()
 
     def report(self, *reply_args):
-        """Reports the result of the data transfer."""
+        """Report the result of the data transfer."""
         self.reported = True
         if self.control_channel is not None:
             self.control_channel.reply(*reply_args)
@@ -783,7 +755,7 @@ class FTPDataChannel(DualModeChannel):
         """Provide a default report on close."""
 
     def close(self):
-        """Notifies the control channel when the data connection closes."""
+        """Notify the control channel when the data connection closes."""
         c = self.control_channel
         try:
             if c is not None and c.connected and not self.reported:
@@ -826,7 +798,7 @@ class STORChannel(FTPDataChannel):
         c.queue_task(task)
 
     def reportDefault(self):
-        if not self.complete_transfer: # pragma: no cover
+        if not self.complete_transfer:  # pragma: no cover
             self.report('TRANSFER_ABORTED')
         # else the transfer completed and FinishSTORTask will
         # provide a complete reply through finishSTOR().
@@ -849,6 +821,7 @@ class FinishSTORTask(AbstractTask):
 
     def finish(self):
         """Does nothing"""
+
 
 class RETRChannel(FTPDataChannel):
     """Channel for downloading one file from server to client
@@ -900,11 +873,11 @@ class RETRChannel(FTPDataChannel):
             # All data transferred
             if not self.opened:
                 # Zero-length file
-                self._open() # pragma: no cover
+                self._open()  # pragma: no cover
             self.report('TRANS_SUCCESS')
         else:
             # Not all data transferred
-            self.report('TRANSFER_ABORTED') # pragma: no cover
+            self.report('TRANSFER_ABORTED')  # pragma: no cover
 
 
 class ApplicationOutputStream(object):
@@ -924,7 +897,6 @@ class FTPServer(ServerBase):
 
     channel_class = FTPServerChannel
     SERVER_IDENT = 'zope.server.ftp'
-
 
     def __init__(self, ip, port, fs_access, *args, **kw):
 

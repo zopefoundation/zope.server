@@ -16,6 +16,7 @@
 from zope.interface import Interface
 from zope.interface import Attribute
 
+
 class ISocket(Interface):
     """Represents a socket.
 
@@ -79,26 +80,23 @@ class ISocket(Interface):
 
 
 class ITaskDispatcher(Interface):
-    """An object that accepts tasks and dispatches them to threads.
-    """
+    """An object that accepts tasks and dispatches them to threads."""
 
     def setThreadCount(count):
-        """Sets the number of handler threads.
-        """
+        """Set the number of handler threads."""
 
     def addTask(task):
-        """Receives a task and dispatches it to a thread.
+        """Receive a task and dispatches it to a thread.
 
         Note that, depending on load, a task may have to wait a
         while for its turn.
         """
 
     def shutdown(cancel_pending=True, timeout=5):
-        """Shuts down all handler threads and may cancel pending tasks.
-        """
+        """Shut down all handler threads and may cancel pending tasks."""
 
     def getPendingTasksEstimate():
-        """Returns an estimate of the number of tasks waiting to be serviced.
+        """Return an estimate of the number of tasks waiting to be serviced.
 
         This method may be useful for monitoring purposes.  If the
         number of pending tasks is continually climbing, your server
@@ -107,16 +105,15 @@ class ITaskDispatcher(Interface):
 
 
 class ITask(Interface):
-    """
-    The interface expected of an object placed in the queue of
+    """The interface expected of an object placed in the queue of
     a ThreadedTaskDispatcher.  Provides facilities for executing
     or canceling the task.
     """
 
     def service():
-        """
-        Services the task.  Either service() or cancel() is called
-        for every task queued.
+        """Service the task.
+
+        Either service() or cancel() is called for every task queued.
         """
 
     def cancel():
@@ -131,6 +128,7 @@ class ITask(Interface):
         Called just before the task is queued to be executed in
         a different thread.
         """
+
 
 class IDispatcherEventHandler(Interface):
     """The Dispatcher can receive several different types of events. This
@@ -149,36 +147,28 @@ class IDispatcherEventHandler(Interface):
         """
 
     def handle_expt_event():
-        """An exception event was handed to the server.
-        """
+        """An exception event was handed to the server."""
 
     def handle_error():
-        """An error occurred, but we are still trying to fix it.
-        """
+        """An error occurred, but we are still trying to fix it."""
 
     def handle_expt():
-        """Handle unhandled exceptions. This is usually a time to log.
-        """
+        """Handle unhandled exceptions. This is usually a time to log."""
 
     def handle_read():
-        """Read output from client.
-        """
+        """Read output from client."""
 
     def handle_write():
-        """Write output via the socket to the client.
-        """
+        """Write output via the socket to the client."""
 
     def handle_connect():
-        """A client requests a connection, now we need to do soemthing.
-        """
+        """A client requests a connection, now we need to do something."""
 
     def handle_accept():
-        """A connection is accepted.
-        """
+        """A connection is accepted."""
 
     def handle_close():
-        """A connection is being closed.
-        """
+        """A connection is being closed."""
 
 
 class IStreamConsumer(Interface):
@@ -188,7 +178,7 @@ class IStreamConsumer(Interface):
     """
 
     def received(data):
-        """Accepts data, returning the number of bytes consumed."""
+        """Accept data, returning the number of bytes consumed."""
 
     completed = Attribute(
         'completed', 'Set to a true value when finished consuming data.')
@@ -197,13 +187,13 @@ class IStreamConsumer(Interface):
 class IServer(Interface):
     """This interface describes the basic base server.
 
-       The most unusual part about the Zope servers (since they all
-       implement this interface or inherit its base class) is that it
-       uses a mix of asynchronous and thread-based mechanism to
-       serve. While the low-level socket listener uses async, the
-       actual request is executed in a thread.  This is important
-       because even if a request takes a long time to process, the
-       server can service other requests simultaneously.
+    The most unusual part about the Zope servers (since they all
+    implement this interface or inherit its base class) is that it
+    uses a mix of asynchronous and thread-based mechanism to
+    serve. While the low-level socket listener uses async, the
+    actual request is executed in a thread.  This is important
+    because even if a request takes a long time to process, the
+    server can service other requests simultaneously.
     """
 
     channel_class = Attribute("""
@@ -226,13 +216,11 @@ class IDispatcherLogging(Interface):
        different structure.
     """
 
-    def log (message):
-        """Logs general requests made to the server.
-        """
+    def log(message):
+        """Log general requests made to the server."""
 
     def log_info(message, type='info'):
-        """Logs informational messages, warnings and errors.
-        """
+        """Log informational messages, warnings and errors."""
 
 
 class IServerChannel(Interface):
@@ -242,26 +230,25 @@ class IServerChannel(Interface):
                            generating tasks.""")
 
     def queue_task(task):
-        """Queues a channel-related task to be processed in sequence.
-        """
+        """Queue a channel-related task to be processed in sequence."""
 
 
 class IDispatcher(ISocket, IDispatcherEventHandler, IDispatcherLogging):
     """The dispatcher is the most low-level component of a server.
 
-       1. It manages the socket connections and distributes the
-          request to the appropriate channel.
+    1. It manages the socket connections and distributes the
+      request to the appropriate channel.
 
-       2. It handles the events passed to it, such as reading input,
-          writing output and handling errors. More about this
-          functionality can be found in IDispatcherEventHandler.
+    2. It handles the events passed to it, such as reading input,
+      writing output and handling errors. More about this
+      functionality can be found in IDispatcherEventHandler.
 
-       3. It handles logging of the requests passed to the server as
-          well as other informational messages and erros. Please see
-          IDispatcherLogging for more details.
+    3. It handles logging of the requests passed to the server as
+      well as other informational messages and errors. Please see
+      IDispatcherLogging for more details.
 
-       Note: Most of this documentation is taken from the Python
-             Library Reference.
+    Note: Most of this documentation is taken from the Python
+         Library Reference.
     """
 
     def add_channel(map=None):

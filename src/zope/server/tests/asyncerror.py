@@ -24,6 +24,7 @@ import asyncore
 import sys
 import traceback
 
+
 class AsyncoreErrorHookMixin(object):
     """Convert asyncore errors into unittest failures.
 

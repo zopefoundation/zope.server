@@ -7,11 +7,13 @@ import unittest
 
 from zope.server.logger import resolvinglogger
 
+
 class TestResolvingLogger(unittest.TestCase):
 
     def test_log_request(self):
         class Logger(object):
             msgs = ()
+
             def logMessage(self, msg):
                 self.msgs += (msg,)
 

@@ -20,9 +20,9 @@ from zope.server.http.http_date import monthname
 from zope.server.logger.pythonlogger import PythonLogger
 from zope.server.logger.resolvinglogger import ResolvingLogger
 
+
 class CommonAccessLogger(object):
-    """Outputs accesses in common HTTP log format.
-    """
+    """Output accesses in common HTTP log format."""
 
     def __init__(self, logger_object='accesslog', resolver=None):
         """
@@ -79,7 +79,7 @@ class CommonAccessLogger(object):
             D, monthname[M], Y, h, m, s, tz)
 
     def log(self, task):
-        """Receives a completed task and logs it in the common log format."""
+        """Receive a completed task and logs it in the common log format."""
         now = time.time()
         request_data = task.request_data
         req_headers = request_data.headers
@@ -98,5 +98,5 @@ class CommonAccessLogger(object):
                 task.bytes_written,
                 referer,
                 user_agent
-                )
             )
+        )

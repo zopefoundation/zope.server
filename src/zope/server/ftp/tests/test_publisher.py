@@ -28,6 +28,7 @@ class DemoFileSystem(demofs.DemoFileSystem):
         return demofs.DemoFileSystem.rename(
             self, "%s/%s" % (path, old), "%s/%s" % (path, new))
 
+
 class Publication(object):
 
     def __init__(self, root):
@@ -78,6 +79,7 @@ class Request(object):
     def close(self):
         pass
 
+
 class Response(object):
 
     _result = None
@@ -88,6 +90,7 @@ class Response(object):
     def getResult(self):
         return self._result
 
+
 class RequestFactory(object):
 
     def __init__(self, root):
@@ -97,6 +100,7 @@ class RequestFactory(object):
         r = Request(input, env)
         r.publication = self.pub
         return r
+
 
 class TestPublisherFileSystem(FileSystemTests, unittest.TestCase):
 
@@ -114,14 +118,15 @@ class TestPublisherFileSystem(FileSystemTests, unittest.TestCase):
         from zope.server.ftp.publisher import PublisherFileSystem
         self.filesystem = PublisherFileSystem('bob', RequestFactory(fs))
 
-
     def test_translate_parent(self):
         self.assertEqual('/', self.filesystem._translate('..'))
+
 
 class TestPublisherFTPServer(unittest.TestCase):
 
     def test_construct(self):
         from zope.server.ftp.publisher import PublisherFTPServer
+
         class NonBinding(PublisherFTPServer):
 
             def bind(self, addr):
@@ -130,6 +135,7 @@ class TestPublisherFTPServer(unittest.TestCase):
         server = NonBinding(Request, 'name', None, 80, start=False)
         self.addCleanup(server.close)
         self.assertIsNotNone(server.fs_access)
+
 
 class TestPublisherFileSystemAccess(unittest.TestCase):
 

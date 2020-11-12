@@ -16,16 +16,17 @@
 import unittest
 import logging
 
-from zope.server.http.commonaccesslogger import CommonAccessLogger as _CommonAccessLogger
+import zope.server.http.commonaccesslogger
 
-class CommonAccessLogger(_CommonAccessLogger):
+
+class CommonAccessLogger(
+        zope.server.http.commonaccesslogger.CommonAccessLogger):
     def _localtime(self, when):
         assert when == 123456789
         return (1973, 11, 29, 21, 33, 9)
 
 
 class TestCommonAccessLogger(unittest.TestCase):
-
     def test_default_constructor(self):
         from zope.server.logger.pythonlogger import PythonLogger
         logger = CommonAccessLogger()
@@ -37,12 +38,13 @@ class TestCommonAccessLogger(unittest.TestCase):
 
     def test_compute_timezone_for_log_negative(self):
         tz = -3600
-        self.assertEqual('+0100', CommonAccessLogger.compute_timezone_for_log(tz))
-
+        self.assertEqual('+0100',
+                         CommonAccessLogger.compute_timezone_for_log(tz))
 
     def test_compute_timezone_for_log_positive(self):
         tz = 3600
-        self.assertEqual('-0100', CommonAccessLogger.compute_timezone_for_log(tz))
+        self.assertEqual('-0100',
+                         CommonAccessLogger.compute_timezone_for_log(tz))
 
     def test_log_date_string_daylight(self):
         import time
@@ -92,6 +94,7 @@ class TestCommonAccessLogger(unittest.TestCase):
             bytes_written = 10
 
         orig_t = time.time
+
         def t():
             return 123456789
         orig_dl = time.daylight
@@ -109,5 +112,6 @@ class TestCommonAccessLogger(unittest.TestCase):
 
         self.assertEqual(1, len(handler.records))
         self.assertEqual(
-            'host - anonymous [29/Nov/1973:21:33:09 +0100] "GET / HTTP/1.0" 200 OK 10 "" ""',
+            'host - anonymous [29/Nov/1973:21:33:09 +0100]'
+            ' "GET / HTTP/1.0" 200 OK 10 "" ""',
             handler.records[0].getMessage())

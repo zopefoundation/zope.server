@@ -11,8 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""WSGI-compliant HTTP Server that uses the Zope Publisher for executing a task.
-"""
+"""WSGI-compliant HTTP Server using the Zope Publisher for executing a task."""
 import asyncore
 import re
 import sys
@@ -65,7 +64,8 @@ class WSGIHTTPServer(HTTPServer):
 
     def __init__(self, application, sub_protocol=None, *args, **kw):
 
-        if sys.platform[:3] == "win" and args[:1] == ('localhost',): # pragma: no cover
+        if (sys.platform[:3] == "win"
+                and args[:1] == ('localhost',)):  # pragma: no cover
             args = ('',) + args[1:]
 
         self.application = application
@@ -89,7 +89,7 @@ class WSGIHTTPServer(HTTPServer):
         # the following environment variables are required by the WSGI spec
         env['wsgi.version'] = (1, 0)
         env['wsgi.url_scheme'] = protocol
-        env['wsgi.errors'] = sys.stderr # apps should use the logging module
+        env['wsgi.errors'] = sys.stderr  # apps should use the logging module
         env['wsgi.multithread'] = True
         env['wsgi.multiprocess'] = True
         env['wsgi.run_once'] = False
@@ -138,7 +138,7 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
             # multiple times, allowing partial data to be sent.
             for value in result:
                 task.write(value)
-        except:
+        except:  # noqa: E722 do not use bare 'except'
             self.post_mortem(sys.exc_info())
         finally:
             if hasattr(result, "close"):

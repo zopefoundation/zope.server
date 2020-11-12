@@ -25,16 +25,17 @@ from zope.server.interfaces import ITask
 from zope.interface import implementer
 
 rename_headers = {
-    'CONTENT_LENGTH' : 'CONTENT_LENGTH',
-    'CONTENT_TYPE'   : 'CONTENT_TYPE',
-    'CONNECTION'     : 'CONNECTION_TYPE',
-    }
+    'CONTENT_LENGTH': 'CONTENT_LENGTH',
+    'CONTENT_TYPE': 'CONTENT_TYPE',
+    'CONNECTION': 'CONNECTION_TYPE',
+}
 
-@implementer(ITask, IHeaderOutput)  #, IOutputStream
+
+@implementer(ITask, IHeaderOutput)  # + IOutputStream
 class HTTPTask(AbstractTask):
     """An HTTP task accepts a request and writes to a channel.
 
-       Subclass this and override the execute() method.
+    Subclass this and override the execute() method.
     """
 
     instream = None
@@ -141,7 +142,6 @@ class HTTPTask(AbstractTask):
                           accumulated_headers):
             self.response_headers['Date'] = build_http_date(self.start_time)
 
-
     def buildResponseHeader(self):
         self.prepareResponseHeaders()
         first_line = 'HTTP/%s %s %s' % (self.version, self.status, self.reason)
@@ -154,7 +154,7 @@ class HTTPTask(AbstractTask):
         return res.encode('utf-8')
 
     def getCGIEnvironment(self):
-        """Returns a CGI-like environment."""
+        """Return a CGI-like environment."""
         env = self.cgi_env
         if env is not None:
             # Return the cached copy.
@@ -202,7 +202,6 @@ class HTTPTask(AbstractTask):
 
         self.cgi_env = env
         return env
-
 
     def finish(self):
         if not self.wrote_header:

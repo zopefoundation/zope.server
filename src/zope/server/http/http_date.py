@@ -18,14 +18,18 @@ import re
 import time
 import calendar
 
+
 def concat(*args):
     return ''.join(args)
+
 
 def join(seq, field=' '):
     return field.join(seq)
 
+
 def group(s):
     return '(' + s + ')'
+
 
 short_days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 long_days = ['sunday', 'monday', 'tuesday', 'wednesday',
@@ -46,7 +50,7 @@ months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul',
 
 monmap = {}
 for i in range(12):
-    monmap[months[i]] = i+1
+    monmap[months[i]] = i + 1
 
 months_reg = group(join(months, '|'))
 
@@ -56,18 +60,18 @@ months_reg = group(join(months, '|'))
 #       Sun Nov  6 08:49:37 1994       ; ANSI C's asctime() format
 
 # rfc822 format
-rfc822_date = join(
-    [concat(short_day_reg, ','),            # day
-     group('[0-9][0-9]?'),                  # date
-     months_reg,                            # month
-     group('[0-9]+'),                       # year
-     hms_reg,                               # hour minute second
-     'gmt'
-    ],
+rfc822_date = join([
+    concat(short_day_reg, ','),            # day
+    group('[0-9][0-9]?'),                  # date
+    months_reg,                            # month
+    group('[0-9]+'),                       # year
+    hms_reg,                               # hour minute second
+    'gmt'],
     ' '
 )
 
 rfc822_reg = re.compile(rfc822_date)
+
 
 def unpack_rfc822(m):
     g = m.group
@@ -84,19 +88,17 @@ def unpack_rfc822(m):
         0
     )
 
-    # rfc850 format
+
+# rfc850 format
 rfc850_date = join(
     [concat(long_day_reg, ','),
      join(
          [group('[0-9][0-9]?'),
           months_reg,
-          group('[0-9]+')
-         ],
-         '-'
-     ),
+          group('[0-9]+')],
+         '-'),
      hms_reg,
-     'gmt'
-    ],
+     'gmt'],
     ' '
 )
 
@@ -104,12 +106,13 @@ rfc850_reg = re.compile(rfc850_date)
 # they actually unpack the same way
 unpack_rfc850 = unpack_rfc822
 
-    # parsdate.parsedate        - ~700/sec.
-    # parse_http_date            - ~1333/sec.
+# parsdate.parsedate        - ~700/sec.
+# parse_http_date            - ~1333/sec.
 
 weekdayname = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 monthname = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 
 def build_http_date(when):
     year, month, day, hh, mm, ss, wd, _y, _z = time.gmtime(when)
