@@ -13,6 +13,8 @@
 
 - Update PasteDeploy link in README.
 
+- Avoid traceback reference cycle in ``_triggerbase.handle_read``.
+
 
 4.0.2 (2019-07-11)
 ==================
