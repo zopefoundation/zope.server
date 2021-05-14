@@ -129,8 +129,11 @@ class _triggerbase(object):
                     thunk()
                 except:  # noqa: E722 do not use bare 'except'
                     _nil, t, v, tbinfo = asyncore.compact_traceback()
-                    print('exception in trigger thunk:'
-                          ' (%s:%s %s)' % (t, v, tbinfo))
+                    try:
+                        print('exception in trigger thunk:'
+                              ' (%s:%s %s)' % (t, v, tbinfo))
+                    finally:
+                        del t, v, tbinfo
             self.thunks = []
 
     def __repr__(self):
