@@ -15,6 +15,10 @@
 
 - Avoid traceback reference cycle in ``_triggerbase.handle_read``.
 
+- Close output buffer when closing a ``DualModeChannel`` to fix a
+  ``ResourceWarning``. See `issue 25
+  <https://github.com/zopefoundation/zope.server/issues/25>`_.
+
 
 4.0.2 (2019-07-11)
 ==================
