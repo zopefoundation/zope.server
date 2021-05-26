@@ -206,6 +206,7 @@ class DualModeChannel(asyncore.dispatcher, object):
         # closed in a thread, the main loop can end up with a bad file
         # descriptor.
         assert self.async_mode
+        self.outbuf.close()
         self.connected = False
         try:
             asyncore.dispatcher.close(self)
