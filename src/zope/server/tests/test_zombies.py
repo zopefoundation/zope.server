@@ -50,7 +50,6 @@ def zombies_test():
     channel older than the configured timeout will be closed when a new channel
     is created, regardless of activity.
 
-    >>> import time
     >>> import zope.server.adjustments
     >>> config = zope.server.adjustments.Adjustments()
 
