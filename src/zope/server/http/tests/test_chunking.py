@@ -27,7 +27,7 @@ class TestChunkedReceiver(unittest.TestCase):
         if isinstance(data, bytes):
             reader = self._makeOne()
             for c in data:
-                if str is not bytes:
+                if str is not bytes:  # pragma: PY3
                     # sigh. Py3 iterates bytes as ints
                     c = bytes((c,))
                 reader.received(c)

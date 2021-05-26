@@ -59,7 +59,7 @@ class LineCommandParser(object):
             self.inbuf = self.inbuf + s
             self.completed = 1
             line = self.inbuf.strip()
-            if PY3:
+            if PY3:  # pragma: PY3
                 line = line.decode('utf-8')
             self.parseLine(line)
             return len(s)
