@@ -15,8 +15,9 @@
 """HTTP Request Parser tests
 """
 import unittest
-from zope.server.http.httprequestparser import HTTPRequestParser
+
 from zope.server.adjustments import Adjustments
+from zope.server.http.httprequestparser import HTTPRequestParser
 
 
 my_adj = Adjustments()

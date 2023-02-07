@@ -9,8 +9,9 @@ from zope.server.http import publisherhttpserver
 class TestPMDBHTTPServer(unittest.TestCase):
 
     def test_application_calls_debugger(self):
-        from zope.server.http import wsgihttpserver
         import six
+
+        from zope.server.http import wsgihttpserver
         pm_called = []
 
         def post_mortem(exc_info):

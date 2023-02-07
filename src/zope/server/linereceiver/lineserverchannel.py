@@ -17,13 +17,14 @@ This channels evaluates requests line by line. This is particular useful for
 protocols that use a line-based command structure.
 """
 
-from asyncore import compact_traceback
 import os
 import sys
+from asyncore import compact_traceback
 
-from zope.server.serverchannelbase import ServerChannelBase
 from zope.server.linereceiver.linecommandparser import LineCommandParser
 from zope.server.linereceiver.linetask import LineTask
+from zope.server.serverchannelbase import ServerChannelBase
+
 
 DEBUG = os.environ.get('ZOPE_SERVER_DEBUG')
 

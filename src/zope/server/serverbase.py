@@ -20,9 +20,10 @@ import asyncore
 import logging
 import socket
 
+from zope.interface import implementer
+
 from zope.server.adjustments import default_adj
 from zope.server.interfaces import IServer
-from zope.interface import implementer
 
 
 @implementer(IServer)

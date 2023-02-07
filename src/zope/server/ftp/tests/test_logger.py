@@ -6,9 +6,9 @@ Tests for logger.py
 
 import unittest
 
-from zope.server.ftp import logger
-
 from zope.testing import loggingsupport
+
+from zope.server.ftp import logger
 
 
 class TestCommonFTPActivityLogger(unittest.TestCase):

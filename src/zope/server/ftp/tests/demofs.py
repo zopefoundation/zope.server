@@ -12,10 +12,13 @@
 """Demo file-system implementation, for testing
 """
 import posixpath
+
+from zope.interface import implementer
 from zope.security.interfaces import Unauthorized
+
 from zope.server.interfaces.ftp import IFileSystem
 from zope.server.interfaces.ftp import IFileSystemAccess
-from zope.interface import implementer
+
 
 execute = 1
 read = 2

@@ -15,9 +15,10 @@
 """
 import logging
 
+from zope.interface import implementer
+
 from zope.server.interfaces.logger import IMessageLogger
 from zope.server.interfaces.logger import IRequestLogger
-from zope.interface import implementer
 
 
 @implementer(IMessageLogger, IRequestLogger)

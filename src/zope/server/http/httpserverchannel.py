@@ -13,9 +13,9 @@
 ##############################################################################
 """HTTP Server Channel
 """
-from zope.server.serverchannelbase import ServerChannelBase
-from zope.server.http.httptask import HTTPTask
 from zope.server.http.httprequestparser import HTTPRequestParser
+from zope.server.http.httptask import HTTPTask
+from zope.server.serverchannelbase import ServerChannelBase
 
 
 class HTTPServerChannel(ServerChannelBase):

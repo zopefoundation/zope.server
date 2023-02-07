@@ -13,8 +13,9 @@
 ##############################################################################
 """Python Logger tests
 """
-import unittest
 import logging
+import unittest
+
 from zope.interface.verify import verifyObject
 
 
@@ -41,8 +42,8 @@ class TestPythonLogger(unittest.TestCase):
         self.logger.removeHandler(self.handler)
 
     def test(self):
-        from zope.server.logger.pythonlogger import PythonLogger
         from zope.server.interfaces.logger import IMessageLogger
+        from zope.server.logger.pythonlogger import PythonLogger
         plogger = PythonLogger(self.name)
         verifyObject(IMessageLogger, plogger)
         msg1 = 'test message 1'

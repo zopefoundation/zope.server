@@ -146,8 +146,8 @@ class TestPublisherFileSystemAccess(unittest.TestCase):
         self.assertIsNone(access.authenticate(None))
 
     def test_open(self):
-        from zope.server.ftp.publisher import PublisherFileSystemAccess
         from zope.server.ftp.publisher import PublisherFileSystem
+        from zope.server.ftp.publisher import PublisherFileSystemAccess
         access = PublisherFileSystemAccess(None)
 
         fs = access.open(None)

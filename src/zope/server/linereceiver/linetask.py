@@ -13,8 +13,9 @@
 ##############################################################################
 """Line Task
 """
-from zope.server.interfaces import ITask
 from zope.interface import implementer
+
+from zope.server.interfaces import ITask
 from zope.server.task import AbstractTask
 
 

@@ -5,8 +5,8 @@ Tests for chunking.py
 """
 import unittest
 
-from zope.server.http import chunking
 from zope.server.buffers import StringIOBasedBuffer
+from zope.server.http import chunking
 
 
 class TestChunkedReceiver(unittest.TestCase):

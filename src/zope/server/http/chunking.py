@@ -14,9 +14,10 @@
 """Data Chunk Receiver
 """
 
-from zope.server.utilities import find_double_newline
-from zope.server.interfaces import IStreamConsumer
 from zope.interface import implementer
+
+from zope.server.interfaces import IStreamConsumer
+from zope.server.utilities import find_double_newline
 
 
 @implementer(IStreamConsumer)

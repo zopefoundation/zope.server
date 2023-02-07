@@ -18,13 +18,12 @@ This FTP server uses the Zope 3 Publisher to execute commands.
 import posixpath
 from io import BytesIO
 
-from zope.server.interfaces.ftp import IFileSystem
-from zope.server.interfaces.ftp import IFileSystemAccess
-
-from zope.server.ftp.server import FTPServer
+from zope.interface import implementer
 from zope.publisher.publish import publish
 
-from zope.interface import implementer
+from zope.server.ftp.server import FTPServer
+from zope.server.interfaces.ftp import IFileSystem
+from zope.server.interfaces.ftp import IFileSystemAccess
 
 
 @implementer(IFileSystem)

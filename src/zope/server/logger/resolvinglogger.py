@@ -13,8 +13,9 @@
 ##############################################################################
 """Resolving Logger
 """
-from zope.server.interfaces.logger import IRequestLogger
 from zope.interface import implementer
+
+from zope.server.interfaces.logger import IRequestLogger
 
 
 @implementer(IRequestLogger)

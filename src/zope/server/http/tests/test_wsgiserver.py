@@ -15,27 +15,28 @@
 import sys
 import unittest
 import warnings
-from contextlib import contextmanager, closing
-from io import BytesIO, StringIO
+from contextlib import closing
+from contextlib import contextmanager
+from io import BytesIO
+from io import StringIO
+
+from six.moves.http_client import HTTPConnection
 
 import paste.lint
-from six.moves.http_client import HTTPConnection
+import zope.component
+from zope.component.testing import PlacelessSetup
+from zope.i18n.interfaces import IUserPreferredCharsets
+from zope.publisher.base import DefaultPublication
+from zope.publisher.browser import BrowserRequest
+from zope.publisher.http import HTTPCharsets
+from zope.publisher.http import HTTPRequest
+from zope.publisher.http import IHTTPRequest
+from zope.publisher.interfaces import Redirect
+from zope.publisher.interfaces import Retry
+from zope.publisher.publish import publish
 
 from zope.server.tests import LoopTestMixin
 from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
-
-from zope.component.testing import PlacelessSetup
-import zope.component
-
-from zope.i18n.interfaces import IUserPreferredCharsets
-
-from zope.publisher.publish import publish
-from zope.publisher.http import IHTTPRequest
-from zope.publisher.http import HTTPCharsets
-from zope.publisher.browser import BrowserRequest
-from zope.publisher.base import DefaultPublication
-from zope.publisher.interfaces import Redirect, Retry
-from zope.publisher.http import HTTPRequest
 
 
 HTTPRequest.STAGGER_RETRIES = 0  # Don't pause.

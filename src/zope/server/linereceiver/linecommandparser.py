@@ -16,8 +16,10 @@
 
 import sys
 
-from zope.server.interfaces import IStreamConsumer
 from zope.interface import implementer
+
+from zope.server.interfaces import IStreamConsumer
+
 
 PY3 = sys.version_info >= (3, )
 

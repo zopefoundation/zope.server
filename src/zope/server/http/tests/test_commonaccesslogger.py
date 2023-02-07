@@ -13,8 +13,8 @@
 ##############################################################################
 """Common Access Logger tests
 """
-import unittest
 import logging
+import unittest
 
 import zope.server.http.commonaccesslogger
 
@@ -76,6 +76,7 @@ class TestCommonAccessLogger(unittest.TestCase):
 
     def test_log_request(self):
         import time
+
         from zope.testing import loggingsupport
         handler = loggingsupport.InstalledHandler("accesslog")
         self.addCleanup(handler.uninstall)

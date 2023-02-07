@@ -15,11 +15,15 @@
 """
 import logging
 import threading
-from time import time, sleep
+from time import sleep
+from time import time
 
-from six.moves.queue import Queue, Empty
-from zope.server.interfaces import ITaskDispatcher
+from six.moves.queue import Empty
+from six.moves.queue import Queue
+
 from zope.interface import implementer
+
+from zope.server.interfaces import ITaskDispatcher
 
 
 log = logging.getLogger(__name__)

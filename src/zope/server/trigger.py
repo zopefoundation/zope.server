@@ -12,12 +12,14 @@
 #
 ##############################################################################
 from __future__ import print_function
+
 import asyncore
+import errno
 import os
 import socket
 import struct
 from threading import Lock
-import errno
+
 
 _ADDRESS_MASK = 256 ** struct.calcsize('P')
 

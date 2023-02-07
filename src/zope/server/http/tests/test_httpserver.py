@@ -13,23 +13,22 @@
 ##############################################################################
 """Test HTTP Server
 """
-import unittest
-
-
-from time import sleep
 import socket
+import unittest
+from time import sleep
+
+from six.moves.http_client import HTTPConnection
+from six.moves.http_client import HTTPResponse as ClientHTTPResponse
+
+from zope.interface import implementer
+from zope.testing.cleanup import CleanUp
 
 from zope.server.adjustments import Adjustments
 from zope.server.interfaces import ITask
 from zope.server.task import AbstractTask
-from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
 from zope.server.tests import LoopTestMixin
-from zope.interface import implementer
-from zope.testing.cleanup import CleanUp
+from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
 
-
-from six.moves.http_client import HTTPConnection
-from six.moves.http_client import HTTPResponse as ClientHTTPResponse
 
 my_adj = Adjustments()
 # Reduce overflows to make testing easier.

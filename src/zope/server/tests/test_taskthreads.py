@@ -1,6 +1,7 @@
-import unittest
 import logging
-from io import BytesIO, StringIO
+import unittest
+from io import BytesIO
+from io import StringIO
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
 
@@ -131,6 +132,7 @@ class TestThreadedDispatcher(unittest.TestCase):
             def cancel(self):
                 self.canceled = True
                 from six.moves.queue import Empty
+
                 # We cheat to be able to catch the exception handler
                 raise Empty()
 

@@ -16,19 +16,24 @@
 import asyncore
 import posixpath
 import socket
-from datetime import date, timedelta
-from getopt import getopt, GetoptError
+from datetime import date
+from datetime import timedelta
+from getopt import GetoptError
+from getopt import getopt
 
-from zope.security.interfaces import Unauthorized
 from zope.interface import implementer
+from zope.security.interfaces import Unauthorized
+
 from zope.server.buffers import OverflowableBuffer
-from zope.server.task import AbstractTask
+from zope.server.dualmodechannel import DualModeChannel
+from zope.server.dualmodechannel import the_trigger
 from zope.server.interfaces import ITask
 from zope.server.interfaces.ftp import IFileSystemAccess
 from zope.server.interfaces.ftp import IFTPCommandHandler
 from zope.server.linereceiver.lineserverchannel import LineServerChannel
 from zope.server.serverbase import ServerBase
-from zope.server.dualmodechannel import DualModeChannel, the_trigger
+from zope.server.task import AbstractTask
+
 
 # flake8: noqa: E203 whitespace before ':'
 status_messages = {

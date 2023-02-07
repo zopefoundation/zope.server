@@ -1,10 +1,11 @@
 
 import asyncore
-import sys
-import traceback
-import time
 import gc
-from threading import Thread, Event
+import sys
+import time
+import traceback
+from threading import Event
+from threading import Thread
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
 

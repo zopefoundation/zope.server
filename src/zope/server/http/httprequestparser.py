@@ -20,13 +20,16 @@ import re
 import sys
 from io import BytesIO
 
-from six.moves.urllib.parse import unquote, urlsplit
+from six.moves.urllib.parse import unquote
+from six.moves.urllib.parse import urlsplit
 
-from zope.server.fixedstreamreceiver import FixedStreamReceiver
-from zope.server.buffers import OverflowableBuffer
-from zope.server.utilities import find_double_newline
-from zope.server.interfaces import IStreamConsumer
 from zope.interface import implementer
+
+from zope.server.buffers import OverflowableBuffer
+from zope.server.fixedstreamreceiver import FixedStreamReceiver
+from zope.server.interfaces import IStreamConsumer
+from zope.server.utilities import find_double_newline
+
 
 PY3 = sys.version_info >= (3, )
 

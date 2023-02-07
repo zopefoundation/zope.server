@@ -15,8 +15,9 @@
 """
 import sys
 
-from zope.server.http import wsgihttpserver
 from zope.publisher.publish import publish as _publish
+
+from zope.server.http import wsgihttpserver
 
 
 def _make_application(request_factory, publish):

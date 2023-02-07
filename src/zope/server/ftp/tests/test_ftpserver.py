@@ -16,14 +16,11 @@
 
 import ftplib
 import socket
-
 import unittest
-
 from io import BytesIO
 
 from zope.server.adjustments import Adjustments
 from zope.server.ftp.tests import demofs
-
 from zope.server.tests import LoopTestMixin
 from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
 
