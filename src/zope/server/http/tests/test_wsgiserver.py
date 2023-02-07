@@ -17,10 +17,9 @@ import unittest
 import warnings
 from contextlib import closing
 from contextlib import contextmanager
+from http.client import HTTPConnection
 from io import BytesIO
 from io import StringIO
-
-from six.moves.http_client import HTTPConnection
 
 import paste.lint
 import zope.component
@@ -91,7 +90,7 @@ class Accepted(Exception):
     pass
 
 
-class tested_object(object):
+class tested_object:
     """Docstring required by publisher."""
     tries = 0
 
@@ -121,7 +120,7 @@ class tested_object(object):
         return 'Proxied Content'
 
 
-class WSGIInfo(object):
+class WSGIInfo:
     """Docstring required by publisher"""
 
     def __call__(self, REQUEST):
@@ -175,7 +174,7 @@ class Tests(LoopTestMixin,
         return WSGIHTTPServer
 
     def setUp(self):
-        super(Tests, self).setUp()
+        super().setUp()
         zope.component.provideAdapter(HTTPCharsets, [IHTTPRequest],
                                       IUserPreferredCharsets, '')
 
@@ -281,9 +280,9 @@ class Tests(LoopTestMixin,
         _status, response_body = self.invokeRequest('/wsgi')
         wsgi_variables = set(response_body.decode('ascii').split())
         self.assertEqual(wsgi_variables,
-                         set(['wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
-                              'wsgi.errors', 'wsgi.multithread',
-                              'wsgi.multiprocess', 'wsgi.run_once']))
+                         {'wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
+                          'wsgi.errors', 'wsgi.multithread',
+                          'wsgi.multiprocess', 'wsgi.run_once'})
 
     def testWSGIVersion(self):
         _status, response_body = self.invokeRequest('/wsgi/version')
@@ -452,7 +451,7 @@ class Tests(LoopTestMixin,
         orig_app = self.server.application
         app, _ = self._getFakeAppAndTask()
 
-        class CloseableIterator(object):
+        class CloseableIterator:
 
             closed = False
 
@@ -498,7 +497,7 @@ class TestWSGIHttpServer(unittest.TestCase):
     def test_secure_environment(self):
         from zope.server.http.wsgihttpserver import WSGIHTTPServer
 
-        class Task(object):
+        class Task:
             def __init__(self, env):
                 self.env = env
                 self.request_data = self
@@ -533,10 +532,10 @@ class PMDBTests(Tests):
         _status, response_body = self.invokeRequest('/wsgi')
         wsgi_variables = set(response_body.decode('ascii').split())
         self.assertEqual(wsgi_variables,
-                         set(['wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
-                              'wsgi.errors', 'wsgi.multithread',
-                              'wsgi.multiprocess', 'wsgi.handleErrors',
-                              'wsgi.run_once']))
+                         {'wsgi.version', 'wsgi.url_scheme', 'wsgi.input',
+                          'wsgi.errors', 'wsgi.multithread',
+                          'wsgi.multiprocess', 'wsgi.handleErrors',
+                          'wsgi.run_once'})
 
     def test_multiple_start_response_calls(self):
         # if start_response is called more than once with no exc_info
@@ -596,14 +595,14 @@ class TestPaste(unittest.TestCase):
     def test_run_paste_loop(self):
         from zope.server.http import wsgihttpserver
 
-        class Server(object):
+        class Server:
             def __init__(self, *args, **kwargs):
                 pass
 
             def close(self):
                 pass
 
-        class asyncore(object):
+        class asyncore:
             looped = False
 
             def loop(self):

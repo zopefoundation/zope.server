@@ -12,7 +12,7 @@
 #
 ##############################################################################
 # This package is developed by the Zope Toolkit project, documented here:
-# http://docs.zope.org/zopetoolkit
+# https://zopetoolkit.readthedocs.io/
 # When developing and releasing this package, please follow the documented
 # Zope Toolkit policies as described by this documentation.
 ##############################################################################
@@ -42,7 +42,7 @@ setup(
     name='zope.server',
     version='5.0.dev0',
     author='Zope Foundation and Contributors',
-    author_email='zope-dev@zope.org',
+    author_email='zope-dev@zope.dev',
     description='Zope Server (Web and FTP)',
     long_description=(
         read('README.rst')
@@ -77,7 +77,6 @@ setup(
     tests_require=tests_require,
     install_requires=[
         'setuptools',
-        'six',
         'zope.interface',
         'zope.publisher',
         'zope.security',

@@ -25,7 +25,7 @@ import sys
 import traceback
 
 
-class AsyncoreErrorHookMixin(object):
+class AsyncoreErrorHookMixin:
     """Convert asyncore errors into unittest failures.
 
     Call hook_asyncore_error in setUp() and unhook_asyncore_error() in
@@ -34,11 +34,11 @@ class AsyncoreErrorHookMixin(object):
 
     def setUp(self):
         self.hook_asyncore_error()
-        super(AsyncoreErrorHookMixin, self).setUp()
+        super().setUp()
 
     def tearDown(self):
         self.unhook_asyncore_error()
-        super(AsyncoreErrorHookMixin, self).tearDown()
+        super().tearDown()
 
     def hook_asyncore_error(self):
         self._asyncore_traceback = asyncore.compact_traceback

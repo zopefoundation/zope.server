@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
 #
 # Copyright (c) 2001, 2002 Zope Foundation and Contributors.
@@ -16,12 +15,10 @@
 Abstract implementation of ITask.
 
 """
-
-import socket
 import time
 
 
-class AbstractTask(object):
+class AbstractTask:
     """
     An abstract task providing a framework for the common
     parts of implementing a Task.
@@ -44,7 +41,7 @@ class AbstractTask(object):
                 self.start()
                 self._do_service()
                 self.finish()
-            except socket.error:
+            except OSError:
                 self.close_on_finish = 1
                 if self.channel.adj.log_socket_errors:
                     raise

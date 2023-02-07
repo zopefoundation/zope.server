@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Tests for trigger.py"""
-from __future__ import print_function
 
 import sys
 import unittest
@@ -48,8 +46,7 @@ class TestPipeTrigger(unittest.TestCase):
         t.close()
 
         def recv(_s):
-            import socket
-            raise socket.error
+            raise OSError
         t.recv = recv
 
         def thunk():
@@ -90,8 +87,7 @@ class TestSocketTrigger(TestPipeTrigger):
         class T(self._getFUT()):
             def _connect_client(self, w, connect_address):
                 import errno
-                import socket
-                raise socket.error(errno.EADDRINUSE)
+                raise OSError(errno.EADDRINUSE)
 
         with self.assertRaises(trigger.BindError):
             T()
@@ -101,7 +97,7 @@ class TestSocketTrigger(TestPipeTrigger):
 
         class T(self._getFUT()):
             def _connect_client(self, w, connect_address):
-                raise socket.error("Nope")
+                raise OSError("Nope")
 
         with self.assertRaises(socket.error):
             T()

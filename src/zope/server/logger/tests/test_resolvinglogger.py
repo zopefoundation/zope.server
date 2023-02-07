@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for resolvinglogger.py
 
@@ -11,13 +10,13 @@ from zope.server.logger import resolvinglogger
 class TestResolvingLogger(unittest.TestCase):
 
     def test_log_request(self):
-        class Logger(object):
+        class Logger:
             msgs = ()
 
             def logMessage(self, msg):
                 self.msgs += (msg,)
 
-        class Resolver(object):
+        class Resolver:
             def resolve_ptr(self, ip, then):
                 then('host', None, None)
 

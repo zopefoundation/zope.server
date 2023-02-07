@@ -26,10 +26,10 @@ class DemoFileSystem(demofs.DemoFileSystem):
 
     def rename(self, path, old, new):
         return demofs.DemoFileSystem.rename(
-            self, "%s/%s" % (path, old), "%s/%s" % (path, new))
+            self, "{}/{}".format(path, old), "{}/{}".format(path, new))
 
 
-class Publication(object):
+class Publication:
 
     def __init__(self, root):
         self.root = root
@@ -59,7 +59,7 @@ class Publication(object):
         raise AssertionError("Not expecting an exception")
 
 
-class Request(object):
+class Request:
 
     publication = None
 
@@ -80,7 +80,7 @@ class Request(object):
         pass
 
 
-class Response(object):
+class Response:
 
     _result = None
 
@@ -91,7 +91,7 @@ class Response(object):
         return self._result
 
 
-class RequestFactory(object):
+class RequestFactory:
 
     def __init__(self, root):
         self.pub = Publication(root)

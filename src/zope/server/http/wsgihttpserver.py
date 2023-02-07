@@ -17,8 +17,6 @@ import re
 import sys
 from contextlib import closing
 
-import six
-
 import zope.security.management
 
 from zope.server.http.httpserver import HTTPServer
@@ -42,7 +40,7 @@ def curriedStartResponse(task):
                     # 1. "service" method in httptask.py
                     # 2. "service" method in severchannelbase.py
                     # 3. "handlerThread" method in taskthreads.py
-                    six.reraise(*exc_info)
+                    raise exc_info[1]
                 else:
                     # As per WSGI spec existing headers must be cleared
                     task.accumulated_headers = None
@@ -154,7 +152,7 @@ class PMDBWSGIHTTPServer(WSGIHTTPServer):
         zope.security.management.restoreInteraction()
         try:
             pdb.post_mortem(exc_info[2])
-            six.reraise(*exc_info)
+            raise exc_info[1]
         finally:
             del exc_info
             zope.security.management.endInteraction()

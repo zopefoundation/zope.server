@@ -15,11 +15,10 @@
 """
 import logging
 import threading
+from queue import Empty
+from queue import Queue
 from time import sleep
 from time import time
-
-from six.moves.queue import Empty
-from six.moves.queue import Queue
 
 from zope.interface import implementer
 
@@ -30,7 +29,7 @@ log = logging.getLogger(__name__)
 
 
 @implementer(ITaskDispatcher)
-class ThreadedTaskDispatcher(object):
+class ThreadedTaskDispatcher:
     """A Task Dispatcher that creates a thread for each task."""
 
     stop_count = 0  # Number of threads that will stop soon.

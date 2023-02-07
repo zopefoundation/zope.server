@@ -145,7 +145,7 @@ class HTTPTask(AbstractTask):
 
     def buildResponseHeader(self):
         self.prepareResponseHeaders()
-        first_line = 'HTTP/%s %s %s' % (self.version, self.status, self.reason)
+        first_line = f'HTTP/{self.version} {self.status} {self.reason}'
         lines = [first_line] + ['%s: %s' % hv
                                 for hv in self.response_headers.items()]
         accum = self.accumulated_headers

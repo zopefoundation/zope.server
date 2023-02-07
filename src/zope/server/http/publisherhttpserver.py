@@ -34,7 +34,7 @@ class PublisherHTTPServer(wsgihttpserver.WSGIHTTPServer):
 
     def __init__(self, request_factory, sub_protocol=None, *args, **kw):
 
-        super(PublisherHTTPServer, self).__init__(
+        super().__init__(
             self._make_application(request_factory), sub_protocol, *args, **kw)
 
     @classmethod
@@ -53,5 +53,5 @@ class PMDBHTTPServer(PublisherHTTPServer):
 
     @classmethod
     def _make_application(cls, request_factory, publish=_pmdb_publish):
-        return super(PMDBHTTPServer, cls)._make_application(
+        return super()._make_application(
             request_factory, publish)

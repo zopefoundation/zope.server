@@ -21,7 +21,7 @@ from zope.server.logger.pythonlogger import PythonLogger
 from zope.server.logger.resolvinglogger import ResolvingLogger
 
 
-class CommonAccessLogger(object):
+class CommonAccessLogger:
     """Output accesses in common HTTP log format."""
 
     def __init__(self, logger_object='accesslog', resolver=None):

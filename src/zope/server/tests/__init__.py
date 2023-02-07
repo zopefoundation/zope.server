@@ -1,4 +1,3 @@
-
 import asyncore
 import gc
 import sys
@@ -10,7 +9,7 @@ from threading import Thread
 from zope.server.taskthreads import ThreadedTaskDispatcher
 
 
-class LoopTestMixin(object):
+class LoopTestMixin:
 
     thread_name = 'LoopTest'
     task_dispatcher_count = 4
@@ -20,7 +19,7 @@ class LoopTestMixin(object):
     CONNECT_TO_PORT = 0  # use specific numbers to inspect using TCPWatch.
 
     def setUp(self):
-        super(LoopTestMixin, self).setUp()
+        super().setUp()
         td = self.td = ThreadedTaskDispatcher()
         td.setThreadCount(self.task_dispatcher_count)
         if len(asyncore.socket_map) != 1:  # pragma: no cover
@@ -57,8 +56,7 @@ class LoopTestMixin(object):
         timeout = time.time() + 5
         while 1:
             # bandage for PyPy: sometimes we were relying on GC to close
-            # sockets. (This sometimes comes up under coverage on Python 2 as
-            # well)
+            # sockets.
             gc.collect()
             if (len(asyncore.socket_map) <= self.orig_map_size
                     #  Account for the sadly global `the_trigger` defined in
@@ -70,7 +68,7 @@ class LoopTestMixin(object):
             if time.time() >= timeout:  # pragma: no cover
                 self.fail('Leaked a socket: %s' % repr(asyncore.socket_map))
             asyncore.poll(0.1)  # pragma: no cover
-        super(LoopTestMixin, self).tearDown()
+        super().tearDown()
 
     def _makeServer(self):
         raise NotImplementedError()
@@ -85,15 +83,15 @@ class LoopTestMixin(object):
             # this loop. That will likely make the tests hang.
             try:
                 asyncore.poll(0.1)
-            except select.error as data:  # pragma: no cover
+            except OSError as data:  # pragma: no cover
                 print("EXCEPTION POLLING IN LOOP(): %s" % data)
                 if data.args[0] == EBADF:
                     for key in asyncore.socket_map:
                         print("")
                         try:
                             select.select([], [], [key], 0.0)
-                        except select.error as v:
-                            print("Bad entry in socket map %s %s" % (key, v))
+                        except OSError as v:
+                            print(f"Bad entry in socket map {key} {v}")
                             print(asyncore.socket_map[key])
                             print(asyncore.socket_map[key].__class__)
                             del asyncore.socket_map[key]

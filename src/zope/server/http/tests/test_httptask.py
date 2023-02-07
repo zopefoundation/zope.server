@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for httptask.py.
 
@@ -15,7 +14,7 @@ class MockRequestData(HTTPRequestParser):
         HTTPRequestParser.__init__(self, None)
 
 
-class MockChannel(object):
+class MockChannel:
 
     server = property(lambda s: s)
     SERVER_IDENT = 'server_ident'
@@ -138,7 +137,7 @@ class TestHTTPTask(unittest.TestCase):
         task = self._makeOne()
         task.request_data.path = '/'
 
-        class Resolver(object):
+        class Resolver:
             cache = {
                 MockChannel.addr[0]: (None, None, 'RemoteHost')
             }

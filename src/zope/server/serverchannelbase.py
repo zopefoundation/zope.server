@@ -21,8 +21,6 @@ import sys
 import time
 from threading import Lock
 
-from six import reraise
-
 from zope.interface import implementer
 
 from zope.server.dualmodechannel import DualModeChannel
@@ -152,7 +150,7 @@ class ServerChannelBase(DualModeChannel):
         """
         t, v = sys.exc_info()[:2]
         if issubclass(t, (SystemExit, KeyboardInterrupt)):
-            reraise(*sys.exc_info())
+            raise
         asyncore.dispatcher.handle_error(self)
 
     def handle_comm_error(self):

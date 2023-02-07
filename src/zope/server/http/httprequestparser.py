@@ -19,9 +19,8 @@ processing but threads to do work.
 import re
 import sys
 from io import BytesIO
-
-from six.moves.urllib.parse import unquote
-from six.moves.urllib.parse import urlsplit
+from urllib.parse import unquote
+from urllib.parse import urlsplit
 
 from zope.interface import implementer
 
@@ -35,7 +34,7 @@ PY3 = sys.version_info >= (3, )
 
 
 @implementer(IStreamConsumer)
-class HTTPRequestParser(object):
+class HTTPRequestParser:
     """A structure that collects the HTTP request.
 
     Once the stream is completed, the instance is passed to

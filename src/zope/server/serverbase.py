@@ -27,7 +27,7 @@ from zope.server.interfaces import IServer
 
 
 @implementer(IServer)
-class ServerBase(asyncore.dispatcher, object):
+class ServerBase(asyncore.dispatcher):
     """Async. server base for launching derivatives of ServerChannelBase."""
 
     # See zope.server.interfaces.IServer
@@ -87,7 +87,7 @@ class ServerBase(asyncore.dispatcher, object):
                 self.log_info('Computing hostname', 'info')
             try:
                 server_name = socket.gethostbyaddr(server_name)[0]
-            except socket.error:
+            except OSError:
                 if self.verbose:
                     self.log_info('Cannot do reverse lookup', 'info')
         return server_name
@@ -142,7 +142,7 @@ class ServerBase(asyncore.dispatcher, object):
             if v is None:
                 return
             conn, addr = v
-        except socket.error:
+        except OSError:
             # Linux: On rare occasions we get a bogus socket back from
             # accept.  socketmodule.c:makesockaddr complains that the
             # address family is unknown.  We don't want the whole server

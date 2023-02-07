@@ -24,7 +24,7 @@ COPY_BYTES = 1 << 18  # 256K
 STRBUF_LIMIT = 8192
 
 
-class FileBasedBuffer(object):
+class FileBasedBuffer:
 
     remain = 0
 

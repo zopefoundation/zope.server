@@ -25,7 +25,7 @@ read = 2
 write = 4
 
 
-class File(object):
+class File:
     type = 'f'
     modified = None
 
@@ -51,7 +51,7 @@ class Directory(File):
     type = 'd'
 
     def __init__(self):
-        super(Directory, self).__init__()
+        super().__init__()
         self.files = {}
 
     def get(self, name, default=None):
@@ -74,7 +74,7 @@ class Directory(File):
 
 
 @implementer(IFileSystem)
-class DemoFileSystem(object):
+class DemoFileSystem:
     __doc__ = IFileSystem.__doc__
 
     File = File
@@ -284,7 +284,7 @@ class DemoFileSystem(object):
 
 
 @implementer(IFileSystemAccess)
-class DemoFileSystemAccess(object):
+class DemoFileSystemAccess:
     __doc__ = IFileSystemAccess.__doc__
 
     def __init__(self, files, users):

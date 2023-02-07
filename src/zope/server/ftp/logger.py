@@ -24,7 +24,7 @@ class CommonFTPActivityLogger(CommonAccessLogger):
     def log(self, task):
         """Receive a completed task and logs it in the common log format."""
         now = time.time()
-        message = ' - %s [%s] "%s %s"' % (
+        message = ' - {} [{}] "{} {}"'.format(
             task.channel.username,
             self.log_date_string(now),
             task.m_name[4:].upper(),

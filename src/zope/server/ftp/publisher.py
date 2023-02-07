@@ -27,7 +27,7 @@ from zope.server.interfaces.ftp import IFileSystemAccess
 
 
 @implementer(IFileSystem)
-class PublisherFileSystem(object):
+class PublisherFileSystem:
     """Generic Publisher FileSystem implementation."""
 
     def __init__(self, credentials, request_factory):
@@ -118,12 +118,11 @@ class PublisherFTPServer(FTPServer):
 
     def __init__(self, request_factory, name, ip, port, *args, **kw):
         fs_access = PublisherFileSystemAccess(request_factory)
-        super(PublisherFTPServer, self).__init__(ip, port, fs_access,
-                                                 *args, **kw)
+        super().__init__(ip, port, fs_access, *args, **kw)
 
 
 @implementer(IFileSystemAccess)
-class PublisherFileSystemAccess(object):
+class PublisherFileSystemAccess:
 
     def __init__(self, request_factory):
         self.request_factory = request_factory

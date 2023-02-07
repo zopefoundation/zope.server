@@ -22,7 +22,7 @@ from zope.server.interfaces.logger import IRequestLogger
 
 
 @implementer(IMessageLogger, IRequestLogger)
-class PythonLogger(object):
+class PythonLogger:
     """Proxy for Python's logging module"""
 
     def __init__(self, name=None, level=logging.INFO):
@@ -36,8 +36,8 @@ class PythonLogger(object):
         self.logger = logging.getLogger(name)
 
     def __repr__(self):
-        return '<python logger: %s %s>' % (self.name,
-                                           logging.getLevelName(self.level))
+        return '<python logger: {} {}>'.format(
+            self.name, logging.getLevelName(self.level))
 
     def logMessage(self, message):
         """See IMessageLogger"""
@@ -48,4 +48,4 @@ class PythonLogger(object):
         Log request is implemented to call :meth:`logMessage` without
         attempting any resolution.
         """
-        self.logMessage('%s%s' % (ip, message))
+        self.logMessage('{}{}'.format(ip, message))

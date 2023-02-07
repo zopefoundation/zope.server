@@ -20,7 +20,7 @@ from zope.server.interfaces import IStreamConsumer
 
 
 @implementer(IStreamConsumer)
-class FixedStreamReceiver(object):
+class FixedStreamReceiver:
 
     # See IStreamConsumer
     completed = 0

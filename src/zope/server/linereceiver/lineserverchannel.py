@@ -115,14 +115,8 @@ class LineServerChannel(ServerChannelBase):
             self_repr = '<__repr__(self) failed for object at %0x>' % id(self)
 
         self.log_info(
-            'uncaptured python exception, closing channel %s (%s:%s %s)' % (
-                self_repr,
-                t,
-                v,
-                tbinfo
-            ),
-            'error'
-        )
+            'uncaptured python exception, closing channel'
+            f'{self_repr,} ({t}:{v} {tbinfo})', 'error')
 
     def exception(self):
         if DEBUG:  # pragma: no cover
@@ -130,7 +124,7 @@ class LineServerChannel(ServerChannelBase):
             traceback.print_exc()
         t, v = sys.exc_info()[:2]
         try:
-            info = '%s: %s' % (getattr(t, '__name__', t), v)
+            info = '{}: {}'.format(getattr(t, '__name__', t), v)
         except:  # noqa: E722 do not use bare 'except'
             info = str(t)
         self.reply('INTERNAL_ERROR', info)

@@ -15,10 +15,9 @@
 """
 import socket
 import unittest
+from http.client import HTTPConnection
+from http.client import HTTPResponse as ClientHTTPResponse
 from time import sleep
-
-from six.moves.http_client import HTTPConnection
-from six.moves.http_client import HTTPResponse as ClientHTTPResponse
 
 from zope.interface import implementer
 from zope.testing.cleanup import CleanUp
@@ -368,7 +367,7 @@ class TestHTTPServer(unittest.TestCase):
                          '\n\tURL: http://example.com:8080/')
 
     def test_executeRequest(self):
-        class Task(object):
+        class Task:
             def __init__(self):
                 self.response_headers = {}
 
