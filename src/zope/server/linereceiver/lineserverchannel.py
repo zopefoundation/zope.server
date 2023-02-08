@@ -17,13 +17,14 @@ This channels evaluates requests line by line. This is particular useful for
 protocols that use a line-based command structure.
 """
 
-from asyncore import compact_traceback
 import os
 import sys
+from asyncore import compact_traceback
 
-from zope.server.serverchannelbase import ServerChannelBase
 from zope.server.linereceiver.linecommandparser import LineCommandParser
 from zope.server.linereceiver.linetask import LineTask
+from zope.server.serverchannelbase import ServerChannelBase
+
 
 DEBUG = os.environ.get('ZOPE_SERVER_DEBUG')
 
@@ -114,14 +115,8 @@ class LineServerChannel(ServerChannelBase):
             self_repr = '<__repr__(self) failed for object at %0x>' % id(self)
 
         self.log_info(
-            'uncaptured python exception, closing channel %s (%s:%s %s)' % (
-                self_repr,
-                t,
-                v,
-                tbinfo
-            ),
-            'error'
-        )
+            'uncaptured python exception, closing channel'
+            f'{self_repr,} ({t}:{v} {tbinfo})', 'error')
 
     def exception(self):
         if DEBUG:  # pragma: no cover
@@ -129,7 +124,7 @@ class LineServerChannel(ServerChannelBase):
             traceback.print_exc()
         t, v = sys.exc_info()[:2]
         try:
-            info = '%s: %s' % (getattr(t, '__name__', t), v)
+            info = '{}: {}'.format(getattr(t, '__name__', t), v)
         except:  # noqa: E722 do not use bare 'except'
             info = str(t)
         self.reply('INTERNAL_ERROR', info)

@@ -18,7 +18,7 @@ import socket
 from zope.server import maxsockets
 
 
-class Adjustments(object):
+class Adjustments:
     """This class contains tunable communication parameters.
 
     You can either change default_adj to adjust parameters for

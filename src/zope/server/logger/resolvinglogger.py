@@ -13,12 +13,13 @@
 ##############################################################################
 """Resolving Logger
 """
-from zope.server.interfaces.logger import IRequestLogger
 from zope.interface import implementer
+
+from zope.server.interfaces.logger import IRequestLogger
 
 
 @implementer(IRequestLogger)
-class ResolvingLogger(object):
+class ResolvingLogger:
     """Feed (ip, message) combinations into this logger to get a
     resolved hostname in front of the message.  The message will not
     be logged until the PTR request finishes (or fails)."""
@@ -28,7 +29,7 @@ class ResolvingLogger(object):
         # logger is an IMessageLogger
         self.logger = logger
 
-    class logger_thunk(object):
+    class logger_thunk:
         def __init__(self, message, logger):
             self.message = message
             self.logger = logger
@@ -36,7 +37,7 @@ class ResolvingLogger(object):
         def __call__(self, host, ttl, answer):
             if not answer:
                 answer = host
-            self.logger.logMessage('%s%s' % (answer, self.message))
+            self.logger.logMessage('{}{}'.format(answer, self.message))
 
     def logRequest(self, ip, message):
         'See IRequestLogger'

@@ -16,7 +16,7 @@
 import doctest
 
 
-class FakeSocket(object):
+class FakeSocket:
     data = b''
 
     def __init__(self, no):

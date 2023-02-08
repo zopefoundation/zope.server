@@ -17,12 +17,13 @@ An HTTP task that can execute an HTTP request with the help of the channel and
 the server it belongs to.
 """
 
-from zope.server.http.http_date import build_http_date
-from zope.publisher.interfaces.http import IHeaderOutput
-from zope.server.task import AbstractTask
-from zope.server.interfaces import ITask
-
 from zope.interface import implementer
+from zope.publisher.interfaces.http import IHeaderOutput
+
+from zope.server.http.http_date import build_http_date
+from zope.server.interfaces import ITask
+from zope.server.task import AbstractTask
+
 
 rename_headers = {
     'CONTENT_LENGTH': 'CONTENT_LENGTH',
@@ -144,7 +145,7 @@ class HTTPTask(AbstractTask):
 
     def buildResponseHeader(self):
         self.prepareResponseHeaders()
-        first_line = 'HTTP/%s %s %s' % (self.version, self.status, self.reason)
+        first_line = f'HTTP/{self.version} {self.status} {self.reason}'
         lines = [first_line] + ['%s: %s' % hv
                                 for hv in self.response_headers.items()]
         accum = self.accumulated_headers

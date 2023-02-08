@@ -14,12 +14,13 @@
 """Fixed Stream Receiver
 """
 
-from zope.server.interfaces import IStreamConsumer
 from zope.interface import implementer
+
+from zope.server.interfaces import IStreamConsumer
 
 
 @implementer(IStreamConsumer)
-class FixedStreamReceiver(object):
+class FixedStreamReceiver:
 
     # See IStreamConsumer
     completed = 0

@@ -18,7 +18,7 @@ import unittest
 from zope.server import serverbase
 
 
-class FakeSocket(object):
+class FakeSocket:
     data = b''
 
     def setblocking(self, _val):
@@ -115,14 +115,14 @@ class TestServerBase(unittest.TestCase):
         self.addCleanup(sb.close)
         import socket
 
-        class mysocket(object):
+        class mysocket:
             error = socket.error
 
             def gethostname(self):
                 return '127.0.0.1'
 
             def gethostbyaddr(self, name):
-                raise socket.error
+                raise OSError
 
         orig_socket = serverbase.socket
         serverbase.socket = mysocket()
@@ -141,7 +141,7 @@ class TestServerBase(unittest.TestCase):
         self.addCleanup(sb.close)
         self.assertIsNone(sb.task_dispatcher)
 
-        class Task(object):
+        class Task:
             serviced = False
 
             def service(self):
@@ -164,8 +164,7 @@ class TestServerBase(unittest.TestCase):
 
         class SB(NonBindingServerBase):
             def accept(self):
-                import socket
-                raise socket.error()
+                raise OSError()
 
         sb = SB('', 80, start=False)
         self.addCleanup(sb.close)

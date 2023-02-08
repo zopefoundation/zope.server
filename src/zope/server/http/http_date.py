@@ -13,10 +13,9 @@
 ##############################################################################
 """HTTP Server Date/Time utilities
 """
-import re
-
-import time
 import calendar
+import re
+import time
 
 
 def concat(*args):

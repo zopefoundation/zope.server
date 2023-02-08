@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 """
 Tests for lineserverchannel.py
 
 """
 import unittest
 
-from zope.server.linereceiver.linecommandparser import LineCommandParser
 from zope.server.linereceiver import lineserverchannel
+from zope.server.linereceiver.linecommandparser import LineCommandParser
 
 
 class Channel(lineserverchannel.LineServerChannel):

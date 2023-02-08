@@ -16,14 +16,11 @@
 
 import ftplib
 import socket
-
 import unittest
-
 from io import BytesIO
 
 from zope.server.adjustments import Adjustments
 from zope.server.ftp.tests import demofs
-
 from zope.server.tests import LoopTestMixin
 from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
 
@@ -43,15 +40,10 @@ class TestIntegration(LoopTestMixin,
                       AsyncoreErrorHookMixin,
                       unittest.TestCase):
 
-    # Avoid DeprecationWarning for assertRaisesRegexp on Python 3 while
-    # coping with Python 2 not having the Regex spelling variant
-    assertRaisesRegex = getattr(unittest.TestCase, 'assertRaisesRegex',
-                                unittest.TestCase.assertRaisesRegexp)
-
     task_dispatcher_count = 1
 
     def setUp(self):
-        super(TestIntegration, self).setUp()
+        super().setUp()
         # Avoid the tests hanging for a long time if something goes wrong
         socket.setdefaulttimeout(10)  # XXX: We don't tear this down
 
@@ -338,7 +330,7 @@ class TestIntegration(LoopTestMixin,
 
         conn.sendcmd('MDTM existing')
 
-        class mtime(object):
+        class mtime:
             year = 1999
             month = 10
             day = 10
@@ -468,8 +460,8 @@ class TestIntegration(LoopTestMixin,
             conn.sendcmd('TYPE l 9 x')
 
 
-class MockChannel(object):
-    class adj(object):
+class MockChannel:
+    class adj:
         outbuf_overflow = 1
 
     def closedData(self):
@@ -494,7 +486,7 @@ class TestRETRChannel(unittest.TestCase):
 
         class S(server.RETRChannel):
             def recv(self, *args):
-                raise socket.error()
+                raise OSError()
 
             def report(self, _code):
                 pass

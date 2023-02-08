@@ -17,8 +17,8 @@ This server uses asyncore to accept connections and do initial
 processing but threads to do work.
 """
 
-from zope.server.serverbase import ServerBase
 from zope.server.http.httpserverchannel import HTTPServerChannel
+from zope.server.serverbase import ServerBase
 
 
 class HTTPServer(ServerBase):

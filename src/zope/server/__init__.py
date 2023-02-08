@@ -18,8 +18,10 @@ servers themselves and helper objects, such as tasks and requests.
 """
 import asyncore
 
-from zope.server.interfaces import IDispatcher
 from zope.interface import classImplements
+
+from zope.server.interfaces import IDispatcher
+
 
 # Tell the the async.dispatcher that it implements IDispatcher.
 classImplements(asyncore.dispatcher, IDispatcher)

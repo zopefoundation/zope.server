@@ -1,13 +1,8 @@
-import unittest
 import logging
-from io import BytesIO, StringIO
+import unittest
+from io import StringIO
 
 from zope.server.taskthreads import ThreadedTaskDispatcher
-
-
-# By using io.BytesIO() instead of cStringIO.StringIO() on Python 2 we make
-# sure we're not trying to accidentally print unicode to stdout/stderr.
-NativeStringIO = BytesIO if str is bytes else StringIO
 
 
 class CountingDict(dict):
@@ -20,7 +15,7 @@ class CountingDict(dict):
         return value
 
 
-class QueueStub(object):
+class QueueStub:
     def __init__(self, items=()):
         self.items = list(items)
 
@@ -28,7 +23,7 @@ class QueueStub(object):
         return self.items.pop(0)
 
 
-class TaskStub(object):
+class TaskStub:
     def service(self):
         raise Exception('testing exception handling')
 
@@ -37,7 +32,7 @@ class TestExceptionLogging(unittest.TestCase):
 
     def setUp(self):
         self.logger = logging.getLogger('zope.server.taskthreads')
-        self.logbuf = NativeStringIO()
+        self.logbuf = StringIO()
         self.good_handler = logging.StreamHandler(self.logbuf)
         self.logger.addHandler(self.good_handler)
         self.bad_handler = logging.Handler()
@@ -78,7 +73,7 @@ class TestThreadedDispatcher(unittest.TestCase):
 
         dispatcher = ThreadedTaskDispatcher()
 
-        class Task(object):
+        class Task:
 
             def service(self):
                 del dispatcher.threads[42]
@@ -94,7 +89,7 @@ class TestThreadedDispatcher(unittest.TestCase):
             ThreadedTaskDispatcher().addTask(None)
 
     def test_addTask_no_defer(self):
-        class Task(object):
+        class Task:
 
             cancel_called = False
 
@@ -124,13 +119,14 @@ class TestThreadedDispatcher(unittest.TestCase):
 
         dispatcher = ThreadedTaskDispatcher()
 
-        class Task(object):
+        class Task:
 
             canceled = False
 
             def cancel(self):
                 self.canceled = True
-                from six.moves.queue import Empty
+                from queue import Empty
+
                 # We cheat to be able to catch the exception handler
                 raise Empty()
 

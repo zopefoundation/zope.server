@@ -14,13 +14,14 @@
 """Data Chunk Receiver
 """
 
-from zope.server.utilities import find_double_newline
-from zope.server.interfaces import IStreamConsumer
 from zope.interface import implementer
+
+from zope.server.interfaces import IStreamConsumer
+from zope.server.utilities import find_double_newline
 
 
 @implementer(IStreamConsumer)
-class ChunkedReceiver(object):
+class ChunkedReceiver:
 
     # Here's the production for a chunk:
     # (http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html)

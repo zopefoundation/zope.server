@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for logger.py
 
@@ -6,16 +5,16 @@ Tests for logger.py
 
 import unittest
 
-from zope.server.ftp import logger
-
 from zope.testing import loggingsupport
+
+from zope.server.ftp import logger
 
 
 class TestCommonFTPActivityLogger(unittest.TestCase):
 
     def test_log(self):
-        class Task(object):
-            class channel(object):
+        class Task:
+            class channel:
                 username = 'user'
                 cwd = '/'
                 addr = ('localhost',)

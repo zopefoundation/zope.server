@@ -13,17 +13,13 @@
 ##############################################################################
 """Line Command Parser
 """
-
-import sys
-
-from zope.server.interfaces import IStreamConsumer
 from zope.interface import implementer
 
-PY3 = sys.version_info >= (3, )
+from zope.server.interfaces import IStreamConsumer
 
 
 @implementer(IStreamConsumer)
-class LineCommandParser(object):
+class LineCommandParser:
     """Line Command parser. Arguments are left alone for now."""
 
     # See IStreamConsumer
@@ -59,8 +55,7 @@ class LineCommandParser(object):
             self.inbuf = self.inbuf + s
             self.completed = 1
             line = self.inbuf.strip()
-            if PY3:  # pragma: PY3
-                line = line.decode('utf-8')
+            line = line.decode('utf-8')
             self.parseLine(line)
             return len(s)
 

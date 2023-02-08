@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for dualmodechannel.py.
 
@@ -32,8 +31,6 @@ class TestDualModeChannel(unittest.TestCase):
         channel.handle_read()
 
     def test_handle_write_flush_error(self):
-        import socket
-
         class C(DualModeChannel):
             error_called = False
 
@@ -41,7 +38,7 @@ class TestDualModeChannel(unittest.TestCase):
                 DualModeChannel.__init__(self, None, None)
 
             def _flush_some(self):
-                raise socket.error()
+                raise OSError()
 
             def handle_error(self):
                 self.error_called = True
@@ -52,8 +49,6 @@ class TestDualModeChannel(unittest.TestCase):
         self.assertTrue(channel.error_called)
 
     def test_handle_read_recv_error(self):
-        import socket
-
         class C(DualModeChannel):
             error_called = False
 
@@ -61,7 +56,7 @@ class TestDualModeChannel(unittest.TestCase):
                 DualModeChannel.__init__(self, None, None)
 
             def recv(self, _count):
-                raise socket.error()
+                raise OSError()
 
             def handle_error(self):
                 self.error_called = True
@@ -78,7 +73,7 @@ class TestDualModeChannel(unittest.TestCase):
                 self.flush_called = True
                 return False
 
-        class A(object):
+        class A:
             send_bytes = 1
             outbuf_overflow = 100
 

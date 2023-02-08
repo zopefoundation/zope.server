@@ -17,10 +17,11 @@
 from io import BytesIO
 
 from zope.interface.verify import verifyObject
+
 from zope.server.interfaces.ftp import IFileSystem
 
 
-class FileSystemTests(object):
+class FileSystemTests:
     """Tests of a readable filesystem"""
 
     filesystem = None

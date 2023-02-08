@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 """
 Tests for asyncerror.py
 
 """
 
 import unittest
+
 from zope.server.tests.asyncerror import AsyncoreErrorHookMixin
 
 

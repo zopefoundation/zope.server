@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for task.py
 
@@ -8,7 +7,7 @@ import unittest
 from zope.server.task import AbstractTask
 
 
-class MockChannel(object):
+class MockChannel:
 
     log_socket_errors = False
     closing_when_done = False
@@ -27,7 +26,7 @@ class TestAbstractTask(unittest.TestCase):
 
         class T(AbstractTask):
             def _do_service(self):
-                raise socket.error()
+                raise OSError()
 
         t = T(MockChannel())
         t.service()
@@ -55,7 +54,7 @@ class TestAbstractTask(unittest.TestCase):
         t.service()
 
     def test_hit_log(self):
-        class Log(object):
+        class Log:
             called = False
 
             def log(self, _task):

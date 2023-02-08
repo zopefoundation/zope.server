@@ -13,8 +13,8 @@
 ##############################################################################
 """Buffers
 """
-from io import BytesIO
 import tempfile
+from io import BytesIO
 
 
 # copy_bytes controls the size of temp. strings for shuffling data around.
@@ -24,7 +24,7 @@ COPY_BYTES = 1 << 18  # 256K
 STRBUF_LIMIT = 8192
 
 
-class FileBasedBuffer(object):
+class FileBasedBuffer:
 
     remain = 0
 

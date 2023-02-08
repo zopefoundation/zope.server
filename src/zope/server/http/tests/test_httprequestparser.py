@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
 #
 # Copyright (c) 2002 Zope Foundation and Contributors.
@@ -15,8 +14,9 @@
 """HTTP Request Parser tests
 """
 import unittest
-from zope.server.http.httprequestparser import HTTPRequestParser
+
 from zope.server.adjustments import Adjustments
+from zope.server.http.httprequestparser import HTTPRequestParser
 
 
 my_adj = Adjustments()

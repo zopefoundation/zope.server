@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 """
 Tests for chunking.py
 
 """
 import unittest
 
-from zope.server.http import chunking
 from zope.server.buffers import StringIOBasedBuffer
+from zope.server.http import chunking
 
 
 class TestChunkedReceiver(unittest.TestCase):
@@ -27,9 +26,8 @@ class TestChunkedReceiver(unittest.TestCase):
         if isinstance(data, bytes):
             reader = self._makeOne()
             for c in data:
-                if str is not bytes:  # pragma: PY3
-                    # sigh. Py3 iterates bytes as ints
-                    c = bytes((c,))
+                # sigh. Python iterates bytes as ints
+                c = bytes((c,))
                 reader.received(c)
             self.assertEqual(reader.getfile().read(),
                              expected)

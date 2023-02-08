@@ -16,17 +16,17 @@
 This module provides a base implementation for the server channel. It can only
 be used as a mix-in to actual server channel implementations.
 """
-import time
-import sys
 import asyncore
+import sys
+import time
 from threading import Lock
-
-from six import reraise
 
 from zope.interface import implementer
 
 from zope.server.dualmodechannel import DualModeChannel
-from zope.server.interfaces import IServerChannel, ITask
+from zope.server.interfaces import IServerChannel
+from zope.server.interfaces import ITask
+
 
 # task_lock is useful for synchronizing access to task-related attributes.
 task_lock = Lock()
@@ -150,7 +150,7 @@ class ServerChannelBase(DualModeChannel):
         """
         t, v = sys.exc_info()[:2]
         if issubclass(t, (SystemExit, KeyboardInterrupt)):
-            reraise(*sys.exc_info())
+            raise
         asyncore.dispatcher.handle_error(self)
 
     def handle_comm_error(self):

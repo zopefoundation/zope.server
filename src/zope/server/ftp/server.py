@@ -16,19 +16,24 @@
 import asyncore
 import posixpath
 import socket
-from datetime import date, timedelta
-from getopt import getopt, GetoptError
+from datetime import date
+from datetime import timedelta
+from getopt import GetoptError
+from getopt import getopt
 
-from zope.security.interfaces import Unauthorized
 from zope.interface import implementer
+from zope.security.interfaces import Unauthorized
+
 from zope.server.buffers import OverflowableBuffer
-from zope.server.task import AbstractTask
+from zope.server.dualmodechannel import DualModeChannel
+from zope.server.dualmodechannel import the_trigger
 from zope.server.interfaces import ITask
 from zope.server.interfaces.ftp import IFileSystemAccess
 from zope.server.interfaces.ftp import IFTPCommandHandler
 from zope.server.linereceiver.lineserverchannel import LineServerChannel
 from zope.server.serverbase import ServerBase
-from zope.server.dualmodechannel import DualModeChannel, the_trigger
+from zope.server.task import AbstractTask
+
 
 # flake8: noqa: E203 whitespace before ':'
 status_messages = {
@@ -125,7 +130,7 @@ class FTPServerChannel(LineServerChannel):
     type_mode_map = {'a': 't', 'i': 'b', 'e': 'b', 'l': 'b'}
 
     def __init__(self, server, conn, addr, adj=None):
-        super(FTPServerChannel, self).__init__(server, conn, addr, adj)
+        super().__init__(server, conn, addr, adj)
 
         self.port_addr = None  # The client's PORT address
         self.passive_listener = None  # The PASV listener
@@ -383,10 +388,6 @@ class FTPServerChannel(LineServerChannel):
             self.reply('ERR_OPEN_READ', str(err))
             cdc.reported = True
             cdc.close_when_done()
-        except IOError as err:  # pragma: no cover XXX Same thing on Python 3
-            self.reply('ERR_IO', str(err))
-            cdc.reported = True
-            cdc.close_when_done()
 
     def cmd_rest(self, args):
         """See IFTPCommandHandler"""
@@ -474,8 +475,6 @@ class FTPServerChannel(LineServerChannel):
                                             append=(mode[0] == 'a'))
         except OSError as err:  # pragma: no cover
             self.reply('ERR_OPEN_WRITE', str(err))
-        except IOError as err:  # pragma: no cover XXX On Py3 this is OSError
-            self.reply('ERR_IO', str(err))
         except:  # noqa: E722 do not use bare 'except' pragma: no cover
             self.exception()
         else:
@@ -735,7 +734,7 @@ class FTPDataChannel(DualModeChannel):
         #    self.bind(('', self.control_channel.server.port - 1))
         try:
             self.connect(client_addr)
-        except socket.error:  # pragma: no cover
+        except OSError:  # pragma: no cover
             self.report('NO_DATA_CONN')
 
     def abort(self):
@@ -844,7 +843,7 @@ class RETRChannel(FTPDataChannel):
 
     def write(self, data):
         if self.control_channel is None:
-            raise IOError('Client FTP connection closed')
+            raise OSError('Client FTP connection closed')
         if not self.opened:
             self._open()
         return FTPDataChannel.write(self, data)
@@ -856,7 +855,7 @@ class RETRChannel(FTPDataChannel):
         # This may be called upon making the connection.
         try:
             self.recv(1)
-        except socket.error:
+        except OSError:
             # The connection failed.
             self.report('NO_DATA_CONN')
             self.close()
@@ -880,7 +879,7 @@ class RETRChannel(FTPDataChannel):
             self.report('TRANSFER_ABORTED')  # pragma: no cover
 
 
-class ApplicationOutputStream(object):
+class ApplicationOutputStream:
     """Provide stream output to RETRChannel.
 
     Maps close() to close_when_done().
@@ -903,4 +902,4 @@ class FTPServer(ServerBase):
         assert IFileSystemAccess.providedBy(fs_access)
         self.fs_access = fs_access
 
-        super(FTPServer, self).__init__(ip, port, *args, **kw)
+        super().__init__(ip, port, *args, **kw)

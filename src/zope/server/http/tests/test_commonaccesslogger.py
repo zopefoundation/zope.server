@@ -13,8 +13,8 @@
 ##############################################################################
 """Common Access Logger tests
 """
-import unittest
 import logging
+import unittest
 
 import zope.server.http.commonaccesslogger
 
@@ -76,15 +76,16 @@ class TestCommonAccessLogger(unittest.TestCase):
 
     def test_log_request(self):
         import time
+
         from zope.testing import loggingsupport
         handler = loggingsupport.InstalledHandler("accesslog")
         self.addCleanup(handler.uninstall)
 
-        class Resolver(object):
+        class Resolver:
             def resolve_ptr(self, ip, then):
                 then('host', None, None)
 
-        class Task(object):
+        class Task:
             channel = request_data = property(lambda s: s)
             headers = {}
             auth_user_name = None

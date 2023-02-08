@@ -11,13 +11,14 @@
 # FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
-from __future__ import print_function
+
 import asyncore
+import errno
 import os
 import socket
 import struct
 from threading import Lock
-import errno
+
 
 _ADDRESS_MASK = 256 ** struct.calcsize('P')
 
@@ -65,7 +66,7 @@ def positive_id(obj):
 # the main thread is trying to remove some]
 
 
-class _triggerbase(object):
+class _triggerbase:
     """OS-independent base class for OS-dependent trigger class."""
 
     kind = None  # subclass must set to "pipe" or "loopback"; used by repr
@@ -121,7 +122,7 @@ class _triggerbase(object):
     def handle_read(self):
         try:
             self.recv(8192)
-        except socket.error:
+        except OSError:
             return
         with self.lock:
             for thunk in self.thunks:
@@ -137,7 +138,8 @@ class _triggerbase(object):
             self.thunks = []
 
     def __repr__(self):
-        return '<select-trigger (%s) at %x>' % (self.kind, positive_id(self))
+        return '<select-trigger ({}) at {:x}>'.format(
+            self.kind, positive_id(self))
 
 
 if hasattr(asyncore, 'file_dispatcher'):
@@ -217,7 +219,7 @@ class sockettrigger(_triggerbase, asyncore.dispatcher):
             try:
                 self._connect_client(w, connect_address)
                 break    # success
-            except socket.error as detail:
+            except OSError as detail:
                 if detail.args[0] not in self.ADDR_IN_USE_CODES:
                     # "Address already in use" is the only error
                     # I've seen on two WinXP Pro SP2 boxes, under

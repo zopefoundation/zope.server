@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for zlogintegration.py
 
@@ -10,8 +9,9 @@ import unittest
 class TestLogInfo(unittest.TestCase):
 
     def test_patched(self):
-        from zope.server import zlogintegration
         import asyncore
+
+        from zope.server import zlogintegration
 
         # dispatcher is a class, so this becomes an unbound method
         # on Python 2
@@ -21,8 +21,9 @@ class TestLogInfo(unittest.TestCase):
                          zlogintegration.log_info)
 
     def test_log_info(self):
-        from zope.server import zlogintegration
         from zope.testing.loggingsupport import InstalledHandler
+
+        from zope.server import zlogintegration
 
         handler = InstalledHandler('zope.server')
         try:

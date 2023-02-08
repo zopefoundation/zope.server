@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for serverchannelbase.py
 
@@ -6,6 +5,7 @@ Tests for serverchannelbase.py
 import unittest
 
 from zope.testing.cleanup import CleanUp
+
 from zope.server import serverchannelbase
 
 
@@ -92,7 +92,7 @@ class TestServerChannelBase(CleanUp,
         class MyException(Exception):
             pass
 
-        class Task(object):
+        class Task:
 
             def service(self):
                 raise MyException()
@@ -101,7 +101,7 @@ class TestServerChannelBase(CleanUp,
 
         channel.tasks = [task]
 
-        class Server(object):
+        class Server:
 
             tasks = ()
 
@@ -123,7 +123,7 @@ class TestServerChannelBase(CleanUp,
         self.assertFalse(channel.async_mode)
         channel.running_tasks = True
 
-        class Task(object):
+        class Task:
 
             cancelled = False
 

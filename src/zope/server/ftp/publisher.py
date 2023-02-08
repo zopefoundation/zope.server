@@ -18,17 +18,16 @@ This FTP server uses the Zope 3 Publisher to execute commands.
 import posixpath
 from io import BytesIO
 
+from zope.interface import implementer
+from zope.publisher.publish import publish
+
+from zope.server.ftp.server import FTPServer
 from zope.server.interfaces.ftp import IFileSystem
 from zope.server.interfaces.ftp import IFileSystemAccess
 
-from zope.server.ftp.server import FTPServer
-from zope.publisher.publish import publish
-
-from zope.interface import implementer
-
 
 @implementer(IFileSystem)
-class PublisherFileSystem(object):
+class PublisherFileSystem:
     """Generic Publisher FileSystem implementation."""
 
     def __init__(self, credentials, request_factory):
@@ -119,12 +118,11 @@ class PublisherFTPServer(FTPServer):
 
     def __init__(self, request_factory, name, ip, port, *args, **kw):
         fs_access = PublisherFileSystemAccess(request_factory)
-        super(PublisherFTPServer, self).__init__(ip, port, fs_access,
-                                                 *args, **kw)
+        super().__init__(ip, port, fs_access, *args, **kw)
 
 
 @implementer(IFileSystemAccess)
-class PublisherFileSystemAccess(object):
+class PublisherFileSystemAccess:
 
     def __init__(self, request_factory):
         self.request_factory = request_factory
