@@ -40,7 +40,7 @@ tests_require = [
 
 setup(
     name='zope.server',
-    version='5.0',
+    version='5.1.dev0',
     author='Zope Foundation and Contributors',
     author_email='zope-dev@zope.dev',
     description='Zope Server (Web and FTP)',
